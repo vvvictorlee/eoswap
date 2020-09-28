@@ -13,8 +13,8 @@
 
 #pragma once
 #include <common/BType.hpp>
-#include <storage/BFactoryTable.hpp>
 #include <eoswap/BPool.hpp>
+#include <storage/BFactoryTable.hpp>
 
 class BFactory : public BBronze {
 private:
@@ -22,53 +22,44 @@ private:
   BFactoryStorageSingleton factory_storage_singleton;
   BFactoryStorage _factory_storage;
 
-
 public:
   BFactory(name _self)
-      : self(_self),factory_storage_singleton(_self, _self.value)
-
-  {
+      : self(_self), factory_storage_singleton(_self, _self.value) {
     _factory_storage = factory_storage_singleton.exists()
-                        ? factory_storage_singleton.get()
-                        : BFactoryStorage{};
+                           ? factory_storage_singleton.get()
+                           : BFactoryStorage{};
   }
   ~BFactory() { factory_storage_singleton.set(_factory_storage, self); }
 
+  bool isBPool(name pool) { return _factory_storage.isBPool[pool]; }
 
-    bool isBPool(name owner)
-    {
-        return _factory_storage.isBPool[owner];
-    }
+  name newBPool(name msg_sender) {
+    BPool bpool(msg_sender);
+    print("is");
+    bpool.initBPool(msg_sender,self);
+    print("is");
+    _factory_storage.isBPool[msg_sender] = true;
+    bpool.setController(msg_sender);
+    return msg_sender;
+  }
 
-    name newBPool(name msg_sender)
-    {
-        BPool bpool(self);
-        _factory_storage.isBPool[msg_sender] = true;
-        bpool.setController(msg_sender,msg_sender);
-        return msg_sender;
-    }
+  void initBFactory(name msg_sender) { _factory_storage.blabs = msg_sender; }
 
-    void initBFactory(name msg_sender)  {
-        _factory_storage.blabs = msg_sender;
-    }
+  name getBLabs() { return _factory_storage.blabs; }
 
-    name getBLabs()
-    {
-        return _factory_storage.blabs;
-    }
+  void setBLabs(name msg_sender, name blabs)
 
-    void setBLabs(name msg_sender,name blabs)
-        
-    {
-        require(msg_sender== _factory_storage.blabs, "ERR_NOT_factory_storage.blabs");
-        _factory_storage.blabs = blabs;
-    }
+  {
+    require(msg_sender == _factory_storage.blabs,
+            "ERR_NOT_factory_storage.blabs");
+    _factory_storage.blabs = blabs;
+  }
 
-    void collect(name msg_sender,BPool pool)
-    {
-        require(msg_sender== _factory_storage.blabs, "ERR_NOT_factory_storage.blabs");
-        uint collected = pool.balanceOf(self);
-        bool xfer = pool.transfer(msg_sender,_factory_storage.blabs, collected);
-        require(xfer, "ERR_ERC20_FAILED");
-    }
+  void collect(name msg_sender, BPool pool) {
+    require(msg_sender == _factory_storage.blabs,
+            "ERR_NOT_factory_storage.blabs");
+    uint collected = pool.balanceOf(self);
+    bool xfer = pool.transfer(msg_sender, _factory_storage.blabs, collected);
+    require(xfer, "ERR_ERC20_FAILED");
+  }
 };

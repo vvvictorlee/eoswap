@@ -22,12 +22,17 @@ private:
   name self;
   BPoolStorageSingleton pool_storage_singleton;
   BPoolStorage _pool_storage;
+  bool testFlag;
 
 public:
-  BPool(name _self)
-      : self(_self), pool_storage_singleton(_self, _self.value), BToken(_self)
+  BPool(name _self, bool test = false)
+      : self(_self), pool_storage_singleton(_self, _self.value), BToken(_self),
+        testFlag(test)
 
   {
+    if (!testFlag) {
+      require_auth(self);
+    }
     _pool_storage = pool_storage_singleton.exists()
                         ? pool_storage_singleton.get()
                         : BPoolStorage{};
@@ -43,9 +48,9 @@ public:
     ~Lock() { pool_storage.mutex = false; }
   };
 
-  void initBPool(name msg_sender) {
-    _pool_storage.controller = msg_sender;
-    _pool_storage.factory = msg_sender;
+  void initBPool(name self, name factory) {
+    _pool_storage.controller = self;
+    _pool_storage.factory = factory;
     _pool_storage.swapFee = MIN_FEE;
     _pool_storage.publicSwap = false;
     _pool_storage.finalized = false;
@@ -62,7 +67,7 @@ public:
   std::vector<name> getCurrentTokens() { return _pool_storage.tokens; }
 
   std::vector<name> getFinalTokens() {
-    require(_pool_storage.finalized, "ERR_NOT_pool_storage.finalized");
+    require(_pool_storage.finalized, "ERR_NOT_FINALIZED");
     return _pool_storage.tokens;
   }
 
@@ -89,32 +94,28 @@ public:
 
   name getController() { return _pool_storage.controller; }
 
-  void setSwapFee(name msg_sender, uint swapFee) {
-    require(!_pool_storage.finalized, "ERR_IS_pool_storage.finalized");
-    require(msg_sender == _pool_storage.controller,
-            "ERR_NOT_pool_storage.controller");
+  void setSwapFee(uint swapFee) {
+    require(!_pool_storage.finalized, "ERR_IS_FINALIZED");
+    require(self == _pool_storage.controller, "ERR_NOT_CONTROLLER");
     require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
     require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
     _pool_storage.swapFee = swapFee;
   }
 
-  void setController(name msg_sender, name manager) {
-    require(msg_sender == _pool_storage.controller,
-            "ERR_NOT_pool_storage.controller");
+  void setController(name manager) {
+    require(self == _pool_storage.controller, "ERR_NOT_CONTROLLER");
     _pool_storage.controller = manager;
   }
 
-  void setPublicSwap(name msg_sender, bool public_) {
-    require(!_pool_storage.finalized, "ERR_IS_pool_storage.finalized");
-    require(msg_sender == _pool_storage.controller,
-            "ERR_NOT_pool_storage.controller");
+  void setPublicSwap(bool public_) {
+    require(!_pool_storage.finalized, "ERR_IS_FINALIZED");
+    require(self == _pool_storage.controller, "ERR_NOT_CONTROLLER");
     _pool_storage.publicSwap = public_;
   }
 
-  void finalize(name msg_sender) {
-    require(msg_sender == _pool_storage.controller,
-            "ERR_NOT_pool_storage.controller");
-    require(!_pool_storage.finalized, "ERR_IS_pool_storage.finalized");
+  void finalize(name self) {
+    require(self == _pool_storage.controller, "ERR_NOT_CONTROLLER");
+    require(!_pool_storage.finalized, "ERR_IS_FINALIZED");
     require(_pool_storage.tokens.size() >= MIN_BOUND_TOKENS,
             "ERR_MIN_pool_storage.tokens");
 
@@ -122,36 +123,32 @@ public:
     _pool_storage.publicSwap = true;
 
     _mintPoolShare(INIT_POOL_SUPPLY);
-    _pushPoolShare(msg_sender, INIT_POOL_SUPPLY);
+    _pushPoolShare(self, INIT_POOL_SUPPLY);
   }
 
-  void bind(name msg_sender, name token, uint balance, uint denorm)
+  void bind(name token, uint balance, uint denorm)
   // _lock_  Bind does not lock because it jumps to `rebind`, which does
   {
-    require(msg_sender == _pool_storage.controller,
-            "ERR_NOT_pool_storage.controller");
+    require(self == _pool_storage.controller, "ERR_NOT_CONTROLLER");
     require(!_pool_storage.records[token].bound, "ERR_IS_BOUND");
-    require(!_pool_storage.finalized, "ERR_IS_pool_storage.finalized");
+    require(!_pool_storage.finalized, "ERR_IS_FINALIZED");
 
-    require(_pool_storage.tokens.size() < MAX_BOUND_TOKENS,
-            "ERR_MAX_pool_storage.tokens");
+    require(_pool_storage.tokens.size() < MAX_BOUND_TOKENS, "ERR_MAX_TOKENS");
 
     _pool_storage.records[token] = Record({
-     true,
-       _pool_storage.tokens.size(),
-      0, // balance and denorm will be validated
-       0 // and set by `rebind`
+        true, _pool_storage.tokens.size(),
+        0, // balance and denorm will be validated
+        0  // and set by `rebind`
     });
     _pool_storage.tokens.push_back(token);
-    rebind(msg_sender, token, balance, denorm);
+    rebind(token, balance, denorm);
   }
 
-  void rebind(name msg_sender, name token, uint balance, uint denorm) {
+  void rebind(name token, uint balance, uint denorm) {
 
-    require(msg_sender == _pool_storage.controller,
-            "ERR_NOT_pool_storage.controller");
+    require(self == _pool_storage.controller, "ERR_NOT_CONTROLLER");
     require(_pool_storage.records[token].bound, "ERR_NOT_BOUND");
-    require(!_pool_storage.finalized, "ERR_IS_pool_storage.finalized");
+    require(!_pool_storage.finalized, "ERR_IS_FINALIZED");
 
     require(denorm >= MIN_WEIGHT, "ERR_MIN_WEIGHT");
     require(denorm <= MAX_WEIGHT, "ERR_MAX_WEIGHT");
@@ -174,23 +171,22 @@ public:
     uint oldBalance = _pool_storage.records[token].balance;
     _pool_storage.records[token].balance = balance;
     if (balance > oldBalance) {
-      _pullUnderlying(token, msg_sender, BMath::bsub(balance, oldBalance));
+      _pullUnderlying(token, self, BMath::bsub(balance, oldBalance));
     } else if (balance < oldBalance) {
       // In this case liquidity is being withdrawn, so charge EXIT_FEE
       uint tokenBalanceWithdrawn = BMath::bsub(oldBalance, balance);
       uint tokenExitFee = BMath::bmul(tokenBalanceWithdrawn, EXIT_FEE);
-      _pushUnderlying(token, msg_sender,
+      _pushUnderlying(token, self,
                       BMath::bsub(tokenBalanceWithdrawn, tokenExitFee));
       _pushUnderlying(token, _pool_storage.factory, tokenExitFee);
     }
   }
 
-  void unbind(name msg_sender, name token) {
+  void unbind(name token) {
 
-    require(msg_sender == _pool_storage.controller,
-            "ERR_NOT_pool_storage.controller");
+    require(self == _pool_storage.controller, "ERR_NOT_CONTROLLER");
     require(_pool_storage.records[token].bound, "ERR_NOT_BOUND");
-    require(!_pool_storage.finalized, "ERR_IS_pool_storage.finalized");
+    require(!_pool_storage.finalized, "ERR_IS_FINALIZED");
 
     uint tokenBalance = _pool_storage.records[token].balance;
     uint tokenExitFee = BMath::bmul(tokenBalance, EXIT_FEE);
@@ -205,10 +201,9 @@ public:
     _pool_storage.tokens[index] = _pool_storage.tokens[last];
     _pool_storage.records[_pool_storage.tokens[index]].index = index;
     _pool_storage.tokens.pop_back();
-    _pool_storage.records[token] =
-        Record({false,  0,  0,  0});
+    _pool_storage.records[token] = Record({false, 0, 0, 0});
 
-    _pushUnderlying(token, msg_sender, BMath::bsub(tokenBalance, tokenExitFee));
+    _pushUnderlying(token, self, BMath::bsub(tokenBalance, tokenExitFee));
     _pushUnderlying(token, _pool_storage.factory, tokenExitFee);
   }
 
@@ -236,9 +231,8 @@ public:
                          outRecord.denorm, 0);
   }
 
-  void joinPool(name msg_sender, uint poolAmountOut,
-                std::vector<uint> maxAmountsIn) {
-    require(_pool_storage.finalized, "ERR_NOT_pool_storage.finalized");
+  void joinPool(uint poolAmountOut, std::vector<uint> maxAmountsIn) {
+    require(_pool_storage.finalized, "ERR_NOT_FINALIZED");
 
     uint poolTotal = totalSupply();
     uint ratio = BMath::bdiv(poolAmountOut, poolTotal);
@@ -252,15 +246,14 @@ public:
       require(tokenAmountIn <= maxAmountsIn[i], "ERR_LIMIT_IN");
       _pool_storage.records[t].balance =
           BMath::badd(_pool_storage.records[t].balance, tokenAmountIn);
-      _pullUnderlying(t, msg_sender, tokenAmountIn);
+      _pullUnderlying(t, self, tokenAmountIn);
     }
     _mintPoolShare(poolAmountOut);
-    _pushPoolShare(msg_sender, poolAmountOut);
+    _pushPoolShare(self, poolAmountOut);
   }
 
-  void exitPool(name msg_sender, uint poolAmountIn,
-                std::vector<uint> minAmountsOut) {
-    require(_pool_storage.finalized, "ERR_NOT_pool_storage.finalized");
+  void exitPool(uint poolAmountIn, std::vector<uint> minAmountsOut) {
+    require(_pool_storage.finalized, "ERR_NOT_FINALIZED");
 
     uint poolTotal = totalSupply();
     uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
@@ -268,7 +261,7 @@ public:
     uint ratio = BMath::bdiv(pAiAfterExitFee, poolTotal);
     require(ratio != 0, "ERR_MATH_APPROX");
 
-    _pullPoolShare(msg_sender, poolAmountIn);
+    _pullPoolShare(self, poolAmountIn);
     _pushPoolShare(_pool_storage.factory, exitFee);
     _burnPoolShare(pAiAfterExitFee);
 
@@ -280,13 +273,13 @@ public:
       require(tokenAmountOut >= minAmountsOut[i], "ERR_LIMIT_OUT");
       _pool_storage.records[t].balance =
           BMath::bsub(_pool_storage.records[t].balance, tokenAmountOut);
-      _pushUnderlying(t, msg_sender, tokenAmountOut);
+      _pushUnderlying(t, self, tokenAmountOut);
     }
   }
 
-  std::pair<uint, uint> swapExactAmountIn(name msg_sender, name tokenIn,
-                                          uint tokenAmountIn, name tokenOut,
-                                          uint minAmountOut, uint maxPrice) {
+  std::pair<uint, uint> swapExactAmountIn(name tokenIn, uint tokenAmountIn,
+                                          name tokenOut, uint minAmountOut,
+                                          uint maxPrice) {
 
     require(_pool_storage.records[tokenIn].bound, "ERR_NOT_BOUND");
     require(_pool_storage.records[tokenOut].bound, "ERR_NOT_BOUND");
@@ -316,17 +309,18 @@ public:
                       outRecord.denorm, _pool_storage.swapFee);
     require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
     require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
-    require(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut), "ERR_MATH_APPROX");
+    require(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut),
+            "ERR_MATH_APPROX");
 
-    _pullUnderlying(tokenIn, msg_sender, tokenAmountIn);
-    _pushUnderlying(tokenOut, msg_sender, tokenAmountOut);
+    _pullUnderlying(tokenIn, self, tokenAmountIn);
+    _pushUnderlying(tokenOut, self, tokenAmountOut);
 
     return std::make_pair(tokenAmountOut, spotPriceAfter);
   }
 
-  std::pair<uint, uint> swapExactAmountOut(name msg_sender, name tokenIn,
-                                           uint maxAmountIn, name tokenOut,
-                                           uint tokenAmountOut, uint maxPrice) {
+  std::pair<uint, uint> swapExactAmountOut(name tokenIn, uint maxAmountIn,
+                                           name tokenOut, uint tokenAmountOut,
+                                           uint maxPrice) {
     require(_pool_storage.records[tokenIn].bound, "ERR_NOT_BOUND");
     require(_pool_storage.records[tokenOut].bound, "ERR_NOT_BOUND");
     require(_pool_storage.publicSwap, "ERR_SWAP_NOT_PUBLIC");
@@ -355,17 +349,18 @@ public:
                       outRecord.denorm, _pool_storage.swapFee);
     require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
     require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
-    require(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut), "ERR_MATH_APPROX");
+    require(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut),
+            "ERR_MATH_APPROX");
 
-    _pullUnderlying(tokenIn, msg_sender, tokenAmountIn);
-    _pushUnderlying(tokenOut, msg_sender, tokenAmountOut);
+    _pullUnderlying(tokenIn, self, tokenAmountIn);
+    _pushUnderlying(tokenOut, self, tokenAmountOut);
 
     return std::make_pair(tokenAmountIn, spotPriceAfter);
   }
 
-  uint joinswapExternAmountIn(name msg_sender, name tokenIn, uint tokenAmountIn,
+  uint joinswapExternAmountIn(name tokenIn, uint tokenAmountIn,
                               uint minPoolAmountOut) {
-    require(_pool_storage.finalized, "ERR_NOT_pool_storage.finalized");
+    require(_pool_storage.finalized, "ERR_NOT_FINALIZED");
     require(_pool_storage.records[tokenIn].bound, "ERR_NOT_BOUND");
     require(tokenAmountIn <= BMath::bmul(_pool_storage.records[tokenIn].balance,
                                          MAX_IN_RATIO),
@@ -382,15 +377,15 @@ public:
     inRecord.balance = BMath::badd(inRecord.balance, tokenAmountIn);
 
     _mintPoolShare(poolAmountOut);
-    _pushPoolShare(msg_sender, poolAmountOut);
-    _pullUnderlying(tokenIn, msg_sender, tokenAmountIn);
+    _pushPoolShare(self, poolAmountOut);
+    _pullUnderlying(tokenIn, self, tokenAmountIn);
 
     return poolAmountOut;
   }
 
-  uint joinswapPoolAmountOut(name msg_sender,name tokenIn, uint poolAmountOut,
+  uint joinswapPoolAmountOut(name tokenIn, uint poolAmountOut,
                              uint maxAmountIn) {
-    require(_pool_storage.finalized, "ERR_NOT_pool_storage.finalized");
+    require(_pool_storage.finalized, "ERR_NOT_FINALIZED");
     require(_pool_storage.records[tokenIn].bound, "ERR_NOT_BOUND");
 
     Record inRecord = _pool_storage.records[tokenIn];
@@ -409,15 +404,15 @@ public:
     inRecord.balance = BMath::badd(inRecord.balance, tokenAmountIn);
 
     _mintPoolShare(poolAmountOut);
-    _pushPoolShare(msg_sender, poolAmountOut);
-    _pullUnderlying(tokenIn, msg_sender, tokenAmountIn);
+    _pushPoolShare(self, poolAmountOut);
+    _pullUnderlying(tokenIn, self, tokenAmountIn);
 
     return tokenAmountIn;
   }
 
-  uint exitswapPoolAmountIn(name msg_sender,name tokenOut, uint poolAmountIn,
+  uint exitswapPoolAmountIn(name tokenOut, uint poolAmountIn,
                             uint minAmountOut) {
-    require(_pool_storage.finalized, "ERR_NOT_pool_storage.finalized");
+    require(_pool_storage.finalized, "ERR_NOT_FINALIZED");
     require(_pool_storage.records[tokenOut].bound, "ERR_NOT_BOUND");
 
     Record outRecord = _pool_storage.records[tokenOut];
@@ -437,17 +432,17 @@ public:
 
     uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
 
-    _pullPoolShare(msg_sender, poolAmountIn);
+    _pullPoolShare(self, poolAmountIn);
     _burnPoolShare(BMath::bsub(poolAmountIn, exitFee));
     _pushPoolShare(_pool_storage.factory, exitFee);
-    _pushUnderlying(tokenOut, msg_sender, tokenAmountOut);
+    _pushUnderlying(tokenOut, self, tokenAmountOut);
 
     return tokenAmountOut;
   }
 
-  uint exitswapExternAmountOut(name msg_sender,name tokenOut, uint tokenAmountOut,
+  uint exitswapExternAmountOut(name tokenOut, uint tokenAmountOut,
                                uint maxPoolAmountIn) {
-    require(_pool_storage.finalized, "ERR_NOT_pool_storage.finalized");
+    require(_pool_storage.finalized, "ERR_NOT_FINALIZED");
     require(_pool_storage.records[tokenOut].bound, "ERR_NOT_BOUND");
     require(
         tokenAmountOut <=
@@ -467,10 +462,10 @@ public:
 
     uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
 
-    _pullPoolShare(msg_sender, poolAmountIn);
+    _pullPoolShare(self, poolAmountIn);
     _burnPoolShare(BMath::bsub(poolAmountIn, exitFee));
     _pushPoolShare(_pool_storage.factory, exitFee);
-    _pushUnderlying(tokenOut, msg_sender, tokenAmountOut);
+    _pushUnderlying(tokenOut, self, tokenAmountOut);
 
     return poolAmountIn;
   }
@@ -480,12 +475,12 @@ public:
   // locked You must `_lock_` or otherwise ensure reentry-safety
 
   void _pullUnderlying(name erc20, name from, uint amount) {
-    bool xfer = this->transferFrom(from,from, self, amount);
+    bool xfer = this->transferFrom(from, from, self, amount);
     require(xfer, "ERR_ERC20_FALSE");
   }
 
   void _pushUnderlying(name erc20, name to, uint amount) {
-    bool xfer = this->transfer(self,to, amount);
+    bool xfer = this->transfer(self, to, amount);
     require(xfer, "ERR_ERC20_FALSE");
   }
 
