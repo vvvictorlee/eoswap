@@ -49,26 +49,26 @@ public:
     return base_tester::push_action(std::move(act), signer.to_uint64_t());
   }
 
-  action_result newpool(account_name msg_sender) {
-    return push_action(msg_sender, N(newpool), mvo()("msg_sender", msg_sender));
+  action_result newpool(account_name msg_sender,account_name pool_name) {
+    return push_action(msg_sender, N(newpool), mvo()("msg_sender", msg_sender)("pool_name",pool_name));
   }
 
   // msg_sender, name dst, uint amt
-  action_result mint(account_name msg_sender, uint64_t amt) {
+  action_result mint(account_name msg_sender, uint64_t amt,account_name pool_name) {
     return push_action(msg_sender, N(mint),
-                       mvo()("msg_sender", msg_sender)("amt", amt));
+                       mvo()("msg_sender", msg_sender)("amt", amt)("pool_name",pool_name));
   }
 
   action_result transfer(account_name msg_sender, account_name dst,
-                         uint64_t amt) {
+                         uint64_t amt,account_name pool_name) {
     return push_action(msg_sender, N(transfer),
-                       mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
+                       mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt)("pool_name",pool_name));
   }
 
   action_result approve(account_name msg_sender, account_name dst,
-                        uint64_t amt) {
+                        uint64_t amt,account_name pool_name) {
     return push_action(msg_sender, N(approve),
-                       mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
+                       mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt)("pool_name",pool_name));
   }
 
   fc::variant get_token_store() {
@@ -147,186 +147,38 @@ BOOST_AUTO_TEST_SUITE(eoswap_tests)
 
 BOOST_FIXTURE_TEST_CASE(newpoool_tests, eoswap_tester) try {
 
-  newpool(N(eoswapeoswap));
-  //   BOOST_CHECK("1" == "11");
-  //   mint(N(alice), 300);
-  //   BOOST_CHECK("2" == "22");
-  //   const auto ts = get_token_store();
-  //   BOOST_CHECK("3" == "33");
-  //   BOOST_CHECK(1 == get_token_store()["balance"].get_array().size());
-  //   transfer(N(eoswapeoswap), N(bob), 300);
+  newpool(N(eoswapeoswap),N(pool));
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(transfer_tests, eoswap_tester) try {
-
-  //   newpool(N(eoswapeoswap));
-  BOOST_CHECK("1" == "11");
-  mint(N(alice), 300);
-  BOOST_CHECK("2" == "22");
-  const auto ts = get_token_store();
-  const auto kv = to_kv(ts);
-
-  for (auto a : kv) {
-    BOOST_CHECK(a.first == "a.second");
-    BOOST_CHECK("a.first" == a.second);
-    BOOST_TEST_REQUIRE(a.first == "ss");
-    BOOST_TEST_REQUIRE("100" == a.second);
-  }
-
-  BOOST_CHECK("3" == "33");
-  BOOST_CHECK(1 == get_token_store()["balance"].get_array().size());
-  transfer(N(eoswapeoswap), N(bob), 300);
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(transfer2_tests, eoswap_tester) try {
-
-  //   newpool(N(eoswapeoswap));
-  BOOST_CHECK("1" == "11");
-  mint(N(alice), 300);
-  BOOST_CHECK("2" == "22");
-  const auto ts = get_token_store();
-  const auto kv = to_kv(ts);
-  BOOST_TEST_REQUIRE(1 == kv.size());
-  for (auto a : kv) {
-    BOOST_CHECK(a.first == "1");
-    BOOST_CHECK("a.first" == a.second);
-    BOOST_TEST_REQUIRE("1" == a.second);
-  }
-
-  BOOST_CHECK("3" == "33");
-  BOOST_CHECK(1 == get_token_store()["balance"].get_array().size());
-  transfer(N(eoswapeoswap), N(bob), 300);
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(transfer3_tests, eoswap_tester) try {
-
-  //   newpool(N(eoswapeoswap));
-  BOOST_CHECK("1" == "11");
-  mint(N(alice), 300);
-  BOOST_CHECK("2" == "22");
-  const auto ts = get_token_store();
-  const auto kv = to_kv(ts);
-
-  for (auto a : kv) {
-    BOOST_CHECK(a.first == "a.second");
-    BOOST_CHECK("a.first" == a.second);
-    //  BOOST_TEST_REQUIRE("100" == a.second);
-  }
-
-  BOOST_CHECK("3" == "33");
-  BOOST_CHECK(1 == get_token_store()["balance"].get_array().size());
-  const auto b = get_token_store()["balance"].get_array();
-  for (int i = 0; i < b.size(); i++) {
-    const auto a = b.at(i);
-
-    BOOST_TEST_CHECK(a["key"] == "eoswapeoswap");
-    BOOST_TEST_CHECK(a["value"] == 300);
-
-    BOOST_TEST_CHECK(nullptr == a);
-    // BOOST_TEST_REQUIRE(nullptr == a);
-  }
-
-  transfer(N(eoswapeoswap), N(bob), 300);
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(transfer4_tests, eoswap_tester) try {
-
-  //   newpool(N(eoswapeoswap));
-  BOOST_CHECK("1" == "11");
-  mint(N(alice), 300);
-  BOOST_CHECK("2" == "22");
-  const auto ts = get_token_store();
-  const auto kv = to_kv(ts);
-
-  for (auto a : kv) {
-    BOOST_CHECK(a.first == "a.second");
-    BOOST_CHECK("a.first" == a.second);
-    //  BOOST_TEST_REQUIRE("100" == a.second);
-  }
-
-  BOOST_CHECK("3" == "33");
-  BOOST_CHECK(1 == get_token_store()["balance"].get_array().size());
-  const auto b = get_token_store()["balance"].get_array();
-  for (int i = 0; i < b.size(); i++) {
-    const auto a = b.at(i);
-
-    BOOST_TEST_CHECK(a["key"] == "eoswapeoswap");
-    BOOST_TEST_CHECK(a["value"] == 300);
-
-    BOOST_TEST_CHECK(nullptr == a);
-    // BOOST_TEST_REQUIRE(nullptr == a);
-  }
-
-  transfer(N(eoswapeoswap), N(bob), 300);
-}
-FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(transfer5_tests, eoswap_tester) try {
 
   //   newpool(N(eoswapeoswap));
-  BOOST_CHECK("1" == "11");
-  mint(N(alice), 300);
-  BOOST_CHECK("2" == "22");
+  mint(N(alice), 300,N(pool));
   const auto ts = get_token_store()["balance"];
   const auto kv = array_to_kv(ts);
 
-  //   for (auto a : kv) {
-  //     BOOST_CHECK(a.first == "a.second");
-  //     BOOST_CHECK("a.first" == a.second);
-  //     //  BOOST_TEST_REQUIRE("100" == a.second);
-  //   }
   const auto m = kv.find(std::string("eoswapeoswap"));
   bool flag = m != kv.end();
-  BOOST_TEST_CHECK(flag);
-  //   if (m != kv.end()) {
-  BOOST_TEST_CHECK(m->second == "300");
-  //   }
-  // else
-  // {
-  //       BOOST_CHECK("2" == "2233");
-  // }
 
-  //   BOOST_CHECK("3" == "33");
-  //   BOOST_CHECK(1 == get_token_store()["balance"].get_array().size());
-  //   const auto b = get_token_store()["balance"].get_array();
-  //   for (int i = 0; i < b.size(); i++) {
-  //     const auto a = b.at(i);
-
-  //     // BOOST_TEST_CHECK(a["key"] == "eoswapeoswap");
-  //     BOOST_TEST_CHECK(a["value"] == 300);
-
-  //     BOOST_TEST_CHECK(nullptr == a);
-  //     // BOOST_TEST_REQUIRE(nullptr == a);
-  //   }
-
-  //   transfer(N(eoswapeoswap), N(bob), 300);
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(approve_tests, eoswap_tester) try {
 
   //   newpool(N(eoswapeoswap));
-  BOOST_CHECK("1" == "11");
-  approve(N(alice), N(bob), 300);
-  BOOST_CHECK("2" == "22");
+  approve(N(alice), N(bob), 300,N(pool));
 
-  BOOST_CHECK("3" == "33");
-  BOOST_CHECK(1 == get_token_store()["allowance"].get_array().size());
+  BOOST_REQUIRE_EQUAL(1 , get_token_store()["allowance"].get_array().size());
   const auto b = get_token_store()["allowance"].get_array();
   for (int i = 0; i < b.size(); i++) {
     const auto a = b.at(i);
 
-    // BOOST_TEST_CHECK(a["key"] == "eoswapeoswap");
+    // BOOST_REQUIRE_NO_THROW(a["key"] == "eoswapeoswap");
     const auto aa = a["value"]["a2amap"].get_array();
     const auto aaa = aa.at(0);
-    BOOST_TEST_CHECK(aaa["value"] == 300);
-
-    // BOOST_TEST_CHECK(nullptr == a);
-    // BOOST_TEST_REQUIRE(nullptr == a);
+     BOOST_REQUIRE_EQUAL(aaa["value"] ,300);
   }
 }
 FC_LOG_AND_RETHROW()

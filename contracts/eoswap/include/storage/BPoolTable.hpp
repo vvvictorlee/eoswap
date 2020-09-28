@@ -21,7 +21,7 @@ struct Record {
   EOSLIB_SERIALIZE(Record, (bound)(index)(denorm)(balance))
 };
 
-struct [[eosio::table("pooltable"), eosio::contract("eoswap")]] BPoolStorage {
+struct  BPoolStore {
   bool mutex;
 
   name factory;    // BFactory name to push token exitFee to
@@ -37,7 +37,13 @@ struct [[eosio::table("pooltable"), eosio::contract("eoswap")]] BPoolStorage {
   std::map<name, Record> records;
   uint totalWeight;
 
-  EOSLIB_SERIALIZE(BPoolStorage, (mutex)(factory)(controller)(publicSwap)(swapFee)(finalized)(tokens)(records)(totalWeight))
+  EOSLIB_SERIALIZE(BPoolStore, (mutex)(factory)(controller)(publicSwap)(swapFee)(finalized)(tokens)(records)(totalWeight))
+};
+
+
+struct [[eosio::table("pooltable"), eosio::contract("eoswap")]] BPoolStorage {
+  std::map<name, BPoolStore> pools;
+  EOSLIB_SERIALIZE(BPoolStorage, (pools))
 };
 
 typedef eosio::singleton<"poolstore"_n, BPoolStorage> BPoolStorageSingleton;

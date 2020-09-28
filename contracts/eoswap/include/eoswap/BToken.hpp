@@ -49,7 +49,6 @@ public:
   ~BTokenBase() { token_storage_singleton.set(_token_storage, self); }
 
   void _mint(uint amt) {
-    print("mint");
     _token_storage.balance[self] = badd(_token_storage.balance[self], amt);
     _token_storage.totalSupply = badd(_token_storage.totalSupply, amt);
   }

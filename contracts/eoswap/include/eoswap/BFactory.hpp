@@ -33,12 +33,10 @@ public:
 
   bool isBPool(name pool) { return _factory_storage.isBPool[pool]; }
 
-  name newBPool(name msg_sender) {
+  name newBPool(name msg_sender,name pool_name) {
     BPool bpool(msg_sender);
-    print("is");
-    bpool.initBPool(msg_sender,self);
-    print("is");
-    _factory_storage.isBPool[msg_sender] = true;
+    bpool.initBPool(msg_sender,self,pool_name);
+    _factory_storage.isBPool[pool_name] = true;
     bpool.setController(msg_sender);
     return msg_sender;
   }
