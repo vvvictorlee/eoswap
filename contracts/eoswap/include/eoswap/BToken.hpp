@@ -32,8 +32,8 @@ public:
 class BTokenBase : public BNum {
 private:
   name self;
-
 protected:
+  name token;
   BTokenStorageSingleton token_storage_singleton;
   BTokenStorage _token_storage;
 
@@ -47,22 +47,23 @@ public:
                          : BTokenStorage{};
   }
   ~BTokenBase() { token_storage_singleton.set(_token_storage, self); }
+  void setToken(name _token) { token = _token; }
 
   void _mint(uint amt) {
-    _token_storage.balance[self] = badd(_token_storage.balance[self], amt);
-    _token_storage.totalSupply = badd(_token_storage.totalSupply, amt);
+    _token_storage.tokens[token].balance[self] = badd(_token_storage.tokens[token].balance[self], amt);
+    _token_storage.tokens[token].totalSupply = badd(_token_storage.tokens[token].totalSupply, amt);
   }
 
   void _burn(uint amt) {
-    require(_token_storage.balance[self] >= amt, "ERR_INSUFFICIENT_BAL");
-    _token_storage.balance[self] = bsub(_token_storage.balance[self], amt);
-    _token_storage.totalSupply = bsub(_token_storage.totalSupply, amt);
+    require(_token_storage.tokens[token].balance[self] >= amt, "ERR_INSUFFICIENT_BAL");
+    _token_storage.tokens[token].balance[self] = bsub(_token_storage.tokens[token].balance[self], amt);
+    _token_storage.tokens[token].totalSupply = bsub(_token_storage.tokens[token].totalSupply, amt);
   }
 
   void _move(name src, name dst, uint amt) {
-    require(_token_storage.balance[src] >= amt, "ERR_INSUFFICIENT_BAL");
-    _token_storage.balance[src] = bsub(_token_storage.balance[src], amt);
-    _token_storage.balance[dst] = badd(_token_storage.balance[dst], amt);
+    require(_token_storage.tokens[token].balance[src] >= amt, "ERR_INSUFFICIENT_BAL");
+    _token_storage.tokens[token].balance[src] = bsub(_token_storage.tokens[token].balance[src], amt);
+    _token_storage.tokens[token].balance[dst] = badd(_token_storage.tokens[token].balance[dst], amt);
   }
 
   void _push(name to, uint amt) { _move(self, to, amt); }
@@ -85,32 +86,32 @@ public:
   uint8 decimals() { return _decimals; }
 
   virtual uint allowance(name src, name dst) override {
-    return _token_storage.allowance[src].a2amap[dst];
+    return _token_storage.tokens[token].allowance[src].a2amap[dst];
   }
 
   virtual uint balanceOf(name whom) override {
-    return _token_storage.balance[whom];
+    return _token_storage.tokens[token].balance[whom];
   }
 
-  virtual uint totalSupply() override { return _token_storage.totalSupply; }
+  virtual uint totalSupply() override { return _token_storage.tokens[token].totalSupply; }
 
   virtual bool approve(name msg_sender, name dst, uint amt) override {
-    _token_storage.allowance[msg_sender].a2amap[dst] = amt;
+    _token_storage.tokens[token].allowance[msg_sender].a2amap[dst] = amt;
     return true;
   }
 
   bool increaseApproval(name msg_sender, name dst, uint amt) {
-    _token_storage.allowance[msg_sender].a2amap[dst] =
-        badd(_token_storage.allowance[msg_sender].a2amap[dst], amt);
+    _token_storage.tokens[token].allowance[msg_sender].a2amap[dst] =
+        badd(_token_storage.tokens[token].allowance[msg_sender].a2amap[dst], amt);
     return true;
   }
 
   bool decreaseApproval(name msg_sender, name dst, uint amt) {
-    uint oldValue = _token_storage.allowance[msg_sender].a2amap[dst];
+    uint oldValue = _token_storage.tokens[token].allowance[msg_sender].a2amap[dst];
     if (amt > oldValue) {
-      _token_storage.allowance[msg_sender].a2amap[dst] = 0;
+      _token_storage.tokens[token].allowance[msg_sender].a2amap[dst] = 0;
     } else {
-      _token_storage.allowance[msg_sender].a2amap[dst] = bsub(oldValue, amt);
+      _token_storage.tokens[token].allowance[msg_sender].a2amap[dst] = bsub(oldValue, amt);
     }
     return true;
   }
@@ -123,13 +124,13 @@ public:
   virtual bool transferFrom(name msg_sender, name src, name dst,
                             uint amt) override {
     require(msg_sender == src ||
-                amt <= _token_storage.allowance[src].a2amap[msg_sender],
+                amt <= _token_storage.tokens[token].allowance[src].a2amap[msg_sender],
             "ERR_BTOKEN_BAD_CALLER");
     _move(src, dst, amt);
     if (msg_sender != src &&
-        _token_storage.allowance[src].a2amap[msg_sender] != uint64_t(-1)) {
-      _token_storage.allowance[src].a2amap[msg_sender] =
-          bsub(_token_storage.allowance[src].a2amap[msg_sender], amt);
+        _token_storage.tokens[token].allowance[src].a2amap[msg_sender] != uint(-1)) {
+      _token_storage.tokens[token].allowance[src].a2amap[msg_sender] =
+          bsub(_token_storage.tokens[token].allowance[src].a2amap[msg_sender], amt);
     }
     return true;
   }

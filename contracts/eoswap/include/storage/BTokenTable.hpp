@@ -14,21 +14,22 @@
 
 #include <common/BType.hpp>
 
-
 struct Account2Amt {
-  std::map<name, uint> a2amap;  // is token bound to pool
+  std::map<name, uint> a2amap; // is token bound to pool
 
   EOSLIB_SERIALIZE(Account2Amt, (a2amap))
 };
 
-struct [
-    [eosio::table("tokentable"), eosio::contract("eoswap")]] BTokenStorage {
-
+struct BTokenStore {
   std::map<name, uint> balance;
   std::map<name, Account2Amt> allowance;
   uint totalSupply;
-  EOSLIB_SERIALIZE(BTokenStorage, (balance)(allowance)(totalSupply))
+  EOSLIB_SERIALIZE(BTokenStore, (balance)(allowance)(totalSupply))
 };
 
-typedef eosio::singleton<"tokenstore"_n, BTokenStorage>
-    BTokenStorageSingleton;
+struct [[eosio::table("tokentable"), eosio::contract("eoswap")]] BTokenStorage {
+  std::map<name, BTokenStore> tokens;
+  EOSLIB_SERIALIZE(BTokenStorage, (tokens))
+};
+
+typedef eosio::singleton<"tokenstore"_n, BTokenStorage> BTokenStorageSingleton;

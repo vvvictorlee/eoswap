@@ -28,15 +28,15 @@ public:
     _factory_storage = factory_storage_singleton.exists()
                            ? factory_storage_singleton.get()
                            : BFactoryStorage{};
+    _factory_storage.blabs = _self;
   }
   ~BFactory() { factory_storage_singleton.set(_factory_storage, self); }
 
   bool isBPool(name pool) { return _factory_storage.isBPool[pool]; }
 
-  name newBPool(name msg_sender,name pool_name) {
-    BPool bpool(msg_sender);
-    bpool.initBPool(msg_sender,self,pool_name);
+  name newBPool(name msg_sender,name pool_name,BPool& bpool) {
     _factory_storage.isBPool[pool_name] = true;
+    bpool.initBPool(msg_sender,pool_name);
     bpool.setController(msg_sender);
     return msg_sender;
   }
@@ -49,13 +49,13 @@ public:
 
   {
     require(msg_sender == _factory_storage.blabs,
-            "ERR_NOT_factory_storage.blabs");
+            "ERR_NOT_BLABS");
     _factory_storage.blabs = blabs;
   }
 
   void collect(name msg_sender, BPool pool) {
     require(msg_sender == _factory_storage.blabs,
-            "ERR_NOT_factory_storage.blabs");
+            "ERR_NOT_BLABS");
     uint collected = pool.balanceOf(self);
     bool xfer = pool.transfer(msg_sender, _factory_storage.blabs, collected);
     require(xfer, "ERR_ERC20_FAILED");

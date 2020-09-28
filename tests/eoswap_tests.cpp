@@ -15,13 +15,14 @@ using namespace fc;
 using namespace std;
 
 using mvo = fc::mutable_variant_object;
+using uint = uint64_t;
 
 class eoswap_tester : public tester {
 public:
   eoswap_tester() {
     produce_blocks(2);
 
-    create_accounts({N(alice), N(bob), N(carol), N(eoswapeoswap)});
+    create_accounts({N(alice), N(bob), N(carol), N(eoswapeoswap), N(pool)});
     produce_blocks(2);
 
     set_code(N(eoswapeoswap), contracts::swap_wasm());
@@ -48,27 +49,234 @@ public:
 
     return base_tester::push_action(std::move(act), signer.to_uint64_t());
   }
-
-  action_result newpool(account_name msg_sender,account_name pool_name) {
-    return push_action(msg_sender, N(newpool), mvo()("msg_sender", msg_sender)("pool_name",pool_name));
+  /////////////factory///////////
+  action_result setblabs(account_name msg_sender, account_name blabs) {
+    return push_action(msg_sender, N(setblabs),
+                       mvo()("msg_sender", msg_sender)("blabs", blabs));
   }
 
+  action_result collect(account_name msg_sender, account_name pool_name) {
+    return push_action(msg_sender, N(collect),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name));
+  }
+
+  action_result newpool(account_name msg_sender, account_name pool_name) {
+    return push_action(msg_sender, N(newpool),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name));
+  }
+
+  ///////////////pool ////////////////////
   // msg_sender, name dst, uint amt
-  action_result mint(account_name msg_sender, uint64_t amt,account_name pool_name) {
-    return push_action(msg_sender, N(mint),
-                       mvo()("msg_sender", msg_sender)("amt", amt)("pool_name",pool_name));
+  action_result setswapfee(account_name msg_sender, account_name pool_name,
+                           uint swapFee) {
+    return push_action(msg_sender, N(setswapfee),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "swapFee", swapFee));
   }
 
-  action_result transfer(account_name msg_sender, account_name dst,
-                         uint64_t amt,account_name pool_name) {
-    return push_action(msg_sender, N(transfer),
-                       mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt)("pool_name",pool_name));
+  action_result setcontroler(account_name msg_sender, account_name pool_name,
+                             name manager) {
+    return push_action(msg_sender, N(setcontroler),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "manager", manager));
   }
 
-  action_result approve(account_name msg_sender, account_name dst,
-                        uint64_t amt,account_name pool_name) {
+  action_result setpubswap(account_name msg_sender, account_name pool_name,
+                           bool public_) {
+    return push_action(msg_sender, N(setpubswap),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "public_", public_));
+  }
+
+  action_result finalize(account_name msg_sender, account_name pool_name) {
+    return push_action(msg_sender, N(finalize),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name));
+  }
+
+  action_result bind(account_name msg_sender, account_name pool_name,
+                     account_name token, uint balance, uint denorm) {
+    return push_action(
+        msg_sender, N(bind),
+        mvo()("msg_sender", msg_sender)("pool_name", pool_name)("token", token)(
+            "balance", balance)("denorm", denorm));
+  }
+
+  action_result rebind(account_name msg_sender, account_name pool_name,
+                       account_name token, uint balance, uint denorm) {
+    return push_action(
+        msg_sender, N(rebind),
+        mvo()("msg_sender", msg_sender)("pool_name", pool_name)("token", token)(
+            "balance", balance)("denorm", denorm));
+  }
+
+  action_result unbind(account_name msg_sender, account_name pool_name,
+                       account_name token) {
+    return push_action(msg_sender, N(unbind),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "token", token));
+  }
+
+  action_result gulp(account_name msg_sender, account_name pool_name,
+                     account_name token) {
+    return push_action(msg_sender, N(gulp),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "token", token));
+  }
+
+  action_result joinpool(account_name msg_sender, account_name pool_name,
+                         uint poolAmountOut,
+                         std::vector<uint> maxAmountsIn) {
+    return push_action(
+        msg_sender, N(joinpool),
+        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+            "poolAmountOut", poolAmountOut)("maxAmountsIn", maxAmountsIn));
+  }
+
+  action_result exitpool(account_name msg_sender, account_name pool_name,
+                         uint poolAmountIn,
+                         std::vector<uint> minAmountsOut) {
+    return push_action(
+        msg_sender, N(exitpool),
+        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+            "poolAmountIn", poolAmountIn)("minAmountsOut", minAmountsOut));
+  }
+
+  ////////////////pool TOKEN//////////////
+
+  action_result approve(account_name msg_sender, account_name pool_name,
+                        account_name dst, uint amt) {
     return push_action(msg_sender, N(approve),
-                       mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt)("pool_name",pool_name));
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "dst", dst)("amt", amt));
+  }
+
+  action_result transfer(account_name msg_sender, account_name pool_name,
+                         account_name dst, uint amt) {
+    return push_action(msg_sender, N(transfer),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "dst", dst)("amt", amt));
+  }
+
+  action_result transferfrom(account_name msg_sender, account_name pool_name,
+                             account_name src, account_name dst, uint amt) {
+    return push_action(msg_sender, N(transferfrom),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "src", src)("dst", dst)("amt", amt));
+  }
+
+  action_result incapproval(account_name msg_sender, account_name pool_name,
+                            account_name dst, uint amt) {
+    return push_action(msg_sender, N(incapproval),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "dst", dst)("amt", amt));
+  }
+
+  action_result decapproval(account_name msg_sender, account_name pool_name,
+                            account_name dst, uint amt) {
+    return push_action(msg_sender, N(decapproval),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "dst", dst)("amt", amt));
+  }
+
+  action_result mint(account_name msg_sender, account_name pool_name,
+                     uint amt) {
+    return push_action(
+        msg_sender, N(mint),
+        mvo()("msg_sender", msg_sender)("pool_name", pool_name)("amt", amt));
+  }
+
+  action_result burn(account_name msg_sender, account_name pool_name,
+                     uint amt) {
+    return push_action(
+        msg_sender, N(burn),
+        mvo()("msg_sender", msg_sender)("pool_name", pool_name)("amt", amt));
+  }
+
+  action_result move(account_name pool_name, account_name src, name dst,
+                     uint amt) {
+    return push_action(
+        src, N(move),
+        mvo()("pool_name", pool_name)("src", src)("dst", dst)("amt", amt));
+  }
+
+  ////////////////TEST TOKEN//////////////
+
+  action_result tmint(account_name msg_sender, account_name token,
+                      uint amt) {
+    return push_action(
+        msg_sender, N(tmint),
+        mvo()("msg_sender", msg_sender)("token", token)("amt", amt));
+  }
+
+  action_result tmove(account_name token, account_name src, name dst,
+                      uint amt) {
+    return push_action(
+        src, N(tmove),
+        mvo()("token", token)("src", src)("dst", dst)("amt", amt));
+  }
+
+  action_result ttransfer(account_name msg_sender, account_name token,
+                          account_name dst, uint amt) {
+    return push_action(msg_sender, N(ttransfer),
+                       mvo()("msg_sender", msg_sender)("token", token)(
+                           "dst", dst)("amt", amt));
+  }
+
+  action_result ttransferfrm(account_name msg_sender, account_name token,
+                             account_name src, account_name dst, uint amt) {
+    return push_action(msg_sender, N(ttransferfrm),
+                       mvo()("msg_sender", msg_sender)("token", token)(
+                           "src", src)("dst", dst)("amt", amt));
+  }
+
+  //  action_result approve(account_name msg_sender, account_name token,
+  //                         account_name dst, uint amt) {
+  //     return push_action(msg_sender, N(approve),
+  //                        mvo()("msg_sender", msg_sender)("token", token)(
+  //                            "dst", dst)("amt", amt));
+  //   }
+
+  //   action_result incapproval(account_name msg_sender, account_name token,
+  //                             account_name dst, uint amt) {
+  //     return push_action(msg_sender, N(incapproval),
+  //                        mvo()("msg_sender", msg_sender)("token", token)(
+  //                            "dst", dst)("amt", amt));
+  //   }
+
+  //   action_result decapproval(account_name msg_sender, account_name token,
+  //                             account_name dst, uint amt) {
+  //     return push_action(msg_sender, N(decapproval),
+  //                        mvo()("msg_sender", msg_sender)("token", token)(
+  //                            "dst", dst)("amt", amt));
+  //   }
+
+  //   action_result burn(account_name msg_sender, account_name token,
+  //                      uint amt) {
+  //     return push_action(
+  //         msg_sender, N(burn),
+  //         mvo()("msg_sender", msg_sender)("token", token)("amt", amt));
+  //   }
+
+  ////////////////get table//////////////
+
+  fc::variant get_factory_store() {
+    vector<char> data = get_row_by_account(N(eoswapeoswap), N(eoswapeoswap),
+                                           N(factorystore), N(factorystore));
+    if (data.empty())
+      std::cout << "\nData is empty\n" << std::endl;
+    return data.empty() ? fc::variant()
+                        : abi_ser.binary_to_variant("BFactoryStorage", data,
+                                                    abi_serializer_max_time);
+  }
+
+  fc::variant get_pool_store() {
+    vector<char> data = get_row_by_account(N(eoswapeoswap), N(eoswapeoswap),
+                                           N(poolstore), N(poolstore));
+    if (data.empty())
+      std::cout << "\nData is empty\n" << std::endl;
+    return data.empty() ? fc::variant()
+                        : abi_ser.binary_to_variant("BPoolStorage", data,
+                                                    abi_serializer_max_time);
   }
 
   fc::variant get_token_store() {
@@ -140,46 +348,80 @@ public:
     return result;
   }
 
+  uint to_wei(uint value) { return value * pow(10, 6); }
+
   abi_serializer abi_ser;
 };
 
 BOOST_AUTO_TEST_SUITE(eoswap_tests)
-
+////////////////factory////////////////////
 BOOST_FIXTURE_TEST_CASE(newpoool_tests, eoswap_tester) try {
 
-  newpool(N(eoswapeoswap),N(pool));
+  newpool(N(alice), N(pool));
+}
+FC_LOG_AND_RETHROW()
+////////////////pool////////////////////
+BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
+ 
+  uint amount = 1000000;
+  newpool(N(alice), N(pool));
+  tmint(N(alice), N(weth), amount);
+  tmint(N(alice), N(dai), amount);
+  bind(N(alice), N(pool), N(weth), amount, to_wei(5));
+  bind(N(alice), N(pool), N(dai), amount, to_wei(5));
+  finalize(N(alice), N(pool));
+  std::vector<uint> v{1000, 1000};
+  joinpool(N(alice), N(pool), amount, v);
+  exitpool(N(alice), N(pool), amount, std::vector<uint>{0, 0});
+  collect(N(eoswapeoswap), N(pool));
+
+  BOOST_REQUIRE_EQUAL(1, get_token_store()["allowance"].get_array().size());
+  const auto ts = get_token_store()["allowance"];
 }
 FC_LOG_AND_RETHROW()
 
+////////////////token////////////////////
+BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
 
-BOOST_FIXTURE_TEST_CASE(transfer5_tests, eoswap_tester) try {
-
-  //   newpool(N(eoswapeoswap));
-  mint(N(alice), 300,N(pool));
+  newpool(N(alice), N(pool));
+  mint(N(alice), N(pool), 300);
   const auto ts = get_token_store()["balance"];
   const auto kv = array_to_kv(ts);
 
   const auto m = kv.find(std::string("eoswapeoswap"));
   bool flag = m != kv.end();
-
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(approve_tests, eoswap_tester) try {
 
-  //   newpool(N(eoswapeoswap));
-  approve(N(alice), N(bob), 300,N(pool));
+  newpool(N(alice), N(pool));
+  approve(N(alice), N(pool), N(bob), 300);
 
-  BOOST_REQUIRE_EQUAL(1 , get_token_store()["allowance"].get_array().size());
-  const auto b = get_token_store()["allowance"].get_array();
-  for (int i = 0; i < b.size(); i++) {
-    const auto a = b.at(i);
+  BOOST_REQUIRE_EQUAL(1, get_token_store()["allowance"].get_array().size());
+  const auto ts = get_token_store()["allowance"];
 
-    // BOOST_REQUIRE_NO_THROW(a["key"] == "eoswapeoswap");
-    const auto aa = a["value"]["a2amap"].get_array();
-    const auto aaa = aa.at(0);
-     BOOST_REQUIRE_EQUAL(aaa["value"] ,300);
-  }
+  //  const auto b = get_token_store()["allowance"].get_array();
+  //   for (int i = 0; i < b.size(); i++) {
+  //     const auto a = b.at(i);
+
+  //     // BOOST_REQUIRE_NO_THROW(a["key"] == "eoswapeoswap");
+  //     const auto aa = a["value"]["a2amap"].get_array();
+  //     const auto aaa = aa.at(0);
+  //     BOOST_REQUIRE_EQUAL(aaa["value"], 300);
+  //   }
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(transfer_tests, eoswap_tester) try {
+
+  newpool(N(alice), N(pool));
+  approve(N(alice), N(pool), N(bob), 300);
+  const auto ts = get_token_store()["balance"];
+  const auto kv = array_to_kv(ts);
+
+  const auto m = kv.find(std::string("eoswapeoswap"));
+  bool flag = m != kv.end();
 }
 FC_LOG_AND_RETHROW()
 
