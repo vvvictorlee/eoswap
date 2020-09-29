@@ -59,3 +59,31 @@ std::vector<std::string> split(const std::string &str,
   }
   return output;
 }
+
+
+struct transfer_info {
+    name from;
+    std::string action;
+    std::string param;
+    uint32_t type;
+    name seller;
+    asset quantity;
+    uint32_t block;
+    uint32_t checksum;
+};
+
+
+
+
+enum transfer_type : uint8_t { tt_freeze, tt_delay };
+enum transfer_category : uint8_t { tc_service_stake, tc_pay_service, tc_deposit, tc_arbitration_stake_appeal, tc_arbitration_stake_arbitrator, tc_arbitration_stake_resp_case, tc_risk_guarantee };
+
+enum deposit_index : uint8_t { index_category, index_from, index_to, index_notify, deposit_count };
+
+enum appeal_index : uint8_t { index_id = 1, index_evidence, index_info, index_reason, index_provider, appeal_count };
+
+enum arbitrator_index : uint8_t { index_type = 1, arbitrator_count };
+
+const uint8_t resp_case_count = 3;
+
+enum risk_guarantee_index : uint8_t { index_duration = 2, risk_guarantee_case_count };
