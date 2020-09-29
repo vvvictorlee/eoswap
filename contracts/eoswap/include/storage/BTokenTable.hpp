@@ -15,9 +15,9 @@
 #include <common/BType.hpp>
 
 struct Account2Amt {
-  std::map<name, uint> a2amap; // is token bound to pool
+  std::map<name, uint> dst2amt; // is token bound to pool
 
-  EOSLIB_SERIALIZE(Account2Amt, (a2amap))
+  EOSLIB_SERIALIZE(Account2Amt, (dst2amt))
 };
 
 struct BTokenStore {

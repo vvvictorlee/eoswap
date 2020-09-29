@@ -32,6 +32,7 @@ public:
 class BTokenBase : public BNum {
 private:
   name self;
+  name msg_sender;
 protected:
   name token;
   BTokenStorageSingleton token_storage_singleton;
@@ -47,28 +48,47 @@ public:
                          : BTokenStorage{};
   }
   ~BTokenBase() { token_storage_singleton.set(_token_storage, self); }
-  void setToken(name _token) { token = _token; }
+  void initToken(name _msg_sender,name _token) {
+    print("_msg_sender===",_msg_sender);
+    require_auth(_msg_sender);
+    msg_sender=_msg_sender;
+    token = _token;
+    auto t = _token_storage.tokens.find(token);
+    if (t == _token_storage.tokens.end()) {
+      _token_storage.tokens.insert(
+          std::map<name, BTokenStore>::value_type(token, BTokenStore()));
+    }
+  }
+ 
 
   void _mint(uint amt) {
-    _token_storage.tokens[token].balance[self] = badd(_token_storage.tokens[token].balance[self], amt);
-    _token_storage.tokens[token].totalSupply = badd(_token_storage.tokens[token].totalSupply, amt);
+    _token_storage.tokens[token].balance[msg_sender] =
+        badd(_token_storage.tokens[token].balance[msg_sender], amt);
+    _token_storage.tokens[token].totalSupply =
+        badd(_token_storage.tokens[token].totalSupply, amt);
   }
 
   void _burn(uint amt) {
-    require(_token_storage.tokens[token].balance[self] >= amt, "ERR_INSUFFICIENT_BAL");
-    _token_storage.tokens[token].balance[self] = bsub(_token_storage.tokens[token].balance[self], amt);
-    _token_storage.tokens[token].totalSupply = bsub(_token_storage.tokens[token].totalSupply, amt);
+    require(_token_storage.tokens[token].balance[msg_sender] >= amt,
+            "ERR_INSUFFICIENT_BAL");
+    _token_storage.tokens[token].balance[msg_sender] =
+        bsub(_token_storage.tokens[token].balance[msg_sender], amt);
+    _token_storage.tokens[token].totalSupply =
+        bsub(_token_storage.tokens[token].totalSupply, amt);
   }
 
   void _move(name src, name dst, uint amt) {
-    require(_token_storage.tokens[token].balance[src] >= amt, "ERR_INSUFFICIENT_BAL");
-    _token_storage.tokens[token].balance[src] = bsub(_token_storage.tokens[token].balance[src], amt);
-    _token_storage.tokens[token].balance[dst] = badd(_token_storage.tokens[token].balance[dst], amt);
+    require(_token_storage.tokens[token].balance[src] >= amt,
+            "ERR_INSUFFICIENT_BAL");
+    _token_storage.tokens[token].balance[src] =
+        bsub(_token_storage.tokens[token].balance[src], amt);
+    _token_storage.tokens[token].balance[dst] =
+        badd(_token_storage.tokens[token].balance[dst], amt);
   }
 
-  void _push(name to, uint amt) { _move(self, to, amt); }
+  void _push(name to, uint amt) { _move(msg_sender, to, amt); }
 
-  void _pull(name from, uint amt) { _move(from, self, amt); }
+  void _pull(name from, uint amt) { _move(from, msg_sender, amt); }
 };
 
 class BToken : public BTokenBase, public IERC20 {
@@ -86,32 +106,36 @@ public:
   uint8 decimals() { return _decimals; }
 
   virtual uint allowance(name src, name dst) override {
-    return _token_storage.tokens[token].allowance[src].a2amap[dst];
+    return _token_storage.tokens[token].allowance[src].dst2amt[dst];
   }
 
   virtual uint balanceOf(name whom) override {
     return _token_storage.tokens[token].balance[whom];
   }
 
-  virtual uint totalSupply() override { return _token_storage.tokens[token].totalSupply; }
+  virtual uint totalSupply() override {
+    return _token_storage.tokens[token].totalSupply;
+  }
 
   virtual bool approve(name msg_sender, name dst, uint amt) override {
-    _token_storage.tokens[token].allowance[msg_sender].a2amap[dst] = amt;
+    _token_storage.tokens[token].allowance[msg_sender].dst2amt[dst] = amt;
     return true;
   }
 
   bool increaseApproval(name msg_sender, name dst, uint amt) {
-    _token_storage.tokens[token].allowance[msg_sender].a2amap[dst] =
-        badd(_token_storage.tokens[token].allowance[msg_sender].a2amap[dst], amt);
+    _token_storage.tokens[token].allowance[msg_sender].dst2amt[dst] = badd(
+        _token_storage.tokens[token].allowance[msg_sender].dst2amt[dst], amt);
     return true;
   }
 
   bool decreaseApproval(name msg_sender, name dst, uint amt) {
-    uint oldValue = _token_storage.tokens[token].allowance[msg_sender].a2amap[dst];
+    uint oldValue =
+        _token_storage.tokens[token].allowance[msg_sender].dst2amt[dst];
     if (amt > oldValue) {
-      _token_storage.tokens[token].allowance[msg_sender].a2amap[dst] = 0;
+      _token_storage.tokens[token].allowance[msg_sender].dst2amt[dst] = 0;
     } else {
-      _token_storage.tokens[token].allowance[msg_sender].a2amap[dst] = bsub(oldValue, amt);
+      _token_storage.tokens[token].allowance[msg_sender].dst2amt[dst] =
+          bsub(oldValue, amt);
     }
     return true;
   }
@@ -123,14 +147,17 @@ public:
 
   virtual bool transferFrom(name msg_sender, name src, name dst,
                             uint amt) override {
-    require(msg_sender == src ||
-                amt <= _token_storage.tokens[token].allowance[src].a2amap[msg_sender],
-            "ERR_BTOKEN_BAD_CALLER");
+    require(
+        msg_sender == src ||
+            amt <=
+                _token_storage.tokens[token].allowance[src].dst2amt[msg_sender],
+        "ERR_BTOKEN_BAD_CALLER");
     _move(src, dst, amt);
     if (msg_sender != src &&
-        _token_storage.tokens[token].allowance[src].a2amap[msg_sender] != uint(-1)) {
-      _token_storage.tokens[token].allowance[src].a2amap[msg_sender] =
-          bsub(_token_storage.tokens[token].allowance[src].a2amap[msg_sender], amt);
+        _token_storage.tokens[token].allowance[src].dst2amt[msg_sender] !=
+            uint(-1)) {
+      _token_storage.tokens[token].allowance[src].dst2amt[msg_sender] = bsub(
+          _token_storage.tokens[token].allowance[src].dst2amt[msg_sender], amt);
     }
     return true;
   }

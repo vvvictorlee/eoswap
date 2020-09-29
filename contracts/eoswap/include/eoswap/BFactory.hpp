@@ -19,12 +19,13 @@
 class BFactory : public BBronze {
 private:
   name self;
+  BPool& pool;
   BFactoryStorageSingleton factory_storage_singleton;
   BFactoryStorage _factory_storage;
 
 public:
-  BFactory(name _self)
-      : self(_self), factory_storage_singleton(_self, _self.value) {
+  BFactory(name _self,BPool& _pool)
+      : self(_self), pool(_pool),factory_storage_singleton(_self, _self.value) {
     _factory_storage = factory_storage_singleton.exists()
                            ? factory_storage_singleton.get()
                            : BFactoryStorage{};
@@ -34,10 +35,10 @@ public:
 
   bool isBPool(name pool) { return _factory_storage.isBPool[pool]; }
 
-  name newBPool(name msg_sender,name pool_name,BPool& bpool) {
+  name newBPool(name msg_sender,name pool_name) {
     _factory_storage.isBPool[pool_name] = true;
-    bpool.initBPool(msg_sender,pool_name);
-    bpool.setController(msg_sender);
+    pool.initBPool(msg_sender,pool_name);
+    pool.setController(msg_sender);
     return msg_sender;
   }
 
@@ -53,11 +54,12 @@ public:
     _factory_storage.blabs = blabs;
   }
 
-  void collect(name msg_sender, BPool& pool) {
+  void collect(name msg_sender, name pool_name) {
+    pool.auth(msg_sender, pool_name);
     require(msg_sender == _factory_storage.blabs,
             "ERR_NOT_BLABS");
-    uint collected = pool.balanceOf(self);
-    bool xfer = pool.transfer(msg_sender, _factory_storage.blabs, collected);
+    uint collected = pool.getToken().balanceOf(self);
+    bool xfer = pool.getToken().transfer(msg_sender, _factory_storage.blabs, collected);
     require(xfer, "ERR_ERC20_FAILED");
   }
 };

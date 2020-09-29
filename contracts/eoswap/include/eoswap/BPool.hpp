@@ -16,18 +16,20 @@
 #include <eoswap/BToken.hpp>
 #include <storage/BPoolTable.hpp>
 
-class BPool : public BToken, public BMath {
+class BPool : public BMath {
 
 private:
   name self;
   name msg_sender;
   name pool_name;
+  BToken &tokens;
   BPoolStorageSingleton pool_storage_singleton;
   BPoolStorage _pool_storage;
 
 public:
-  BPool(name _self)
-      : self(_self), pool_storage_singleton(_self, _self.value), BToken(_self) {
+  BPool(name _self, BToken &_token)
+      : self(_self), tokens(_token),
+        pool_storage_singleton(_self, _self.value) {
     _pool_storage = pool_storage_singleton.exists()
                         ? pool_storage_singleton.get()
                         : BPoolStorage{};
@@ -43,19 +45,26 @@ public:
     ~Lock() { pool_store.mutex = false; }
   };
 
+  BToken &getToken() { return tokens; }
+
   void auth(name _msg_sender, name _pool_name) {
-    require_auth(_msg_sender);
     msg_sender = _msg_sender;
     pool_name = _pool_name;
+    tokens.initToken(msg_sender, pool_name);
     auto p = _pool_storage.pools.find(pool_name);
     bool b = p != _pool_storage.pools.end();
     require(b, "NO_POOL");
   }
 
   void initBPool(name _msg_sender, name pool_name) {
-    setToken(pool_name);
-    _pool_storage.pools.insert(
-        std::map<name, BPoolStore>::value_type(pool_name, BPoolStore()));
+    tokens.initToken(_msg_sender, pool_name);
+
+    auto p = _pool_storage.pools.find(pool_name);
+    if (p == _pool_storage.pools.end()) {
+      _pool_storage.pools.insert(
+          std::map<name, BPoolStore>::value_type(pool_name, BPoolStore()));
+    }
+
     _pool_storage.pools[pool_name].controller = _msg_sender;
     _pool_storage.pools[pool_name].factory = self;
     _pool_storage.pools[pool_name].swapFee = MIN_FEE;
@@ -248,7 +257,7 @@ public:
     require(_pool_storage.pools[pool_name].records[token].bound,
             "ERR_NOT_BOUND");
     _pool_storage.pools[pool_name].records[token].balance =
-        this->balanceOf(msg_sender);
+        tokens.balanceOf(msg_sender);
   }
 
   uint getSpotPrice(name tokenIn, name tokenOut) {
@@ -277,7 +286,7 @@ public:
   void joinPool(uint poolAmountOut, std::vector<uint> maxAmountsIn) {
     require(_pool_storage.pools[pool_name].finalized, "ERR_NOT_FINALIZED");
 
-    uint poolTotal = totalSupply();
+    uint poolTotal = tokens.totalSupply();
     uint ratio = BMath::bdiv(poolAmountOut, poolTotal);
     require(ratio != 0, "ERR_MATH_APPROX");
 
@@ -285,7 +294,7 @@ public:
       name t = _pool_storage.pools[pool_name].tokens[i];
       uint bal = _pool_storage.pools[pool_name].records[t].balance;
       uint tokenAmountIn = BMath::bmul(ratio, bal);
-      
+
       require(tokenAmountIn != 0, "ERR_MATH_APPROX");
       require(tokenAmountIn <= maxAmountsIn[i], "ERR_LIMIT_IN joinPool");
       _pool_storage.pools[pool_name].records[t].balance = BMath::badd(
@@ -299,7 +308,7 @@ public:
   void exitPool(uint poolAmountIn, std::vector<uint> minAmountsOut) {
     require(_pool_storage.pools[pool_name].finalized, "ERR_NOT_FINALIZED");
 
-    uint poolTotal = totalSupply();
+    uint poolTotal = tokens.totalSupply();
     uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
     uint pAiAfterExitFee = BMath::bsub(poolAmountIn, exitFee);
     uint ratio = BMath::bdiv(pAiAfterExitFee, poolTotal);
@@ -420,7 +429,7 @@ public:
     Record inRecord = _pool_storage.pools[pool_name].records[tokenIn];
 
     uint poolAmountOut = calcPoolOutGivenSingleIn(
-        inRecord.balance, inRecord.denorm, totalSupply(),
+        inRecord.balance, inRecord.denorm, tokens.totalSupply(),
         _pool_storage.pools[pool_name].totalWeight, tokenAmountIn,
         _pool_storage.pools[pool_name].swapFee);
 
@@ -444,7 +453,7 @@ public:
     Record inRecord = _pool_storage.pools[pool_name].records[tokenIn];
 
     uint tokenAmountIn = calcSingleInGivenPoolOut(
-        inRecord.balance, inRecord.denorm, totalSupply(),
+        inRecord.balance, inRecord.denorm, tokens.totalSupply(),
         _pool_storage.pools[pool_name].totalWeight, poolAmountOut,
         _pool_storage.pools[pool_name].swapFee);
 
@@ -475,7 +484,7 @@ public:
     Record outRecord = _pool_storage.pools[pool_name].records[tokenOut];
 
     uint tokenAmountOut = calcSingleOutGivenPoolIn(
-        outRecord.balance, outRecord.denorm, totalSupply(),
+        outRecord.balance, outRecord.denorm, tokens.totalSupply(),
         _pool_storage.pools[pool_name].totalWeight, poolAmountIn,
         _pool_storage.pools[pool_name].swapFee);
 
@@ -513,7 +522,7 @@ public:
     Record outRecord = _pool_storage.pools[pool_name].records[tokenOut];
 
     uint poolAmountIn = calcPoolInGivenSingleOut(
-        outRecord.balance, outRecord.denorm, totalSupply(),
+        outRecord.balance, outRecord.denorm, tokens.totalSupply(),
         _pool_storage.pools[pool_name].totalWeight, tokenAmountOut,
         _pool_storage.pools[pool_name].swapFee);
 
@@ -538,20 +547,20 @@ public:
 
   void _pullUnderlying(name erc20, name from, uint amount) {
     /// transfer memo implementation
-    // bool xfer = this->transferFrom(from, from, msg_sender, amount);
+    // bool xfer = tokens.transferFrom(from, from, msg_sender, amount);
     // require(xfer, "ERR_ERC20_FALSE");
   }
 
   void _pushUnderlying(name erc20, name to, uint amount) {
-    bool xfer = this->transfer(msg_sender, to, amount);
+    bool xfer = tokens.transfer(msg_sender, to, amount);
     require(xfer, "ERR_ERC20_FALSE");
   }
 
-  void _pullPoolShare(name from, uint amount) { _pull(from, amount); }
+  void _pullPoolShare(name from, uint amount) { tokens._pull(from, amount); }
 
-  void _pushPoolShare(name to, uint amount) { _push(to, amount); }
+  void _pushPoolShare(name to, uint amount) { tokens._push(to, amount); }
 
-  void _mintPoolShare(uint amount) { _mint(amount); }
+  void _mintPoolShare(uint amount) { tokens._mint(amount); }
 
-  void _burnPoolShare(uint amount) { _burn(amount); }
+  void _burnPoolShare(uint amount) { tokens._burn(amount); }
 };

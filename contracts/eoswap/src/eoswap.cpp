@@ -21,11 +21,11 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 private:
   BFactory factory;
   BPool pool;
-  BToken ttoken;
+  BToken tokens;
 
 public:
   eoswap(name s, name code, eosio::datastream<const char *> ds)
-      : contract(s, code, ds), factory(s), pool(s), ttoken(s) {}
+      : contract(s, code, ds), factory(s,pool), pool(s,tokens),tokens(s) {}
 
   //////////////////factory////////////////////////
   [[eosio::action]] void setblabs(name msg_sender, name blabs) {
@@ -34,13 +34,11 @@ public:
   }
 
   [[eosio::action]] void collect(name msg_sender, name pool_name) {
-    pool.auth(msg_sender, pool_name);
-    factory.collect(msg_sender, pool);
+    factory.collect(msg_sender,pool_name);
   }
 
   [[eosio::action]] void newpool(name msg_sender, name pool_name) {
-    require_auth(msg_sender);
-    factory.newBPool(msg_sender, pool_name, pool);
+    factory.newBPool(msg_sender, pool_name);
   }
 
   //////////////////POOL////////////////////////
@@ -115,102 +113,49 @@ public:
 
   ////////////////// TEST pool TOKEN////////////////////////
 
-  [[eosio::action]] void approve(name msg_sender, name pool_name, name dst,
+  [[eosio::action]] void approve(name msg_sender, name token, name dst,
                                  uint amt) {
-    pool.auth(msg_sender, pool_name);
-    pool.approve(msg_sender, dst, amt);
+    tokens.initToken(msg_sender, token);
+    tokens.approve(msg_sender, dst, amt);
   }
 
-  [[eosio::action]] void transfer(name msg_sender, name pool_name, name dst,
+  [[eosio::action]] void transfer(name msg_sender, name token, name dst,
                                   uint amt) {
-    pool.auth(msg_sender, pool_name);
-    pool.transfer(msg_sender, dst, amt);
+    tokens.initToken(msg_sender, token);
+    tokens.transfer(msg_sender, dst, amt);
   }
 
-  [[eosio::action]] void transferfrom(name msg_sender, name pool_name, name src,
+  [[eosio::action]] void transferfrom(name msg_sender, name token, name src,
                                       name dst, uint amt) {
-    pool.auth(msg_sender, pool_name);
-    pool.transferFrom(msg_sender, src, dst, amt);
+    tokens.initToken(msg_sender, token);
+    tokens.transferFrom(msg_sender, src, dst, amt);
   }
 
-  [[eosio::action]] void incapproval(name msg_sender, name pool_name, name dst,
+  [[eosio::action]] void incapproval(name msg_sender, name token, name dst,
                                      uint amt) {
-    pool.auth(msg_sender, pool_name);
-    pool.increaseApproval(msg_sender, dst, amt);
+    tokens.initToken(msg_sender, token);
+    tokens.increaseApproval(msg_sender, dst, amt);
   }
 
-  [[eosio::action]] void decapproval(name msg_sender, name pool_name, name dst,
+  [[eosio::action]] void decapproval(name msg_sender, name token, name dst,
                                      uint amt) {
-    pool.auth(msg_sender, pool_name);
-    pool.decreaseApproval(msg_sender, dst, amt);
+    tokens.initToken(msg_sender, token);
+    tokens.decreaseApproval(msg_sender, dst, amt);
   }
   /////test interface /////
-  [[eosio::action]] void mint(name msg_sender, name pool_name, uint amt) {
-    pool.auth(msg_sender, pool_name);
-    pool._mint(amt);
+  [[eosio::action]] void mint(name msg_sender, name token, uint amt) {
+    tokens.initToken(msg_sender, token);
+    tokens._mint(amt);
   }
 
-  [[eosio::action]] void burn(name msg_sender, name pool_name, uint amt) {
-    pool.auth(msg_sender, pool_name);
-    pool._burn(amt);
+  [[eosio::action]] void burn(name msg_sender, name token, uint amt) {
+    tokens.initToken(msg_sender, token);
+    tokens._burn(amt);
   }
 
-  [[eosio::action]] void move(name pool_name, name src, name dst, uint amt) {
-    pool.auth(src, pool_name);
-    pool._move(src, dst, amt);
-  }
-
-  ////////////////// TEST TOKEN////////////////////////
-
-  //   [[eosio::action]] void approve(name msg_sender, name pool_name, name dst,
-  //                                  uint amt) {
-  //     pool.auth(msg_sender, pool_name);
-  //     pool.approve(msg_sender, dst, amt);
-  //   }
-
-  [[eosio::action]] void ttransfer(name msg_sender, name token, name dst,
-                                   uint amt) {
-    require_auth(msg_sender);
-    ttoken.setToken(token);
-    ttoken.transfer(msg_sender, dst, amt);
-  }
-
-  [[eosio::action]] void ttransferfrm(name msg_sender, name token, name src,
-                                      name dst, uint amt) {
-    require_auth(msg_sender);
-    ttoken.setToken(token);
-    ttoken.transferFrom(msg_sender, src, dst, amt);
-  }
-
-  //   [[eosio::action]] void incapproval(name msg_sender, name pool_name, name
-  //   dst,
-  //                                      uint amt) {
-  //     pool.auth(msg_sender, pool_name);
-  //     pool.increaseApproval(msg_sender, dst, amt);
-  //   }
-
-  //   [[eosio::action]] void decapproval(name msg_sender, name pool_name, name
-  //   dst,
-  //                                      uint amt) {
-  //     pool.auth(msg_sender, pool_name);
-  //     pool.decreaseApproval(msg_sender, dst, amt);
-  //   }
-  [[eosio::action]] void tmint(name msg_sender, name token, uint amt) {
-    uint128_t tmp  = 0;
-    require_auth(msg_sender);
-    ttoken.setToken(token);
-    ttoken._mint(amt);
-  }
-
-  //   [[eosio::action]] void burn(name msg_sender, name pool_name, uint amt) {
-  //     pool.auth(msg_sender, pool_name);
-  //     pool._burn(amt);
-  //   }
-
-  [[eosio::action]] void tmove(name token, name src, name dst, uint amt) {
-    require_auth(src);
-    ttoken.setToken(token);
-    ttoken._move(src, dst, amt);
+  [[eosio::action]] void move(name token, name src, name dst, uint amt) {
+    tokens.initToken(src, token);
+    tokens._move(src, dst, amt);
   }
 
   ////////////////////on_notify////////////////////
