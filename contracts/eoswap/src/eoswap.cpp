@@ -34,8 +34,8 @@ public:
   }
 
   [[eosio::action]] void collect(name msg_sender, name pool_name) {
-    require_auth(msg_sender);
-    factory.collect(msg_sender, pool_name);
+    pool.auth(msg_sender, pool_name);
+    factory.collect(msg_sender, pool);
   }
 
   [[eosio::action]] void newpool(name msg_sender, name pool_name) {

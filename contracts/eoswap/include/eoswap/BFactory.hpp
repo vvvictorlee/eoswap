@@ -53,7 +53,7 @@ public:
     _factory_storage.blabs = blabs;
   }
 
-  void collect(name msg_sender, BPool pool) {
+  void collect(name msg_sender, BPool& pool) {
     require(msg_sender == _factory_storage.blabs,
             "ERR_NOT_BLABS");
     uint collected = pool.balanceOf(self);

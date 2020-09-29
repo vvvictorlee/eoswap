@@ -394,8 +394,8 @@ BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
   exitpool(N(alice), N(pool), jamount, std::vector<uint_eth>{0, 0});
   collect(N(eoswapeoswap), N(pool));
 
-  BOOST_REQUIRE_EQUAL(1, get_token_store()["allowance"].get_array().size());
-  const auto ts = get_token_store()["allowance"];
+//   BOOST_REQUIRE_EQUAL(1, get_token_store()["allowance"].get_array().size());
+//   const auto ts = get_token_store()["allowance"];
 }
 FC_LOG_AND_RETHROW()
 
