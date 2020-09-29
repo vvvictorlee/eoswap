@@ -316,6 +316,13 @@ public:
     return b;
   }
 
+  std::string allowance(name token, name src, name dst) {
+    const auto s = get_token_store();
+    const auto t = find_variant(s["tokens"], token.to_string());
+    const auto a = find_variant(t["allowance"], src.to_string());
+    const auto amt = find_value(a["dst2amt"], dst.to_string());
+    return amt;
+  }
 
   fc::variant records(name pool_name, name token) {
     const auto ps = get_pool_store();
@@ -323,7 +330,6 @@ public:
     const auto r = find_value(p["records"], token.to_string());
     return r;
   }
-
 
   uint_eth to_wei(uint_eth value) { return value * pow(10, 6); }
 
@@ -338,8 +344,16 @@ BOOST_FIXTURE_TEST_CASE(newpool_tests, eoswap_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
+BOOST_FIXTURE_TEST_CASE(setblabs_tests, eoswap_tester) try {
+  setblabs(N(eoswapeoswap), N(alice));
+  std::string b = get_factory_store()["blabs"].as_string();
+  BOOST_REQUIRE_EQUAL("alice", b);
+}
+FC_LOG_AND_RETHROW()
+
+
 ////////////////pool////////////////////
-BOOST_FIXTURE_TEST_CASE(tmint_tests, eoswap_tester) try {
+BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
@@ -348,19 +362,13 @@ BOOST_FIXTURE_TEST_CASE(tmint_tests, eoswap_tester) try {
   mint(N(alice), N(weth), eamount);
   mint(N(alice), N(dai), damount);
 
-  const auto ab  = balanceOf(N(weth),N(alice));
-  BOOST_REQUIRE_EQUAL("100000000", ab);
-
-    const auto t = get_token_store();
-    BOOST_TEST_CHECK(nullptr== t);
-
+  const auto ab = balanceOf(N(weth), N(alice));
+  BOOST_REQUIRE_EQUAL(std::to_string(eamount), ab);
 }
 FC_LOG_AND_RETHROW()
 
-
 ////////////////pool////////////////////
 BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
-
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
@@ -370,15 +378,11 @@ BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
   mint(N(alice), N(dai), damount);
   bind(N(alice), N(pool), N(weth), eamount, to_wei(5));
   bind(N(alice), N(pool), N(dai), damount, to_wei(5));
-
-
 }
 FC_LOG_AND_RETHROW()
 
-
 ////////////////pool////////////////////
 BOOST_FIXTURE_TEST_CASE(finalize_tests, eoswap_tester) try {
-
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
@@ -389,16 +393,11 @@ BOOST_FIXTURE_TEST_CASE(finalize_tests, eoswap_tester) try {
   bind(N(alice), N(pool), N(weth), eamount, to_wei(5));
   bind(N(alice), N(pool), N(dai), damount, to_wei(5));
   finalize(N(alice), N(pool));
-
-
 }
 FC_LOG_AND_RETHROW()
 
-
-
 ////////////////pool////////////////////
 BOOST_FIXTURE_TEST_CASE(join_tests, eoswap_tester) try {
-
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
@@ -411,15 +410,11 @@ BOOST_FIXTURE_TEST_CASE(join_tests, eoswap_tester) try {
   finalize(N(alice), N(pool));
   std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
   joinpool(N(alice), N(pool), jamount, v);
-
-
 }
 FC_LOG_AND_RETHROW()
 
-
 ////////////////pool////////////////////
 BOOST_FIXTURE_TEST_CASE(exitpool_tests, eoswap_tester) try {
-
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
@@ -433,14 +428,11 @@ BOOST_FIXTURE_TEST_CASE(exitpool_tests, eoswap_tester) try {
   std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
   joinpool(N(alice), N(pool), jamount, v);
   exitpool(N(alice), N(pool), jamount, std::vector<uint_eth>{0, 0});
-
-
 }
 FC_LOG_AND_RETHROW()
 
 ////////////////pool////////////////////
 BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
-
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
@@ -455,23 +447,22 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
   joinpool(N(alice), N(pool), jamount, v);
   exitpool(N(alice), N(pool), jamount, std::vector<uint_eth>{0, 0});
   collect(N(eoswapeoswap), N(pool));
-  const auto ab  = balanceOf(N(pool),N(alice));
-  BOOST_REQUIRE_EQUAL("100000000", ab);
+  const auto ab = balanceOf(N(pool), N(alice));
 
-    const auto t = get_token_store();
-    BOOST_TEST_CHECK(nullptr== t);
+  BOOST_REQUIRE_EQUAL(std::to_string(to_wei(100)), ab);
 
+//   const auto t = get_token_store();
+//   BOOST_TEST_CHECK(nullptr == t);
 }
 FC_LOG_AND_RETHROW()
 
-
 ////////////////token////////////////////
-BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
+BOOST_FIXTURE_TEST_CASE(burn_tests, eoswap_tester) try {
 
   newpool(N(alice), N(pool));
   mint(N(alice), N(pool), 300);
 
-;
+  ;
 }
 FC_LOG_AND_RETHROW()
 
@@ -479,19 +470,9 @@ BOOST_FIXTURE_TEST_CASE(approve_tests, eoswap_tester) try {
 
   newpool(N(alice), N(pool));
   approve(N(alice), N(pool), N(bob), 300);
+  const auto b = allowance(N(pool), N(alice), N(bob));
 
-  BOOST_REQUIRE_EQUAL(1, get_token_store()["allowance"].get_array().size());
-  const auto ts = get_token_store()["allowance"];
-
-  //  const auto b = get_token_store()["allowance"].get_array();
-  //   for (int i = 0; i < b.size(); i++) {
-  //     const auto a = b.at(i);
-
-  //     // BOOST_REQUIRE_NO_THROW(a["key"] == "eoswapeoswap");
-  //     const auto aa = a["value"]["a2amap"].get_array();
-  //     const auto aaa = aa.at(0);
-  //     BOOST_REQUIRE_EQUAL(aaa["value"], 300);
-  //   }
+  BOOST_REQUIRE_EQUAL("300", b);
 }
 FC_LOG_AND_RETHROW()
 
@@ -499,9 +480,6 @@ BOOST_FIXTURE_TEST_CASE(transfer_tests, eoswap_tester) try {
 
   newpool(N(alice), N(pool));
   approve(N(alice), N(pool), N(bob), 300);
-
-
-
 }
 FC_LOG_AND_RETHROW()
 
