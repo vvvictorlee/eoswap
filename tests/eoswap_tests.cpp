@@ -15,7 +15,7 @@ using namespace fc;
 using namespace std;
 
 using mvo = fc::mutable_variant_object;
-using uint = uint64_t;
+using uint_eth = uint64_t;
 
 class eoswap_tester : public tester {
 public:
@@ -66,9 +66,9 @@ public:
   }
 
   ///////////////pool ////////////////////
-  // msg_sender, name dst, uint amt
+  // msg_sender, name dst, uint_eth amt
   action_result setswapfee(account_name msg_sender, account_name pool_name,
-                           uint swapFee) {
+                           uint_eth swapFee) {
     return push_action(msg_sender, N(setswapfee),
                        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
                            "swapFee", swapFee));
@@ -94,7 +94,7 @@ public:
   }
 
   action_result bind(account_name msg_sender, account_name pool_name,
-                     account_name token, uint balance, uint denorm) {
+                     account_name token, uint_eth balance, uint_eth denorm) {
     return push_action(
         msg_sender, N(bind),
         mvo()("msg_sender", msg_sender)("pool_name", pool_name)("token", token)(
@@ -102,7 +102,7 @@ public:
   }
 
   action_result rebind(account_name msg_sender, account_name pool_name,
-                       account_name token, uint balance, uint denorm) {
+                       account_name token, uint_eth balance, uint_eth denorm) {
     return push_action(
         msg_sender, N(rebind),
         mvo()("msg_sender", msg_sender)("pool_name", pool_name)("token", token)(
@@ -124,8 +124,8 @@ public:
   }
 
   action_result joinpool(account_name msg_sender, account_name pool_name,
-                         uint poolAmountOut,
-                         std::vector<uint> maxAmountsIn) {
+                         uint_eth poolAmountOut,
+                         std::vector<uint_eth> maxAmountsIn) {
     return push_action(
         msg_sender, N(joinpool),
         mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
@@ -133,8 +133,8 @@ public:
   }
 
   action_result exitpool(account_name msg_sender, account_name pool_name,
-                         uint poolAmountIn,
-                         std::vector<uint> minAmountsOut) {
+                         uint_eth poolAmountIn,
+                         std::vector<uint_eth> minAmountsOut) {
     return push_action(
         msg_sender, N(exitpool),
         mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
@@ -144,56 +144,56 @@ public:
   ////////////////pool TOKEN//////////////
 
   action_result approve(account_name msg_sender, account_name pool_name,
-                        account_name dst, uint amt) {
+                        account_name dst, uint_eth amt) {
     return push_action(msg_sender, N(approve),
                        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
                            "dst", dst)("amt", amt));
   }
 
   action_result transfer(account_name msg_sender, account_name pool_name,
-                         account_name dst, uint amt) {
+                         account_name dst, uint_eth amt) {
     return push_action(msg_sender, N(transfer),
                        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
                            "dst", dst)("amt", amt));
   }
 
   action_result transferfrom(account_name msg_sender, account_name pool_name,
-                             account_name src, account_name dst, uint amt) {
+                             account_name src, account_name dst, uint_eth amt) {
     return push_action(msg_sender, N(transferfrom),
                        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
                            "src", src)("dst", dst)("amt", amt));
   }
 
   action_result incapproval(account_name msg_sender, account_name pool_name,
-                            account_name dst, uint amt) {
+                            account_name dst, uint_eth amt) {
     return push_action(msg_sender, N(incapproval),
                        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
                            "dst", dst)("amt", amt));
   }
 
   action_result decapproval(account_name msg_sender, account_name pool_name,
-                            account_name dst, uint amt) {
+                            account_name dst, uint_eth amt) {
     return push_action(msg_sender, N(decapproval),
                        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
                            "dst", dst)("amt", amt));
   }
 
   action_result mint(account_name msg_sender, account_name pool_name,
-                     uint amt) {
+                     uint_eth amt) {
     return push_action(
         msg_sender, N(mint),
         mvo()("msg_sender", msg_sender)("pool_name", pool_name)("amt", amt));
   }
 
   action_result burn(account_name msg_sender, account_name pool_name,
-                     uint amt) {
+                     uint_eth amt) {
     return push_action(
         msg_sender, N(burn),
         mvo()("msg_sender", msg_sender)("pool_name", pool_name)("amt", amt));
   }
 
   action_result move(account_name pool_name, account_name src, name dst,
-                     uint amt) {
+                     uint_eth amt) {
     return push_action(
         src, N(move),
         mvo()("pool_name", pool_name)("src", src)("dst", dst)("amt", amt));
@@ -202,56 +202,56 @@ public:
   ////////////////TEST TOKEN//////////////
 
   action_result tmint(account_name msg_sender, account_name token,
-                      uint amt) {
+                      uint_eth amt) {
     return push_action(
         msg_sender, N(tmint),
         mvo()("msg_sender", msg_sender)("token", token)("amt", amt));
   }
 
   action_result tmove(account_name token, account_name src, name dst,
-                      uint amt) {
+                      uint_eth amt) {
     return push_action(
         src, N(tmove),
         mvo()("token", token)("src", src)("dst", dst)("amt", amt));
   }
 
   action_result ttransfer(account_name msg_sender, account_name token,
-                          account_name dst, uint amt) {
+                          account_name dst, uint_eth amt) {
     return push_action(msg_sender, N(ttransfer),
                        mvo()("msg_sender", msg_sender)("token", token)(
                            "dst", dst)("amt", amt));
   }
 
   action_result ttransferfrm(account_name msg_sender, account_name token,
-                             account_name src, account_name dst, uint amt) {
+                             account_name src, account_name dst, uint_eth amt) {
     return push_action(msg_sender, N(ttransferfrm),
                        mvo()("msg_sender", msg_sender)("token", token)(
                            "src", src)("dst", dst)("amt", amt));
   }
 
   //  action_result approve(account_name msg_sender, account_name token,
-  //                         account_name dst, uint amt) {
+  //                         account_name dst, uint_eth amt) {
   //     return push_action(msg_sender, N(approve),
   //                        mvo()("msg_sender", msg_sender)("token", token)(
   //                            "dst", dst)("amt", amt));
   //   }
 
   //   action_result incapproval(account_name msg_sender, account_name token,
-  //                             account_name dst, uint amt) {
+  //                             account_name dst, uint_eth amt) {
   //     return push_action(msg_sender, N(incapproval),
   //                        mvo()("msg_sender", msg_sender)("token", token)(
   //                            "dst", dst)("amt", amt));
   //   }
 
   //   action_result decapproval(account_name msg_sender, account_name token,
-  //                             account_name dst, uint amt) {
+  //                             account_name dst, uint_eth amt) {
   //     return push_action(msg_sender, N(decapproval),
   //                        mvo()("msg_sender", msg_sender)("token", token)(
   //                            "dst", dst)("amt", amt));
   //   }
 
   //   action_result burn(account_name msg_sender, account_name token,
-  //                      uint amt) {
+  //                      uint_eth amt) {
   //     return push_action(
   //         msg_sender, N(burn),
   //         mvo()("msg_sender", msg_sender)("token", token)("amt", amt));
@@ -348,7 +348,7 @@ public:
     return result;
   }
 
-  uint to_wei(uint value) { return value * pow(10, 6); }
+  uint_eth to_wei(uint_eth value) { return value * pow(10, 6); }
 
   abi_serializer abi_ser;
 };
@@ -363,16 +363,35 @@ FC_LOG_AND_RETHROW()
 ////////////////pool////////////////////
 BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
  
-  uint amount = 1000000;
+// // admin balances
+// await weth.mint(admin, toWei('5'));
+// await dai.mint(admin, toWei('200'));
+
+// // nonAdmin balances
+// await weth.mint(nonAdmin, toWei('1'), { from: admin });
+// await dai.mint(nonAdmin, toWei('50'), { from: admin });
+
+// await pool.bind(WETH, toWei('5'), toWei('5'));
+// await pool.bind(DAI, toWei('200'), toWei('5'));
+
+// await pool.finalize();
+
+// await pool.joinPool(toWei('10'), [MAX, MAX], { from: nonAdmin });
+// await pool.exitPool(toWei('10'), [toWei('0'), toWei('0')], { from: nonAdmin });
+
+
+  uint_eth eamount = to_wei(5);
+  uint_eth damount = to_wei(200);
+  uint_eth jamount = to_wei(10);
   newpool(N(alice), N(pool));
-  tmint(N(alice), N(weth), amount);
-  tmint(N(alice), N(dai), amount);
-  bind(N(alice), N(pool), N(weth), amount, to_wei(5));
-  bind(N(alice), N(pool), N(dai), amount, to_wei(5));
+  tmint(N(alice), N(weth), eamount);
+  tmint(N(alice), N(dai), damount);
+  bind(N(alice), N(pool), N(weth), eamount, to_wei(5));
+  bind(N(alice), N(pool), N(dai), damount, to_wei(5));
   finalize(N(alice), N(pool));
-  std::vector<uint> v{1000, 1000};
-  joinpool(N(alice), N(pool), amount, v);
-  exitpool(N(alice), N(pool), amount, std::vector<uint>{0, 0});
+  std::vector<uint_eth> v{uint_eth(-1),uint_eth(-1)};
+  joinpool(N(alice), N(pool), jamount, v);
+  exitpool(N(alice), N(pool), jamount, std::vector<uint_eth>{0, 0});
   collect(N(eoswapeoswap), N(pool));
 
   BOOST_REQUIRE_EQUAL(1, get_token_store()["allowance"].get_array().size());
