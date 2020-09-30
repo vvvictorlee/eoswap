@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <common/BType.hpp>
+#include <common/transfer_mgmt.hpp>
 #include <eoswap/BFactory.hpp>
 #include <eoswap/BPool.hpp>
 
@@ -21,11 +22,13 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 private:
   BFactory factory;
   BPool pool;
-  BToken tokens;
+  BToken _token_;
+  transfer_mgmt transfer_mgmts;
 
 public:
   eoswap(name s, name code, eosio::datastream<const char *> ds)
-      : contract(s, code, ds), factory(s,pool), pool(s,tokens),tokens(s) {}
+      : contract(s, code, ds), factory(s, pool), pool(s, _token_), _token_(s),
+        transfer_mgmts(s) {}
 
   //////////////////factory////////////////////////
   [[eosio::action]] void setblabs(name msg_sender, name blabs) {
@@ -34,7 +37,7 @@ public:
   }
 
   [[eosio::action]] void collect(name msg_sender, name pool_name) {
-    factory.collect(msg_sender,pool_name);
+    factory.collect(msg_sender, pool_name);
   }
 
   [[eosio::action]] void newpool(name msg_sender, name pool_name) {
@@ -87,7 +90,7 @@ public:
     pool.unbind(token);
   }
 
-  // Absorb any tokens that have been sent to this contract into the pool
+  // Absorb any _token_ that have been sent to this contract into the pool
 
   [[eosio::action]] void gulp(name msg_sender, name pool_name, name token) {
 
@@ -111,101 +114,118 @@ public:
     pool.exitPool(poolAmountIn, minAmountsOut);
   }
 
+  [[eosio::action]] void swapamtin(name msg_sender, name pool_name,name tokenIn, uint tokenAmountIn,
+                                          name tokenOut, uint minAmountOut,
+                                          uint maxPrice) {
+
+    pool.auth(msg_sender, pool_name);
+    pool.swapExactAmountIn( tokenIn,  tokenAmountIn,
+                                           tokenOut,  minAmountOut,
+                                           maxPrice);
+  }
+
+  [[eosio::action]] void swapamtout(name msg_sender, name pool_name,name tokenIn, uint maxAmountIn,
+                                           name tokenOut, uint tokenAmountOut,
+                                           uint maxPrice) {
+
+    pool.auth(msg_sender, pool_name);
+    pool.swapExactAmountOut( tokenIn,  maxAmountIn,
+                                           tokenOut,  tokenAmountOut,
+                                           maxPrice);
+  }
+
+
   ////////////////// TEST pool TOKEN////////////////////////
 
   [[eosio::action]] void approve(name msg_sender, name token, name dst,
                                  uint amt) {
-    tokens.initToken(msg_sender, token);
-    tokens.approve(msg_sender, dst, amt);
+    _token_.initToken(msg_sender, token);
+    _token_.approve(msg_sender, dst, amt);
   }
 
   [[eosio::action]] void transfer(name msg_sender, name token, name dst,
                                   uint amt) {
-    tokens.initToken(msg_sender, token);
-    tokens.transfer(msg_sender, dst, amt);
+    _token_.initToken(msg_sender, token);
+    _token_.transfer(msg_sender, dst, amt);
   }
 
   [[eosio::action]] void transferfrom(name msg_sender, name token, name src,
                                       name dst, uint amt) {
-    tokens.initToken(msg_sender, token);
-    tokens.transferFrom(msg_sender, src, dst, amt);
+    _token_.initToken(msg_sender, token);
+    _token_.transferFrom(msg_sender, src, dst, amt);
   }
 
   [[eosio::action]] void incapproval(name msg_sender, name token, name dst,
                                      uint amt) {
-    tokens.initToken(msg_sender, token);
-    tokens.increaseApproval(msg_sender, dst, amt);
+    _token_.initToken(msg_sender, token);
+    _token_.increaseApproval(msg_sender, dst, amt);
   }
 
   [[eosio::action]] void decapproval(name msg_sender, name token, name dst,
                                      uint amt) {
-    tokens.initToken(msg_sender, token);
-    tokens.decreaseApproval(msg_sender, dst, amt);
+    _token_.initToken(msg_sender, token);
+    _token_.decreaseApproval(msg_sender, dst, amt);
   }
   /////test interface /////
   [[eosio::action]] void mint(name msg_sender, name token, uint amt) {
-    tokens.initToken(msg_sender, token);
-    tokens._mint(amt);
+    print(msg_sender);
+    _token_.initToken(msg_sender, token);
+    _token_._mint(amt);
   }
 
   [[eosio::action]] void burn(name msg_sender, name token, uint amt) {
-    tokens.initToken(msg_sender, token);
-    tokens._burn(amt);
+    _token_.initToken(msg_sender, token);
+    _token_._burn(amt);
   }
 
   [[eosio::action]] void move(name token, name src, name dst, uint amt) {
-    tokens.initToken(src, token);
-    tokens._move(src, dst, amt);
+    _token_.initToken(src, token);
+    _token_._move(src, dst, amt);
   }
 
   ////////////////////on_notify////////////////////
-  [[eosio::on_notify("eosio.token::transfer")]] void transfer(
+  [[eosio::on_notify("eosio.token::transfer")]] void on_transfer(
       name from, name to, asset quantity, std::string memo) {
-    // system_controller.eosiotoken_transfer(
-    //     from, to, quantity, memo, [&](const auto &ad) {
-    //       if (ad.action.size() == 0) {
-    //         return;
-    //       }
+    check(get_first_receiver() == "eosio.token"_n, "should be eosio.token");
+    print_f("On notify : % % % %", from, to, quantity, memo);
+    transfer_mgmts.eosiotoken_transfer(from, to, quantity, memo,
+                                       [&](const auto &ad) {
+                                         //       if (ad.action.size() == 0) {
+                                         //         return;
+                                         //       }
 
-    //       if (ad.action == ta_knt) {
-    //         int type = atoi(ad.param.c_str());
-    //         knight_controller.hireknight(ad.from, type, ad.quantity);
-    //         admin_controller.add_revenue(ad.quantity, rv_knight);
-    //       } else if (ad.action == ta_mw) {
-    //         int pid = atoi(ad.param.c_str());
-    //         player_controller.buymp(ad.from, pid, ad.quantity);
-    //         admin_controller.add_revenue(ad.quantity, rv_mp);
+                                         //       if (ad.action == ta_knt) {
+                                         //         int type =
+                                         //         atoi(ad.param.c_str());
+                                         //         knight_controller.hireknight(ad.from,
+                                         //         type, ad.quantity);
+                                         //         admin_controller.add_revenue(ad.quantity,
+                                         //         rv_knight);
+                                         //       } 
+                                       });
+  }
 
-    //       } else if (ad.action == ta_item) {
-    //         asset tax = market_controller.buyitem(ad.from, ad,
-    //         &item_controller,
-    //                                               ig_count);
-    //         admin_controller.add_revenue(tax, rv_item_tax);
-    //         admin_controller.add_tradingvol(ad.quantity);
-    //          } else if (ad.action == ta_mat) {
-    //         asset tax = market_controller.buymat(
-    //             ad.from, ad, &material_controller, ig_count);
-    //         admin_controller.add_revenue(tax, rv_material_tax);
-    //         admin_controller.add_tradingvol(ad.quantity);
-    //          } else if (ad.action == ta_skin) {
-    //         asset tax = skin_controller.skbuy(ad.from, ad);
-    //         admin_controller.add_revenue(tax, rv_skin);
-    //         admin_controller.add_tradingvol(ad.quantity);
-    //       } else if (ad.action == ta_ivn) {
-    //         if (ad.param == tp_item) {
-    //           system_controller.itemivnup(ad.from, ad.quantity);
-    //           admin_controller.add_revenue(ad.quantity,rv_item_iventory_up);
-    //         } else if (ad.param == tp_mat) {
-    //           system_controller.mativnup(ad.from, ad.quantity);
-    //           admin_controller.add_revenue(ad.quantity,rv_mat_iventory_up);
-    //         } else {
-    //           assert_true(false, "invalid inventory");
-    //         }
-    //       } else {
-    //         assert_true(false, "invalid transfer");
-    //       }
+  [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(
+      name from, name to, asset quantity, std::string memo) {
+    check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
+    print_f("On notify 2 : % % % %", from, to, quantity, memo);
+    transfer_mgmts.non_eosiotoken_transfer(from, to, quantity, memo,
+                                           [&](const auto &ad) {
+                                             //       if (ad.action.size() == 0)
+                                             //       {
+                                             //         return;
+                                             //       }
 
-    //       admin_controller.autodividend();
-    //     });
+                                             //       if (ad.action == ta_knt) {
+                                             //         int type =
+                                             //         atoi(ad.param.c_str());
+                                             //         knight_controller.hireknight(ad.from,
+                                             //         type, ad.quantity);
+                                             //         admin_controller.add_revenue(ad.quantity,
+                                             //         rv_knight);
+                                             //       } 
+                                           
+
+                                           });
   }
 };

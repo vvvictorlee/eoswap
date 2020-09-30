@@ -7,6 +7,15 @@
 #include <eosio/system.hpp>
 #include <eosio/singleton.hpp>
 
+#define IS_DEBUG true
+
+#if IS_DEBUG
+    #define debug(args...) print(" | ", ##args)
+#else
+    #define debug(args...)
+#endif
+
+
 using namespace eosio;
 
 using bytes = std::vector<char>;
@@ -60,7 +69,10 @@ std::vector<std::string> split(const std::string &str,
   return output;
 }
 
-
+time_point_sec current_time_point_sec() {
+  const static time_point_sec cts{current_time_point()};
+  return cts;
+}
 struct transfer_info {
     name from;
     std::string action;

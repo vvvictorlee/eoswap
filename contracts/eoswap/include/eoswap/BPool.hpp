@@ -22,13 +22,14 @@ private:
   name self;
   name msg_sender;
   name pool_name;
-  BToken &tokens;
+  BToken &pool_token;
+  BToken &_token_;
   BPoolStorageSingleton pool_storage_singleton;
   BPoolStorage _pool_storage;
 
 public:
   BPool(name _self, BToken &_token)
-      : self(_self), tokens(_token),
+      : self(_self), pool_token(_token), _token_(_token),
         pool_storage_singleton(_self, _self.value) {
     _pool_storage = pool_storage_singleton.exists()
                         ? pool_storage_singleton.get()
@@ -38,6 +39,8 @@ public:
 
   class Lock {
     BPoolStore &pool_store;
+
+  public:
     Lock(BPoolStore &_pool_store) : pool_store(_pool_store) {
       require(!pool_store.mutex, "ERR_REENTRY");
       pool_store.mutex = true;
@@ -45,19 +48,31 @@ public:
     ~Lock() { pool_store.mutex = false; }
   };
 
-  BToken &getToken() { return tokens; }
+  class ScopeToken {
+    BPool &innerPool;
+
+  public:
+    ScopeToken(BPool &pool, name token) : innerPool(pool) {
+      pool.setToken(token);
+    }
+    ~ScopeToken() { innerPool.setPoolToken(); }
+  };
+
+  BToken &getPoolToken() { return pool_token; }
+  void setPoolToken() { pool_token.setToken(pool_name); }
+  void setToken(name token) { _token_.setToken(token); }
 
   void auth(name _msg_sender, name _pool_name) {
     msg_sender = _msg_sender;
     pool_name = _pool_name;
-    tokens.initToken(msg_sender, pool_name);
+    pool_token.initToken(msg_sender, pool_name);
     auto p = _pool_storage.pools.find(pool_name);
     bool b = p != _pool_storage.pools.end();
     require(b, "NO_POOL");
   }
 
   void initBPool(name _msg_sender, name pool_name) {
-    tokens.initToken(_msg_sender, pool_name);
+    pool_token.initToken(_msg_sender, pool_name);
 
     auto p = _pool_storage.pools.find(pool_name);
     if (p == _pool_storage.pools.end()) {
@@ -256,8 +271,9 @@ public:
   void gulp(name token) {
     require(_pool_storage.pools[pool_name].records[token].bound,
             "ERR_NOT_BOUND");
+    ScopeToken st(*this, token);
     _pool_storage.pools[pool_name].records[token].balance =
-        tokens.balanceOf(msg_sender);
+        _token_.balanceOf(msg_sender);
   }
 
   uint getSpotPrice(name tokenIn, name tokenOut) {
@@ -286,7 +302,7 @@ public:
   void joinPool(uint poolAmountOut, std::vector<uint> maxAmountsIn) {
     require(_pool_storage.pools[pool_name].finalized, "ERR_NOT_FINALIZED");
 
-    uint poolTotal = tokens.totalSupply();
+    uint poolTotal = pool_token.totalSupply();
     uint ratio = BMath::bdiv(poolAmountOut, poolTotal);
     require(ratio != 0, "ERR_MATH_APPROX");
 
@@ -308,7 +324,7 @@ public:
   void exitPool(uint poolAmountIn, std::vector<uint> minAmountsOut) {
     require(_pool_storage.pools[pool_name].finalized, "ERR_NOT_FINALIZED");
 
-    uint poolTotal = tokens.totalSupply();
+    uint poolTotal = pool_token.totalSupply();
     uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
     uint pAiAfterExitFee = BMath::bsub(poolAmountIn, exitFee);
     uint ratio = BMath::bdiv(pAiAfterExitFee, poolTotal);
@@ -340,8 +356,8 @@ public:
             "ERR_NOT_BOUND");
     require(_pool_storage.pools[pool_name].publicSwap, "ERR_SWAP_NOT_PUBLIC");
 
-    Record inRecord = _pool_storage.pools[pool_name].records[name(tokenIn)];
-    Record outRecord = _pool_storage.pools[pool_name].records[name(tokenOut)];
+    Record inRecord = _pool_storage.pools[pool_name].records[tokenIn];
+    Record outRecord = _pool_storage.pools[pool_name].records[tokenOut];
 
     require(tokenAmountIn <= BMath::bmul(inRecord.balance, MAX_IN_RATIO),
             "ERR_MAX_IN_RATIO");
@@ -382,8 +398,8 @@ public:
             "ERR_NOT_BOUND");
     require(_pool_storage.pools[pool_name].publicSwap, "ERR_SWAP_NOT_PUBLIC");
 
-    Record inRecord = _pool_storage.pools[pool_name].records[name(tokenIn)];
-    Record outRecord = _pool_storage.pools[pool_name].records[name(tokenOut)];
+    Record inRecord = _pool_storage.pools[pool_name].records[tokenIn];
+    Record outRecord = _pool_storage.pools[pool_name].records[tokenOut];
 
     require(tokenAmountOut <= BMath::bmul(outRecord.balance, MAX_OUT_RATIO),
             "ERR_MAX_OUT_RATIO");
@@ -429,7 +445,7 @@ public:
     Record inRecord = _pool_storage.pools[pool_name].records[tokenIn];
 
     uint poolAmountOut = calcPoolOutGivenSingleIn(
-        inRecord.balance, inRecord.denorm, tokens.totalSupply(),
+        inRecord.balance, inRecord.denorm, pool_token.totalSupply(),
         _pool_storage.pools[pool_name].totalWeight, tokenAmountIn,
         _pool_storage.pools[pool_name].swapFee);
 
@@ -453,7 +469,7 @@ public:
     Record inRecord = _pool_storage.pools[pool_name].records[tokenIn];
 
     uint tokenAmountIn = calcSingleInGivenPoolOut(
-        inRecord.balance, inRecord.denorm, tokens.totalSupply(),
+        inRecord.balance, inRecord.denorm, pool_token.totalSupply(),
         _pool_storage.pools[pool_name].totalWeight, poolAmountOut,
         _pool_storage.pools[pool_name].swapFee);
 
@@ -484,7 +500,7 @@ public:
     Record outRecord = _pool_storage.pools[pool_name].records[tokenOut];
 
     uint tokenAmountOut = calcSingleOutGivenPoolIn(
-        outRecord.balance, outRecord.denorm, tokens.totalSupply(),
+        outRecord.balance, outRecord.denorm, pool_token.totalSupply(),
         _pool_storage.pools[pool_name].totalWeight, poolAmountIn,
         _pool_storage.pools[pool_name].swapFee);
 
@@ -522,7 +538,7 @@ public:
     Record outRecord = _pool_storage.pools[pool_name].records[tokenOut];
 
     uint poolAmountIn = calcPoolInGivenSingleOut(
-        outRecord.balance, outRecord.denorm, tokens.totalSupply(),
+        outRecord.balance, outRecord.denorm, pool_token.totalSupply(),
         _pool_storage.pools[pool_name].totalWeight, tokenAmountOut,
         _pool_storage.pools[pool_name].swapFee);
 
@@ -544,23 +560,26 @@ public:
   // ==
   // 'Underlying' token-manipulation functions make external calls but are NOT
   // locked You must `_lock_` or otherwise ensure reentry-safety
-
-  void _pullUnderlying(name erc20, name from, uint amount) {
+  void _pullUnderlying(name token, name from, uint amount) {
     /// transfer memo implementation
-    // bool xfer = tokens.transferFrom(from, from, msg_sender, amount);
-    // require(xfer, "ERR_ERC20_FALSE");
-  }
-
-  void _pushUnderlying(name erc20, name to, uint amount) {
-    bool xfer = tokens.transfer(msg_sender, to, amount);
+    ScopeToken st(*this, token);
+    bool xfer = _token_.transferFrom(from, from, self, amount);
     require(xfer, "ERR_ERC20_FALSE");
   }
 
-  void _pullPoolShare(name from, uint amount) { tokens._pull(from, amount); }
+  void _pushUnderlying(name token, name to, uint amount) {
+    ScopeToken st(*this, token);
+    bool xfer = _token_.transfer(self, to, amount);
+    require(xfer, "ERR_ERC20_FALSE");
+  }
 
-  void _pushPoolShare(name to, uint amount) { tokens._push(to, amount); }
+  void _pullPoolShare(name from, uint amount) {
+    pool_token._pull(from, amount);
+  }
 
-  void _mintPoolShare(uint amount) { tokens._mint(amount); }
+  void _pushPoolShare(name to, uint amount) { pool_token._push(to, amount); }
 
-  void _burnPoolShare(uint amount) { tokens._burn(amount); }
+  void _mintPoolShare(uint amount) { pool_token._mint(amount); }
+
+  void _burnPoolShare(uint amount) { pool_token._burn(amount); }
 };

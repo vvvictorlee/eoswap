@@ -58,8 +58,8 @@ public:
     pool.auth(msg_sender, pool_name);
     require(msg_sender == _factory_storage.blabs,
             "ERR_NOT_BLABS");
-    uint collected = pool.getToken().balanceOf(self);
-    bool xfer = pool.getToken().transfer(msg_sender, _factory_storage.blabs, collected);
+    uint collected = pool.getPoolToken().balanceOf(self);
+    bool xfer = pool.getPoolToken().transfer(msg_sender, _factory_storage.blabs, collected);
     require(xfer, "ERR_ERC20_FAILED");
   }
 };

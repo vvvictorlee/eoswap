@@ -33,6 +33,7 @@ class BTokenBase : public BNum {
 private:
   name self;
   name msg_sender;
+
 protected:
   name token;
   BTokenStorageSingleton token_storage_singleton;
@@ -48,10 +49,13 @@ public:
                          : BTokenStorage{};
   }
   ~BTokenBase() { token_storage_singleton.set(_token_storage, self); }
-  void initToken(name _msg_sender,name _token) {
-    print("_msg_sender===",_msg_sender);
+  void initToken(name _msg_sender, name _token) {
     require_auth(_msg_sender);
-    msg_sender=_msg_sender;
+    msg_sender = _msg_sender;
+    setToken(_token);
+  }
+
+  void setToken(name _token) {
     token = _token;
     auto t = _token_storage.tokens.find(token);
     if (t == _token_storage.tokens.end()) {
@@ -59,13 +63,14 @@ public:
           std::map<name, BTokenStore>::value_type(token, BTokenStore()));
     }
   }
- 
 
   void _mint(uint amt) {
     _token_storage.tokens[token].balance[msg_sender] =
         badd(_token_storage.tokens[token].balance[msg_sender], amt);
     _token_storage.tokens[token].totalSupply =
         badd(_token_storage.tokens[token].totalSupply, amt);
+    print("***mint****",msg_sender,"==",_token_storage.tokens[token].balance[msg_sender], "--", amt,
+          "==token==", token);
   }
 
   void _burn(uint amt) {
@@ -78,6 +83,8 @@ public:
   }
 
   void _move(name src, name dst, uint amt) {
+    print("****move*****",src,"->",dst,"===",_token_storage.tokens[token].balance[src], "--", amt,
+          "token==", token);
     require(_token_storage.tokens[token].balance[src] >= amt,
             "ERR_INSUFFICIENT_BAL");
     _token_storage.tokens[token].balance[src] =

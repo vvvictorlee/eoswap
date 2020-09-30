@@ -38,7 +38,10 @@ public:
 
     create_accounts({N(alice), N(bob), N(carol), N(eoswapeoswap), N(pool)});
     produce_blocks(2);
-
+    admin = N(eoswapeoswap);
+    nonadmin = N(alice);
+    user1 = N(bob);
+    user2 = N(carol);
     set_code(N(eoswapeoswap), contracts::swap_wasm());
     set_abi(N(eoswapeoswap), contracts::swap_abi().data());
 
@@ -153,6 +156,27 @@ public:
         msg_sender, N(exitpool),
         mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
             "poolAmountIn", poolAmountIn)("minAmountsOut", minAmountsOut));
+  }
+
+  action_result swapamtin(name msg_sender, name pool_name, name tokenIn,
+                          uint tokenAmountIn, name tokenOut, uint minAmountOut,
+                          uint maxPrice) {
+    return push_action(msg_sender, N(swapamtin),
+                       mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+                           "tokenIn", tokenIn)("tokenAmountIn", tokenAmountIn)(
+                           "tokenOut", tokenOut)("minAmountOut", minAmountOut)(
+                           "maxPrice", maxPrice));
+  }
+
+  action_result swapamtout(name msg_sender, name pool_name, name tokenIn,
+                           uint maxAmountIn, name tokenOut, uint tokenAmountOut,
+                           uint maxPrice) {
+    return push_action(
+        msg_sender, N(swapamtout),
+        mvo()("msg_sender", msg_sender)("pool_name", pool_name)(
+            "tokenIn", tokenIn)("maxAmountIn", maxAmountIn)(
+            "tokenOut", tokenOut)("tokenAmountOut", tokenAmountOut)("maxPrice",
+                                                                    maxPrice));
   }
 
   ////////////////TOKEN//////////////
@@ -333,6 +357,63 @@ public:
 
   uint_eth to_wei(uint_eth value) { return value * pow(10, 6); }
 
+  void newpoolBefore() { newpool(admin, N(pool)); }
+
+  void mintBefore() {
+
+    uint_eth eamount = to_wei(5);
+    uint_eth damount = to_wei(200);
+    uint_eth neamount = to_wei(1);
+    uint_eth ndamount = to_wei(200);
+    uint_eth jamount = to_wei(10);
+
+    mint(admin, N(weth), to_wei(5));
+    mint(admin, N(dai), to_wei(200));
+
+    mint(admin, N(weth), to_wei(50));
+    mint(admin, N(mkr), to_wei(20));
+    mint(admin, N(dai), to_wei(10000));
+    mint(admin, N(xxx), to_wei(10));
+
+    mint(user1, N(weth), to_wei(25));
+    mint(user1, N(mkr), to_wei(4));
+    mint(user1, N(dai), to_wei(40000));
+    mint(user1, N(xxx), to_wei(10));
+
+    mint(user2, N(weth), 12222200);
+    mint(user2, N(mkr), 1015333);
+    mint(user2, N(dai), 0);
+    mint(user2, N(xxx), to_wei(51));
+
+    mint(nonadmin, N(weth), to_wei(1));
+    mint(nonadmin, N(dai), to_wei(200));
+  }
+
+  void bindBefore() {
+    bind(admin, N(pool), N(weth), to_wei(50), to_wei(5));
+    bind(admin, N(pool), N(mkr), to_wei(20), to_wei(5));
+    bind(admin, N(pool), N(dai), to_wei(10000), to_wei(5));
+  }
+
+  void finalizeBefore() { finalize(admin, N(pool)); }
+
+  void joinpoolBefore() {
+    std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1), uint_eth(-1)};
+    joinpool(user1, N(pool), to_wei(5), v);
+  }
+
+  void before() {
+    newpoolBefore();
+    mintBefore();
+    bindBefore();
+    finalizeBefore();
+    joinpoolBefore();
+  }
+
+  name admin;
+  name nonadmin;
+  name user1;
+  name user2;
   abi_serializer abi_ser;
 };
 
@@ -350,7 +431,6 @@ BOOST_FIXTURE_TEST_CASE(setblabs_tests, eoswap_tester) try {
   BOOST_REQUIRE_EQUAL("alice", b);
 }
 FC_LOG_AND_RETHROW()
-
 
 ////////////////pool////////////////////
 BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
@@ -386,30 +466,41 @@ BOOST_FIXTURE_TEST_CASE(finalize_tests, eoswap_tester) try {
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
+  uint_eth neamount = to_wei(1);
+  uint_eth ndamount = to_wei(200);
   uint_eth jamount = to_wei(10);
-  newpool(N(alice), N(pool));
-  mint(N(alice), N(weth), eamount);
-  mint(N(alice), N(dai), damount);
-  bind(N(alice), N(pool), N(weth), eamount, to_wei(5));
-  bind(N(alice), N(pool), N(dai), damount, to_wei(5));
-  finalize(N(alice), N(pool));
+  newpool(admin, N(pool));
+  mint(admin, N(weth), eamount);
+  mint(admin, N(dai), damount);
+  mint(nonadmin, N(weth), neamount);
+  mint(nonadmin, N(dai), ndamount);
+
+  bind(admin, N(pool), N(weth), eamount, to_wei(5));
+  bind(admin, N(pool), N(dai), damount, to_wei(5));
+  finalize(admin, N(pool));
 }
 FC_LOG_AND_RETHROW()
 
 ////////////////pool////////////////////
-BOOST_FIXTURE_TEST_CASE(join_tests, eoswap_tester) try {
+BOOST_FIXTURE_TEST_CASE(joinpool_tests, eoswap_tester) try {
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
+  uint_eth neamount = to_wei(1);
+  uint_eth ndamount = to_wei(200);
   uint_eth jamount = to_wei(10);
-  newpool(N(alice), N(pool));
-  mint(N(alice), N(weth), eamount);
-  mint(N(alice), N(dai), damount);
-  bind(N(alice), N(pool), N(weth), eamount, to_wei(5));
-  bind(N(alice), N(pool), N(dai), damount, to_wei(5));
-  finalize(N(alice), N(pool));
+  newpool(admin, N(pool));
+  mint(admin, N(weth), eamount);
+  mint(admin, N(dai), damount);
+  mint(nonadmin, N(weth), neamount);
+  mint(nonadmin, N(dai), ndamount);
+
+  bind(admin, N(pool), N(weth), eamount, to_wei(5));
+  bind(admin, N(pool), N(dai), damount, to_wei(5));
+  finalize(admin, N(pool));
   std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
-  joinpool(N(alice), N(pool), jamount, v);
+  const auto t = get_token_store();
+  joinpool(nonadmin, N(pool), jamount, v);
 }
 FC_LOG_AND_RETHROW()
 
@@ -418,16 +509,22 @@ BOOST_FIXTURE_TEST_CASE(exitpool_tests, eoswap_tester) try {
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
+  uint_eth neamount = to_wei(1);
+  uint_eth ndamount = to_wei(200);
   uint_eth jamount = to_wei(10);
-  newpool(N(alice), N(pool));
-  mint(N(alice), N(weth), eamount);
-  mint(N(alice), N(dai), damount);
-  bind(N(alice), N(pool), N(weth), eamount, to_wei(5));
-  bind(N(alice), N(pool), N(dai), damount, to_wei(5));
-  finalize(N(alice), N(pool));
+  newpool(admin, N(pool));
+  mint(admin, N(weth), eamount);
+  mint(admin, N(dai), damount);
+  mint(nonadmin, N(weth), neamount);
+  mint(nonadmin, N(dai), ndamount);
+
+  bind(admin, N(pool), N(weth), eamount, to_wei(5));
+  bind(admin, N(pool), N(dai), damount, to_wei(5));
+  finalize(admin, N(pool));
   std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
-  joinpool(N(alice), N(pool), jamount, v);
-  exitpool(N(alice), N(pool), jamount, std::vector<uint_eth>{0, 0});
+  const auto t = get_token_store();
+  joinpool(nonadmin, N(pool), jamount, v);
+  exitpool(nonadmin, N(pool), jamount, std::vector<uint_eth>{0, 0});
 }
 FC_LOG_AND_RETHROW()
 
@@ -436,23 +533,26 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
 
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
+  uint_eth neamount = to_wei(1);
+  uint_eth ndamount = to_wei(200);
   uint_eth jamount = to_wei(10);
-  newpool(N(alice), N(pool));
-  mint(N(alice), N(weth), eamount);
-  mint(N(alice), N(dai), damount);
-  bind(N(alice), N(pool), N(weth), eamount, to_wei(5));
-  bind(N(alice), N(pool), N(dai), damount, to_wei(5));
-  finalize(N(alice), N(pool));
+  newpool(admin, N(pool));
+  mint(admin, N(weth), eamount);
+  mint(admin, N(dai), damount);
+  mint(nonadmin, N(weth), neamount);
+  mint(nonadmin, N(dai), ndamount);
+
+  bind(admin, N(pool), N(weth), eamount, to_wei(5));
+  bind(admin, N(pool), N(dai), damount, to_wei(5));
+  finalize(admin, N(pool));
   std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
-  joinpool(N(alice), N(pool), jamount, v);
-  exitpool(N(alice), N(pool), jamount, std::vector<uint_eth>{0, 0});
-  collect(N(eoswapeoswap), N(pool));
-  const auto ab = balanceOf(N(pool), N(alice));
+  const auto t = get_token_store();
+  joinpool(nonadmin, N(pool), jamount, v);
+  exitpool(nonadmin, N(pool), jamount, std::vector<uint_eth>{0, 0});
+  collect(admin, N(pool));
+  const auto ab = balanceOf(N(pool), admin);
 
   BOOST_REQUIRE_EQUAL(std::to_string(to_wei(100)), ab);
-
-//   const auto t = get_token_store();
-//   BOOST_TEST_CHECK(nullptr == t);
 }
 FC_LOG_AND_RETHROW()
 
@@ -461,8 +561,7 @@ BOOST_FIXTURE_TEST_CASE(burn_tests, eoswap_tester) try {
 
   newpool(N(alice), N(pool));
   mint(N(alice), N(pool), 300);
-
-  ;
+  burn(N(alice), N(pool), 300);
 }
 FC_LOG_AND_RETHROW()
 
@@ -479,8 +578,92 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(transfer_tests, eoswap_tester) try {
 
   newpool(N(alice), N(pool));
-  approve(N(alice), N(pool), N(bob), 300);
+  mint(N(alice), N(pool), 300);
+  transfer(N(alice), N(pool), N(bob), 300);
 }
 FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eoswap_tester) try {
+
+  before();
+  swapamtin(N(bob), N(pool), N(weth), 2500000, N(dai), to_wei(475),
+            to_wei(200));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(swapExactAmountOut_tests, eoswap_tester) try {
+
+  before();
+  swapamtout(N(bob), N(pool), N(weth), to_wei(3), N(mkr), to_wei(1),
+             to_wei(500));
+}
+FC_LOG_AND_RETHROW()
+
+// it('swapExactAmountIn', async () => {
+// // 2.5 WETH -> DAI
+// const expected = calcOutGivenIn(52.5, 5, 10500, 5, 2.5, 0.003);
+// const txr = await pool.swapExactAmountIn(
+// WETH,
+// toWei('2.5'),
+// DAI,
+// toWei('475'),
+// toWei('200'),
+// { from: user2 },
+// );
+// const log = txr.logs[0];
+// assert.equal(log.event, 'LOG_SWAP');
+// // 475.905805337091423
+
+// const actual = fromWei(log.args[4]);
+// const relDif = calcRelativeDiff(expected, actual);
+// if (verbose) {
+// console.log('swapExactAmountIn');
+// console.log(`expected: ${expected})`);
+// console.log(`actual  : ${actual})`);
+// console.log(`relDif  : ${relDif})`);
+// }
+
+// assert.isAtMost(relDif.toNumber(), errorDelta);
+
+// const userDaiBalance = await dai.balanceOf(user2);
+// assert.equal(fromWei(userDaiBalance), Number(fromWei(log.args[4])));
+
+// // 182.804672101083406128
+// const wethPrice = await pool.getSpotPrice(DAI, WETH);
+// const wethPriceFeeCheck = ((10024.094194662908577 / 5) / (55 / 5)) * (1 / (1
+// - 0.003)); assert.approximately(Number(fromWei(wethPrice)),
+// Number(wethPriceFeeCheck), errorDelta);
+
+// const daiNormWeight = await pool.getNormalizedWeight(DAI);
+// assert.equal(0.333333333333333333, fromWei(daiNormWeight));
+// });
+
+// it('swapExactAmountOut', async () => {
+// // ETH -> 1 MKR
+// // const amountIn = (55 * (((21 / (21 - 1)) ** (5 / 5)) - 1)) / (1 - 0.003);
+// const expected = calcInGivenOut(55, 5, 21, 5, 1, 0.003);
+// const txr = await pool.swapExactAmountOut(
+// WETH,
+// toWei('3'),
+// MKR,
+// toWei('1.0'),
+// toWei('500'),
+// { from: user2 },
+// );
+// const log = txr.logs[0];
+// assert.equal(log.event, 'LOG_SWAP');
+// // 2.758274824473420261
+
+// const actual = fromWei(log.args[3]);
+// const relDif = calcRelativeDiff(expected, actual);
+// if (verbose) {
+// console.log('swapExactAmountOut');
+// console.log(`expected: ${expected})`);
+// console.log(`actual  : ${actual})`);
+// console.log(`relDif  : ${relDif})`);
+// }
+
+// assert.isAtMost(relDif.toNumber(), errorDelta);
+// });
 
 BOOST_AUTO_TEST_SUITE_END()
