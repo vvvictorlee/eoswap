@@ -359,6 +359,10 @@ public:
 
   void newpoolBefore() { newpool(admin, N(pool)); }
 
+  void setswapfeeBefore() {
+    // await pool.setSwapFee(toWei('0.003'));
+  }
+
   void mintBefore() {
 
     uint_eth eamount = to_wei(5);
@@ -367,8 +371,8 @@ public:
     uint_eth ndamount = to_wei(200);
     uint_eth jamount = to_wei(10);
 
-    mint(admin, N(weth), to_wei(5));
-    mint(admin, N(dai), to_wei(200));
+    // mint(admin, N(weth), to_wei(5));
+    // mint(admin, N(dai), to_wei(200));
 
     mint(admin, N(weth), to_wei(50));
     mint(admin, N(mkr), to_wei(20));
@@ -404,6 +408,7 @@ public:
 
   void before() {
     newpoolBefore();
+    setswapfeeBefore();
     mintBefore();
     bindBefore();
     finalizeBefore();
