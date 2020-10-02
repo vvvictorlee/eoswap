@@ -230,11 +230,11 @@ public:
         mvo()("msg_sender", msg_sender)("token", token)("amt", amt));
   }
 
-  action_result move(account_name token, account_name src, name dst,
+  action_result move(account_name msg_sender,account_name token, name dst,
                      uint_eth amt) {
     return push_action(
         src, N(move),
-        mvo()("token", token)("src", src)("dst", dst)("amt", amt));
+        mvo()("msg_sender", msg_sender)("token", token)("dst", dst)("amt", amt));
   }
 
   ////////////////get table//////////////
