@@ -16,63 +16,76 @@
 #include <common/storage_mgmt.hpp>
 #include <eoswap/BPool.hpp>
 #include <storage/BFactoryTable.hpp>
-template <typename PoolStoreType, typename TokenStoreType>
 class BFactory : public BBronze {
 private:
   name self;
+  name msg_sender;
   storage_mgmt _storage_mgmt;
   BFactoryStorage &_factory_storage;
 
 public:
   BFactory(name _self)
-      : self(_self), _factory_storage(_storage_mgmt_.get_factory_store()) {
+      : self(_self), _storage_mgmt(_self),
+        _factory_storage(_storage_mgmt.get_factory_store()) {
     _factory_storage.blabs = self;
   }
   ~BFactory() {}
 
+  void setMsgSender(name _msg_sender) {
+    msg_sender = _msg_sender;
+  }
+
   bool isBPool(name pool) { return _factory_storage.isBPool[pool]; }
 
-  void newBPool(name msg_sender, name pool_name) {
-    BPoolStore &poolStore = _storage_mgmt_.newPoolsSore(pool_name);
-    BTokenStore &tokenStore = _storage_mgmt_.newTokenStore(pool_name);
-    BPool pool(self, poolStore, tokenStore);
+  void newBPool(name pool_name) {
+    BPoolStore &poolStore = _storage_mgmt.newPoolStore(pool_name);
+    BTokenStore &tokenStore = _storage_mgmt.newTokenStore(pool_name);
+    BPool pool(self, *this, poolStore, tokenStore);
+    pool.init();
+    pool.auth(msg_sender);
     _factory_storage.isBPool[pool_name] = true;
     pool.setController(msg_sender);
   }
 
-  template <type T> void pool(name msg_sender, name pool_name, T func) {
-    require_auth(msg_sender);
-    BPoolStore &poolStore = _storage_mgmt_.get_pool_store(pool_name);
-    BTokenStore &tokenStore = _storage_mgmt_.get_token_tore(pool_name);
-    BPool pool(self, poolStore, tokenStore);
+  void newToken(name token) {
+    BTokenStore &tokenStore = _storage_mgmt.newTokenStore(token);
+    BToken otoken(self, tokenStore);
+    otoken.auth(msg_sender);
+  }
+
+  template <typename T> void pool(name pool_name, T func) {
+    BPoolStore &poolStore = _storage_mgmt.get_pool_store(pool_name);
+    BTokenStore &tokenStore = _storage_mgmt.get_token_store(pool_name);
+    BPool pool(self, *this, poolStore, tokenStore);
+    pool.auth(msg_sender);
     func(pool);
   }
 
-  template <type T> void token(name msg_sender, name token, T func) {
-    require_auth(msg_sender);
-    BTokenStore &tokenStore = _storage_mgmt_.get_token_tore(token);
-    BToken token(self, tokenStore);
-    func(token);
+  template <typename T> void token(name token, T func) {
+    BTokenStore &tokenStore = _storage_mgmt.get_token_store(token);
+    BToken otoken(self, tokenStore);
+    otoken.auth(msg_sender);
+    func(otoken);
   }
 
   storage_mgmt &get_storage_mgmt() { return _storage_mgmt; }
 
   name getBLabs() { return _factory_storage.blabs; }
 
-  void setBLabs(name msg_sender, name blabs)
-
-  {
+  void setBLabs(name blabs) {
     require_auth(msg_sender);
     require(msg_sender == _factory_storage.blabs, "ERR_NOT_BLABS");
     _factory_storage.blabs = blabs;
   }
 
-  void collect(name msg_sender, name pool_name) {
-    pool.auth(msg_sender, pool_name);
+  void collect(name pool_name) {
     require(msg_sender == _factory_storage.blabs, "ERR_NOT_BLABS");
-    uint collected = pool.getPoolToken().balanceOf(self);
-    bool xfer = pool.getPoolToken().transfer(msg_sender, _factory_storage.blabs,
-                                             collected);
+    BPoolStore &poolStore = _storage_mgmt.get_pool_store(pool_name);
+    BTokenStore &tokenStore = _storage_mgmt.get_token_store(pool_name);
+    BPool pool(self, *this, poolStore, tokenStore);
+    pool.auth(msg_sender);
+    uint collected = pool.balanceOf(self);
+    bool xfer = pool.transfer(_factory_storage.blabs, collected);
     require(xfer, "ERR_ERC20_FAILED");
   }
 };

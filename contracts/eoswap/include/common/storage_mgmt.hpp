@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
-
+#include <storage/BFactoryTable.hpp>
 #include <storage/BPoolTable.hpp>
 #include <storage/BTokenTable.hpp>
 
@@ -27,7 +27,7 @@ private:
   BTokenStorage _token_storage;
 
 public:
-  storage_mgmt(name _self, BToken &_token)
+  storage_mgmt(name _self)
       : self(_self), factory_storage_singleton(_self, _self.value),
         pool_storage_singleton(_self, _self.value),
         token_storage_singleton(_self, _self.value) {
@@ -48,7 +48,7 @@ public:
     token_storage_singleton.set(_token_storage, self);
   }
 
-  BPoolStorage &get_factory_store() { return _factory_storage; }
+  BFactoryStorage &get_factory_store() { return _factory_storage; }
 
   BPoolStore &get_pool_store(name pool_name) {
     auto p = _pool_storage.pools.find(pool_name);

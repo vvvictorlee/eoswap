@@ -181,6 +181,11 @@ public:
 
   ////////////////TOKEN//////////////
 
+  action_result newtoken(account_name msg_sender, account_name token) {
+    return push_action(msg_sender, N(newtoken),
+                       mvo()("msg_sender", msg_sender)("token", token));
+  }
+
   action_result approve(account_name msg_sender, account_name token,
                         account_name dst, uint_eth amt) {
     return push_action(msg_sender, N(approve),
@@ -230,11 +235,11 @@ public:
         mvo()("msg_sender", msg_sender)("token", token)("amt", amt));
   }
 
-  action_result move(account_name msg_sender,account_name token, name dst,
+  action_result move(account_name msg_sender, account_name token, name dst,
                      uint_eth amt) {
-    return push_action(
-        src, N(move),
-        mvo()("msg_sender", msg_sender)("token", token)("dst", dst)("amt", amt));
+    return push_action(msg_sender, N(move),
+                       mvo()("msg_sender", msg_sender)("token", token)(
+                           "dst", dst)("amt", amt));
   }
 
   ////////////////get table//////////////
@@ -355,6 +360,12 @@ public:
     return r;
   }
 
+  fc::variant pools(name pool_name) {
+    const auto ps = get_pool_store();
+    const auto p = find_variant(ps["pools"], pool_name.to_string());
+    return p;
+  }
+
   uint_eth to_wei(uint_eth value) { return value * pow(10, 6); }
 
   void newpoolBefore() { newpool(admin, N(pool)); }
@@ -371,8 +382,10 @@ public:
     uint_eth ndamount = to_wei(200);
     uint_eth jamount = to_wei(10);
 
-    // mint(admin, N(weth), to_wei(5));
-    // mint(admin, N(dai), to_wei(200));
+    newtoken(admin, N(weth));
+    newtoken(admin, N(mkr));
+    newtoken(admin, N(dai));
+    newtoken(admin, N(xxx));
 
     mint(admin, N(weth), to_wei(50));
     mint(admin, N(mkr), to_wei(20));
@@ -426,7 +439,7 @@ BOOST_AUTO_TEST_SUITE(eoswap_tests)
 ////////////////factory////////////////////
 BOOST_FIXTURE_TEST_CASE(newpool_tests, eoswap_tester) try {
 
-  newpool(N(alice), N(pool));
+  newpool(admin, N(pool));
 }
 FC_LOG_AND_RETHROW()
 
@@ -443,7 +456,9 @@ BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
   uint_eth jamount = to_wei(10);
-  newpool(N(alice), N(pool));
+  newpool(admin, N(pool));
+  newtoken(admin, N(weth));
+  newtoken(admin, N(dai));
   mint(N(alice), N(weth), eamount);
   mint(N(alice), N(dai), damount);
 
@@ -458,11 +473,13 @@ BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
   uint_eth eamount = to_wei(5);
   uint_eth damount = to_wei(200);
   uint_eth jamount = to_wei(10);
-  newpool(N(alice), N(pool));
-  mint(N(alice), N(weth), eamount);
-  mint(N(alice), N(dai), damount);
-  bind(N(alice), N(pool), N(weth), eamount, to_wei(5));
-  bind(N(alice), N(pool), N(dai), damount, to_wei(5));
+  newpool(admin, N(pool));
+  newtoken(admin, N(weth));
+  newtoken(admin, N(dai));
+  mint(admin, N(weth), eamount);
+  mint(admin, N(dai), damount);
+  bind(admin, N(pool), N(weth), eamount, to_wei(5));
+  bind(admin, N(pool), N(dai), damount, to_wei(5));
 }
 FC_LOG_AND_RETHROW()
 
@@ -475,6 +492,8 @@ BOOST_FIXTURE_TEST_CASE(finalize_tests, eoswap_tester) try {
   uint_eth ndamount = to_wei(200);
   uint_eth jamount = to_wei(10);
   newpool(admin, N(pool));
+  newtoken(admin, N(weth));
+  newtoken(admin, N(dai));
   mint(admin, N(weth), eamount);
   mint(admin, N(dai), damount);
   mint(nonadmin, N(weth), neamount);
@@ -483,6 +502,9 @@ BOOST_FIXTURE_TEST_CASE(finalize_tests, eoswap_tester) try {
   bind(admin, N(pool), N(weth), eamount, to_wei(5));
   bind(admin, N(pool), N(dai), damount, to_wei(5));
   finalize(admin, N(pool));
+  bool flag = pools(N(pool))["finalized"].as<bool>();
+  BOOST_REQUIRE_EQUAL(true, flag);
+
 }
 FC_LOG_AND_RETHROW()
 
@@ -495,6 +517,8 @@ BOOST_FIXTURE_TEST_CASE(joinpool_tests, eoswap_tester) try {
   uint_eth ndamount = to_wei(200);
   uint_eth jamount = to_wei(10);
   newpool(admin, N(pool));
+  newtoken(admin, N(weth));
+  newtoken(admin, N(dai));
   mint(admin, N(weth), eamount);
   mint(admin, N(dai), damount);
   mint(nonadmin, N(weth), neamount);
@@ -503,8 +527,11 @@ BOOST_FIXTURE_TEST_CASE(joinpool_tests, eoswap_tester) try {
   bind(admin, N(pool), N(weth), eamount, to_wei(5));
   bind(admin, N(pool), N(dai), damount, to_wei(5));
   finalize(admin, N(pool));
+  bool flag = pools(N(pool))["finalized"].as<bool>();
+  BOOST_REQUIRE_EQUAL(true, flag);
   std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
-  const auto t = get_token_store();
+//   const auto t = get_pool_store();
+//   BOOST_TEST_CHECK(nullptr==t);
   joinpool(nonadmin, N(pool), jamount, v);
 }
 FC_LOG_AND_RETHROW()
@@ -518,6 +545,8 @@ BOOST_FIXTURE_TEST_CASE(exitpool_tests, eoswap_tester) try {
   uint_eth ndamount = to_wei(200);
   uint_eth jamount = to_wei(10);
   newpool(admin, N(pool));
+  newtoken(admin, N(weth));
+  newtoken(admin, N(dai));
   mint(admin, N(weth), eamount);
   mint(admin, N(dai), damount);
   mint(nonadmin, N(weth), neamount);
@@ -542,6 +571,8 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
   uint_eth ndamount = to_wei(200);
   uint_eth jamount = to_wei(10);
   newpool(admin, N(pool));
+  newtoken(admin, N(weth));
+  newtoken(admin, N(dai));
   mint(admin, N(weth), eamount);
   mint(admin, N(dai), damount);
   mint(nonadmin, N(weth), neamount);
@@ -564,7 +595,7 @@ FC_LOG_AND_RETHROW()
 ////////////////token////////////////////
 BOOST_FIXTURE_TEST_CASE(burn_tests, eoswap_tester) try {
 
-  newpool(N(alice), N(pool));
+  newpool(admin, N(pool));
   mint(N(alice), N(pool), 300);
   burn(N(alice), N(pool), 300);
 }
@@ -572,7 +603,7 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(approve_tests, eoswap_tester) try {
 
-  newpool(N(alice), N(pool));
+  newpool(admin, N(pool));
   approve(N(alice), N(pool), N(bob), 300);
   const auto b = allowance(N(pool), N(alice), N(bob));
 
@@ -582,7 +613,7 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(transfer_tests, eoswap_tester) try {
 
-  newpool(N(alice), N(pool));
+  newpool(admin, N(pool));
   mint(N(alice), N(pool), 300);
   transfer(N(alice), N(pool), N(bob), 300);
 }

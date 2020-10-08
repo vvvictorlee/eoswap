@@ -17,26 +17,18 @@
 #include <storage/BPoolTable.hpp>
 
 class storage_mgmt;
-template <typename Factory, typename PoolStoreType, typename TokenStoreType>
-class BPool : pubic BToken, public BMath {
+template <typename FactoryType, typename PoolStoreType, typename TokenStoreType>
+class BPool : public BToken<TokenStoreType>, public BMath {
 
 private:
-  name self;
-  name msg_sender;
-  Factory &factory;
+  FactoryType &factory;
   BPoolStore &pool_store;
 
 public:
-  BPool(name _self, Factory &_factory, PoolStoreType &_pool_store,
+  BPool(name _self, FactoryType &_factory, PoolStoreType &_pool_store,
         TokenStoreType &_tokenStore)
-      : self(_self), factory(_factory), pool_store(_pool_store),
-        BToken(_tokenStore) {
-    pool_store.controller = self;
-    pool_store.factory = self;
-    pool_store.swapFee = MIN_FEE;
-    pool_store.publicSwap = false;
-    pool_store.finalized = false;
-  }
+      : factory(_factory),
+        pool_store(_pool_store), BToken<TokenStoreType>(_self, _tokenStore) {}
 
   ~BPool() {}
 
@@ -50,6 +42,14 @@ public:
     }
     ~Lock() { pool_store.mutex = false; }
   };
+
+  void init() {
+    pool_store.controller = BToken<TokenStoreType>::get_self();
+    pool_store.factory = BToken<TokenStoreType>::get_self();
+    pool_store.swapFee = MIN_FEE;
+    pool_store.publicSwap = false;
+    pool_store.finalized = false;
+  }
 
   bool isPublicSwap() { return pool_store.publicSwap; }
 
@@ -91,40 +91,44 @@ public:
 
   void setSwapFee(uint swapFee) {
     require(!pool_store.finalized, "ERR_IS_FINALIZED");
-    require(msg_sender == pool_store.controller, "ERR_NOT_CONTROLLER");
+    require(BToken<TokenStoreType>::get_msg_sender() == pool_store.controller,
+            "ERR_NOT_CONTROLLER");
     require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
     require(swapFee <= MAX_FEE, "ERR_MAX_FEE");
     pool_store.swapFee = swapFee;
   }
 
   void setController(name manager) {
-    require(msg_sender == pool_store.controller, "ERR_NOT_CONTROLLER");
+    require(BToken<TokenStoreType>::get_msg_sender() == pool_store.controller,
+            "ERR_NOT_CONTROLLER");
     pool_store.controller = manager;
   }
 
   void setPublicSwap(bool public_) {
     require(!pool_store.finalized, "ERR_IS_FINALIZED");
-    require(msg_sender == pool_store.controller, "ERR_NOT_CONTROLLER");
+    require(BToken<TokenStoreType>::get_msg_sender() == pool_store.controller,
+            "ERR_NOT_CONTROLLER");
     pool_store.publicSwap = public_;
   }
 
-  void finalize(name msg_sender) {
-    require(msg_sender == pool_store.controller, "ERR_NOT_CONTROLLER");
+  void finalize() {
+    require(BToken<TokenStoreType>::get_msg_sender() == pool_store.controller,
+            "ERR_NOT_CONTROLLER");
     require(!pool_store.finalized, "ERR_IS_FINALIZED");
-    require(pool_store.tokens.size() >= MIN_BOUND_TOKENS,
-            "ERR_MIN_pool_storage.tokens");
+    require(pool_store.tokens.size() >= MIN_BOUND_TOKENS, "ERR_MIN_TOKENS");
 
     pool_store.finalized = true;
     pool_store.publicSwap = true;
 
     _mintPoolShare(INIT_POOL_SUPPLY);
-    _pushPoolShare(msg_sender, INIT_POOL_SUPPLY);
+    _pushPoolShare(BToken<TokenStoreType>::get_msg_sender(), INIT_POOL_SUPPLY);
   }
 
   void bind(name token, uint balance, uint denorm)
   // _lock_  Bind does not lock because it jumps to `rebind`, which does
   {
-    require(msg_sender == pool_store.controller, "ERR_NOT_CONTROLLER");
+    require(BToken<TokenStoreType>::get_msg_sender() == pool_store.controller,
+            "ERR_NOT_CONTROLLER");
     require(!pool_store.records[token].bound, "ERR_IS_BOUND");
     require(!pool_store.finalized, "ERR_IS_FINALIZED");
 
@@ -141,13 +145,13 @@ public:
 
   void rebind(name token, uint balance, uint denorm) {
 
-    require(msg_sender == pool_store.controller, "ERR_NOT_CONTROLLER");
+    require(BToken<TokenStoreType>::get_msg_sender() == pool_store.controller,
+            "ERR_NOT_CONTROLLER");
     require(pool_store.records[token].bound, "ERR_NOT_BOUND");
     require(!pool_store.finalized, "ERR_IS_FINALIZED");
 
     require(denorm >= MIN_WEIGHT, "ERR_MIN_WEIGHT");
     require(denorm <= MAX_WEIGHT, "ERR_MAX_WEIGHT");
-    print(balance, "==", MIN_BALANCE);
     require(balance >= MIN_BALANCE, "ERR_MIN_BALANCE");
 
     // Adjust the denorm and totalWeight
@@ -167,12 +171,13 @@ public:
     uint oldBalance = pool_store.records[token].balance;
     pool_store.records[token].balance = balance;
     if (balance > oldBalance) {
-      _pullUnderlying(token, msg_sender, BMath::bsub(balance, oldBalance));
+      _pullUnderlying(token, BToken<TokenStoreType>::get_msg_sender(),
+                      BMath::bsub(balance, oldBalance));
     } else if (balance < oldBalance) {
       // In this case liquidity is being withdrawn, so charge EXIT_FEE
       uint tokenBalanceWithdrawn = BMath::bsub(oldBalance, balance);
       uint tokenExitFee = BMath::bmul(tokenBalanceWithdrawn, EXIT_FEE);
-      _pushUnderlying(token, msg_sender,
+      _pushUnderlying(token, BToken<TokenStoreType>::get_msg_sender(),
                       BMath::bsub(tokenBalanceWithdrawn, tokenExitFee));
       _pushUnderlying(token, pool_store.factory, tokenExitFee);
     }
@@ -180,7 +185,8 @@ public:
 
   void unbind(name token) {
 
-    require(msg_sender == pool_store.controller, "ERR_NOT_CONTROLLER");
+    require(BToken<TokenStoreType>::get_msg_sender() == pool_store.controller,
+            "ERR_NOT_CONTROLLER");
     require(pool_store.records[token].bound, "ERR_NOT_BOUND");
     require(!pool_store.finalized, "ERR_IS_FINALIZED");
 
@@ -199,16 +205,19 @@ public:
     pool_store.tokens.pop_back();
     pool_store.records[token] = Record({false, 0, 0, 0});
 
-    _pushUnderlying(token, msg_sender, BMath::bsub(tokenBalance, tokenExitFee));
+    _pushUnderlying(token, BToken<TokenStoreType>::get_msg_sender(),
+                    BMath::bsub(tokenBalance, tokenExitFee));
     _pushUnderlying(token, pool_store.factory, tokenExitFee);
   }
 
   // Absorb any tokens that have been sent to this contract into the pool
   void gulp(name token) {
     require(pool_store.records[token].bound, "ERR_NOT_BOUND");
-    BTokenStore &tokenStore = factory.get_storage_mgmt().get_token_tore(token);
-    BToken _token_(self, tokenStore);
-    pool_store.records[token].balance = _token_.balanceOf(msg_sender);
+    factory.setMsgSender(BToken<TokenStoreType>::get_msg_sender());
+    factory.token(token, [&](auto &_token_) {
+      pool_store.records[token].balance =
+          _token_.balanceOf(BToken<TokenStoreType>::get_msg_sender());
+    });
   }
 
   uint getSpotPrice(name tokenIn, name tokenOut) {
@@ -232,7 +241,7 @@ public:
   void joinPool(uint poolAmountOut, std::vector<uint> maxAmountsIn) {
     require(pool_store.finalized, "ERR_NOT_FINALIZED");
 
-    uint poolTotal = pool_token.totalSupply();
+    uint poolTotal = BToken<TokenStoreType>::totalSupply();
     uint ratio = BMath::bdiv(poolAmountOut, poolTotal);
     require(ratio != 0, "ERR_MATH_APPROX");
 
@@ -245,22 +254,23 @@ public:
       require(tokenAmountIn <= maxAmountsIn[i], "ERR_LIMIT_IN joinPool");
       pool_store.records[t].balance =
           BMath::badd(pool_store.records[t].balance, tokenAmountIn);
-      _pullUnderlying(t, msg_sender, tokenAmountIn);
+      _pullUnderlying(t, BToken<TokenStoreType>::get_msg_sender(),
+                      tokenAmountIn);
     }
     _mintPoolShare(poolAmountOut);
-    _pushPoolShare(msg_sender, poolAmountOut);
+    _pushPoolShare(BToken<TokenStoreType>::get_msg_sender(), poolAmountOut);
   }
 
   void exitPool(uint poolAmountIn, std::vector<uint> minAmountsOut) {
     require(pool_store.finalized, "ERR_NOT_FINALIZED");
 
-    uint poolTotal = pool_token.totalSupply();
+    uint poolTotal = BToken<TokenStoreType>::totalSupply();
     uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
     uint pAiAfterExitFee = BMath::bsub(poolAmountIn, exitFee);
     uint ratio = BMath::bdiv(pAiAfterExitFee, poolTotal);
     require(ratio != 0, "ERR_MATH_APPROX");
 
-    _pullPoolShare(msg_sender, poolAmountIn);
+    _pullPoolShare(BToken<TokenStoreType>::get_msg_sender(), poolAmountIn);
     _pushPoolShare(pool_store.factory, exitFee);
     _burnPoolShare(pAiAfterExitFee);
 
@@ -272,7 +282,8 @@ public:
       require(tokenAmountOut >= minAmountsOut[i], "ERR_LIMIT_OUT");
       pool_store.records[t].balance =
           BMath::bsub(pool_store.records[t].balance, tokenAmountOut);
-      _pushUnderlying(t, msg_sender, tokenAmountOut);
+      _pushUnderlying(t, BToken<TokenStoreType>::get_msg_sender(),
+                      tokenAmountOut);
     }
   }
 
@@ -311,8 +322,10 @@ public:
     require(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut),
             "ERR_MATH_APPROX");
 
-    _pullUnderlying(tokenIn, msg_sender, tokenAmountIn);
-    _pushUnderlying(tokenOut, msg_sender, tokenAmountOut);
+    _pullUnderlying(tokenIn, BToken<TokenStoreType>::get_msg_sender(),
+                    tokenAmountIn);
+    _pushUnderlying(tokenOut, BToken<TokenStoreType>::get_msg_sender(),
+                    tokenAmountOut);
 
     return std::make_pair(tokenAmountOut, spotPriceAfter);
   }
@@ -351,8 +364,10 @@ public:
     require(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut),
             "ERR_MATH_APPROX");
 
-    _pullUnderlying(tokenIn, msg_sender, tokenAmountIn);
-    _pushUnderlying(tokenOut, msg_sender, tokenAmountOut);
+    _pullUnderlying(tokenIn, BToken<TokenStoreType>::get_msg_sender(),
+                    tokenAmountIn);
+    _pushUnderlying(tokenOut, BToken<TokenStoreType>::get_msg_sender(),
+                    tokenAmountOut);
 
     return std::make_pair(tokenAmountIn, spotPriceAfter);
   }
@@ -368,16 +383,18 @@ public:
     Record inRecord = pool_store.records[tokenIn];
 
     uint poolAmountOut = calcPoolOutGivenSingleIn(
-        inRecord.balance, inRecord.denorm, pool_token.totalSupply(),
-        pool_store.totalWeight, tokenAmountIn, pool_store.swapFee);
+        inRecord.balance, inRecord.denorm,
+        BToken<TokenStoreType>::totalSupply(), pool_store.totalWeight,
+        tokenAmountIn, pool_store.swapFee);
 
     require(poolAmountOut >= minPoolAmountOut, "ERR_LIMIT_OUT");
 
     inRecord.balance = BMath::badd(inRecord.balance, tokenAmountIn);
 
     _mintPoolShare(poolAmountOut);
-    _pushPoolShare(msg_sender, poolAmountOut);
-    _pullUnderlying(tokenIn, msg_sender, tokenAmountIn);
+    _pushPoolShare(BToken<TokenStoreType>::get_msg_sender(), poolAmountOut);
+    _pullUnderlying(tokenIn, BToken<TokenStoreType>::get_msg_sender(),
+                    tokenAmountIn);
 
     return poolAmountOut;
   }
@@ -390,8 +407,9 @@ public:
     Record inRecord = pool_store.records[tokenIn];
 
     uint tokenAmountIn = calcSingleInGivenPoolOut(
-        inRecord.balance, inRecord.denorm, pool_token.totalSupply(),
-        pool_store.totalWeight, poolAmountOut, pool_store.swapFee);
+        inRecord.balance, inRecord.denorm,
+        BToken<TokenStoreType>::totalSupply(), pool_store.totalWeight,
+        poolAmountOut, pool_store.swapFee);
 
     require(tokenAmountIn != 0, "ERR_MATH_APPROX");
     require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
@@ -403,8 +421,9 @@ public:
     inRecord.balance = BMath::badd(inRecord.balance, tokenAmountIn);
 
     _mintPoolShare(poolAmountOut);
-    _pushPoolShare(msg_sender, poolAmountOut);
-    _pullUnderlying(tokenIn, msg_sender, tokenAmountIn);
+    _pushPoolShare(BToken<TokenStoreType>::get_msg_sender(), poolAmountOut);
+    _pullUnderlying(tokenIn, BToken<TokenStoreType>::get_msg_sender(),
+                    tokenAmountIn);
 
     return tokenAmountIn;
   }
@@ -417,8 +436,9 @@ public:
     Record outRecord = pool_store.records[tokenOut];
 
     uint tokenAmountOut = calcSingleOutGivenPoolIn(
-        outRecord.balance, outRecord.denorm, pool_token.totalSupply(),
-        pool_store.totalWeight, poolAmountIn, pool_store.swapFee);
+        outRecord.balance, outRecord.denorm,
+        BToken<TokenStoreType>::totalSupply(), pool_store.totalWeight,
+        poolAmountIn, pool_store.swapFee);
 
     require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
@@ -430,10 +450,11 @@ public:
 
     uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
 
-    _pullPoolShare(msg_sender, poolAmountIn);
+    _pullPoolShare(BToken<TokenStoreType>::get_msg_sender(), poolAmountIn);
     _burnPoolShare(BMath::bsub(poolAmountIn, exitFee));
     _pushPoolShare(pool_store.factory, exitFee);
-    _pushUnderlying(tokenOut, msg_sender, tokenAmountOut);
+    _pushUnderlying(tokenOut, BToken<TokenStoreType>::get_msg_sender(),
+                    tokenAmountOut);
 
     return tokenAmountOut;
   }
@@ -449,8 +470,9 @@ public:
     Record outRecord = pool_store.records[tokenOut];
 
     uint poolAmountIn = calcPoolInGivenSingleOut(
-        outRecord.balance, outRecord.denorm, pool_token.totalSupply(),
-        pool_store.totalWeight, tokenAmountOut, pool_store.swapFee);
+        outRecord.balance, outRecord.denorm,
+        BToken<TokenStoreType>::totalSupply(), pool_store.totalWeight,
+        tokenAmountOut, pool_store.swapFee);
 
     require(poolAmountIn != 0, "ERR_MATH_APPROX");
     require(poolAmountIn <= maxPoolAmountIn, "ERR_LIMIT_IN");
@@ -459,10 +481,11 @@ public:
 
     uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
 
-    _pullPoolShare(msg_sender, poolAmountIn);
+    _pullPoolShare(BToken<TokenStoreType>::get_msg_sender(), poolAmountIn);
     _burnPoolShare(BMath::bsub(poolAmountIn, exitFee));
     _pushPoolShare(pool_store.factory, exitFee);
-    _pushUnderlying(tokenOut, msg_sender, tokenAmountOut);
+    _pushUnderlying(tokenOut, BToken<TokenStoreType>::get_msg_sender(),
+                    tokenAmountOut);
 
     return poolAmountIn;
   }
@@ -472,26 +495,31 @@ public:
   // locked You must `_lock_` or otherwise ensure reentry-safety
   void _pullUnderlying(name token, name from, uint amount) {
     /// transfer memo implementation
-    BTokenStore &tokenStore = factory.get_storage_mgmt().get_token_tore(token);
-    BToken _token_(self, tokenStore);
-    bool xfer = _token_.transferFrom(from, from, self, amount);
-    require(xfer, "ERR_ERC20_FALSE");
+    factory.setMsgSender(BToken<TokenStoreType>::get_msg_sender());
+    factory.token(token, [&](auto &_token_) {
+      bool xfer = _token_.transferFrom(from, BToken<TokenStoreType>::get_self(),
+                                       amount);
+      require(xfer, "ERR_ERC20_FALSE");
+    });
   }
 
   void _pushUnderlying(name token, name to, uint amount) {
-    BTokenStore &tokenStore = factory.get_storage_mgmt().get_token_tore(token);
-    BToken _token_(self, tokenStore);
-    bool xfer = _token_.transfer(self, to, amount);
-    require(xfer, "ERR_ERC20_FALSE");
+    factory.setMsgSender(BToken<TokenStoreType>::get_msg_sender());
+    factory.token(token, [&](auto &_token_) {
+      bool xfer = _token_.transfer(to, amount);
+      require(xfer, "ERR_ERC20_FALSE");
+    });
   }
 
   void _pullPoolShare(name from, uint amount) {
-    pool_token._pull(from, amount);
+    BToken<TokenStoreType>::_pull(from, amount);
   }
 
-  void _pushPoolShare(name to, uint amount) { pool_token._push(to, amount); }
+  void _pushPoolShare(name to, uint amount) {
+    BToken<TokenStoreType>::_push(to, amount);
+  }
 
-  void _mintPoolShare(uint amount) { pool_token._mint(amount); }
+  void _mintPoolShare(uint amount) { BToken<TokenStoreType>::_mint(amount); }
 
-  void _burnPoolShare(uint amount) { pool_token._burn(amount); }
+  void _burnPoolShare(uint amount) { BToken<TokenStoreType>::_burn(amount); }
 };
