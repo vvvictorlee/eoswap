@@ -309,6 +309,7 @@ public:
     uint tokenAmountOut =
         calcOutGivenIn(inRecord.balance, inRecord.denorm, outRecord.balance,
                        outRecord.denorm, tokenAmountIn, pool_store.swapFee);
+    print("===tokenAmountOut===",tokenAmountOut,"==minAmountOut===", minAmountOut);
     require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
     inRecord.balance = BMath::badd(inRecord.balance, tokenAmountIn);

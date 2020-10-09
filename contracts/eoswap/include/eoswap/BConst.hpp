@@ -21,7 +21,7 @@ public:
     static constexpr uint  MIN_BOUND_TOKENS  = 2;
     static constexpr uint  MAX_BOUND_TOKENS  = 8;
 
-    static constexpr uint  MIN_FEE           = BONE / my_pow(10,2);//6
+    static constexpr uint  MIN_FEE           = BONE / my_pow(10,3);//6
     static constexpr uint  MAX_FEE           = BONE / 10;
     static constexpr uint  EXIT_FEE          = 0;
 

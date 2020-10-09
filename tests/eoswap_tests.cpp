@@ -372,6 +372,7 @@ public:
 
   void setswapfeeBefore() {
     // await pool.setSwapFee(toWei('0.003'));
+    setswapfee(admin, N(pool), 3000);
   }
 
   void mintBefore() {
@@ -504,7 +505,6 @@ BOOST_FIXTURE_TEST_CASE(finalize_tests, eoswap_tester) try {
   finalize(admin, N(pool));
   bool flag = pools(N(pool))["finalized"].as<bool>();
   BOOST_REQUIRE_EQUAL(true, flag);
-
 }
 FC_LOG_AND_RETHROW()
 
@@ -530,8 +530,8 @@ BOOST_FIXTURE_TEST_CASE(joinpool_tests, eoswap_tester) try {
   bool flag = pools(N(pool))["finalized"].as<bool>();
   BOOST_REQUIRE_EQUAL(true, flag);
   std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
-//   const auto t = get_pool_store();
-//   BOOST_TEST_CHECK(nullptr==t);
+  //   const auto t = get_pool_store();
+  //   BOOST_TEST_CHECK(nullptr==t);
   joinpool(nonadmin, N(pool), jamount, v);
 }
 FC_LOG_AND_RETHROW()
