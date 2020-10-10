@@ -8,6 +8,8 @@ private:
 public:
    static constexpr eosio::name token_account{"eosio.token"_n};
    static constexpr eosio::name active_permission{"active"_n};
+
+
   // constructor
   //-------------------------------------------------------------------------
   transfer_mgmt(name _self) : self(_self) {}
@@ -15,90 +17,53 @@ public:
   template <typename T>
   void eosiotoken_transfer(name from, name to, asset quantity, std::string memo,
                            T func) {
-    eosio::check(quantity.symbol == eosio::symbol("EOS", 4),
-                 "only accepts EOS for deposits");
+    if (from == self || to != self || quantity.symbol != core_symbol() ||
+        memo.empty()) {
+      // print("memo is empty on trasfer");
+      return;
+    }
+    // eosio::check(quantity.symbol == eosio::symbol("EOS", 4),
+    //              "only accepts EOS for deposits");
     eosio::check(quantity.is_valid(), "Invalid token transfer");
     eosio::check(quantity.amount > 0, "Quantity must be positive");
 
-    if (from == self) {
-      check_blacklist(to);
-      return;
-    }
-
-    if (to != self) {
-      check_blacklist(from);
-      return;
-    }
 
     // system account could transfer eos to contract
     // eg) unstake, sellram, etc
     if (is_system_account(from)) {
       return;
     }
-    transfer_info res;
-    size_t n1 = memo.find(':');
-    size_t n2 = memo.find(':', n1 + 1);
-    res.from = from;
-    res.action = memo.substr(0, n1);
 
-    if (n2 == std::string::npos) {
-      res.param = memo.substr(n1 + 1);
-    } else {
-      // param:type:seller:block:checksum
-      size_t n3 = memo.find(':', n2 + 1);
-      size_t n4 = memo.find(':', n3 + 1);
-      size_t n5 = memo.find(':', n4 + 1);
-      res.param = memo.substr(n1 + 1, n2 - (n1 + 1));
-      res.type = atoi(memo.substr(n2 + 1, n3 - (n2 + 1)).c_str());
-      res.seller = name(atoll(memo.substr(n3 + 1, n4 - (n3 + 1)).c_str()));
-      res.block = (uint32_t)atoll(memo.substr(n4 + 1, n5 - (n4 + 1)).c_str());
-      res.checksum = (uint32_t)atoll(memo.substr(n5 + 1).c_str());
-    }
+    std::vector<std::string> action_parameters = parse_string(memo,";");
+    const int memo_size = 1;
+    check(action_parameters.size()> memo_size, "parse memo failed ");
 
-    res.quantity = quantity;
-    func(res);
+    transfer_data data;
+    data.msg_sender = from;
+    data.action = action_parameters[0];
+    data.param = action_parameters[1];
+
+    func(data);
   }
 
   template <typename T>
   void non_eosiotoken_transfer(name from, name to, asset quantity,
                                std::string memo, T func) {
-    eosio::check(quantity.symbol == eosio::symbol("EOS", 4),
-                 "only accepts EOS for deposits");
-    eosio::check(quantity.is_valid(), "Invalid token transfer");
-    eosio::check(quantity.amount > 0, "Quantity must be positive");
-
-    if (from == self) {
-      check_blacklist(to);
+    if (from == self || to != self || quantity.symbol == core_symbol() ||
+        memo.empty()) {
       return;
     }
 
-    if (to != self) {
-      check_blacklist(from);
-      return;
-    }
+    std::vector<std::string> action_parameters = parse_string(memo,";");
+    const int memo_size = 1;
+    check(action_parameters.size()> memo_size, "parse memo failed ");
 
-    transfer_info res;
-    size_t n1 = memo.find(':');
-    size_t n2 = memo.find(':', n1 + 1);
-    res.from = from;
-    res.action = memo.substr(0, n1);
+    transfer_data data;
+    data.msg_sender = from;
+    data.action = action_parameters[0];
+    data.param = action_parameters[1];
 
-    if (n2 == std::string::npos) {
-      res.param = memo.substr(n1 + 1);
-    } else {
-      // param:type:seller:block:checksum
-      size_t n3 = memo.find(':', n2 + 1);
-      size_t n4 = memo.find(':', n3 + 1);
-      size_t n5 = memo.find(':', n4 + 1);
-      res.param = memo.substr(n1 + 1, n2 - (n1 + 1));
-      res.type = atoi(memo.substr(n2 + 1, n3 - (n2 + 1)).c_str());
-      res.seller = name(atoll(memo.substr(n3 + 1, n4 - (n3 + 1)).c_str()));
-      res.block = (uint32_t)atoll(memo.substr(n4 + 1, n5 - (n4 + 1)).c_str());
-      res.checksum = (uint32_t)atoll(memo.substr(n5 + 1).c_str());
-    }
-
-    res.quantity = quantity;
-    func(res);
+    func(data);
   }
 
   bool is_system_account(name name) {
@@ -121,119 +86,6 @@ public:
   symbol core_symbol() const {
     symbol _core_symbol = symbol(symbol_code("EOS"), 4);
     return _core_symbol;
-  };
-  void on_transfer(name from, name to, asset quantity, std::string memo) {
-
-    //  check(get_first_receiver() == "eosio.token"_n, "should be eosio.token");
-    print_f("On notify : % % % %", from, to, quantity, memo);
-    if (from == self || to != self || quantity.symbol != core_symbol() ||
-        memo.empty()) {
-      // print("memo is empty on trasfer");
-      return;
-    }
-    check(quantity.is_valid(), "invalid quantity");
-    check(quantity.amount > 0, "must transfer positive quantity");
-
-    //  check(quantity.amount>100, "amount could not be less than 100");
-    //
-    // check(find(to) != end, "no account's business found ");
-
-    std::vector<std::string> parameters = get_parameters(memo);
-    check(parameters.size() > 0, "parse memo failed ");
-    uint64_t transfer_category = convert_to_int(parameters[index_category]);
-
-    auto check_parameters_size = [&](uint64_t category) -> bool {
-      std::vector<uint8_t> index_counts = {};
-      std::vector<std::string> help_strings = {
-          "stake_category,index_id",
-          "pay_category,index_id",
-          "deposit_category,from,to,notify ",
-          "appeal_category,service_id ,evidence,info,reason,provider",
-          "arbitrator_category,type ",
-          "resp_case_category,arbitration_id,evidence",
-          "risk_guarantee_category,id,duration"};
-
-      // check(category >= 0 && category < index_counts.size(), "unknown
-      // category"); check(parameters.size() == index_counts[category],
-      //       "the parameters'size does not match ");
-
-      if (category >= 0 && category < index_counts.size()) {
-        if (parameters.size() == index_counts[category]) {
-          return true;
-        }
-        std::string str =
-            "the parameters'size does not match " + help_strings[category];
-        check(false, str.c_str());
-      }
-
-      return false;
-    };
-
-    if (!check_parameters_size(transfer_category)) {
-      print("unknown category");
-      return;
-    }
-
-    auto s2name = [&](uint64_t index) -> name {
-      if (index >= 0 && index < parameters.size()) {
-        return name(parameters[index]);
-      } else {
-        print("index invalid", index, parameters.size());
-      }
-
-      return name{};
-    };
-    auto s2int = [&](uint64_t index) -> uint64_t {
-      if (index >= 0 && index < parameters.size()) {
-        return convert_to_int(parameters[index]);
-      } else {
-        print("index invalid", index, parameters.size());
-      }
-      return 0;
-    };
-
-    if (tc_deposit == transfer_category) {
-      //   call_deposit(s2name(static_cast<uint64_t>(index_from)),
-      //   s2name(index_to), quantity, 0 != s2int(index_notify));
-      // transfer(_self, riskctrl_account, quantity, memo);
-    } else {
-
-      name account = from;
-      //       switch (transfer_category) {
-      //       case tc_service_stake:
-      //          stake_asset(s2int(index_id), account, quantity, memo);
-      //          // oracle_transfer(_self, provider_account, quantity, memo,
-      //          true); break;
-      //       case tc_pay_service:
-      //          pay_service(s2int(index_id), account, quantity);
-      //          // oracle_transfer(_self, consumer_account, quantity, memo,
-      //          true); break;
-      //       case tc_arbitration_stake_appeal:
-      //          _appeal(account, s2int(index_id), quantity,
-      //          parameters[index_reason], parameters[index_evidence],
-      //          s2int(index_provider));
-      //          // oracle_transfer(_self, arbitrat_account, quantity, memo,
-      //          true); break;
-      //       case tc_arbitration_stake_arbitrator:
-      //          _regarbitrat(account, s2int(index_type), quantity, "");
-      //          // oracle_transfer(_self, arbitrat_account, quantity, memo,
-      //          true); break;
-      //       case tc_arbitration_stake_resp_case:
-      //          _respcase(account, s2int(index_id), quantity,
-      //          parameters[index_evidence]);
-      //          // oracle_transfer(_self, arbitrat_account, quantity, memo,
-      //          true); break;
-      //       case tc_risk_guarantee:
-      //          add_guarantee(s2int(index_id), account, quantity,
-      //          s2int(index_duration));
-      //          // oracle_transfer(_self, arbitrat_account, quantity, memo,
-      //          true); break;
-      //       default:
-      //          //  check(false, "unknown  transfer category ");
-      //          print("unknown  transfer category ");
-      //          break;
-      //       }
-    }
   }
 
   /**
@@ -244,12 +96,12 @@ public:
    * @param quantity
    * @param memo
    */
-  void transfer(name from, name to, asset quantity, std::string memo) {
-    oracle_transfer(from, to, quantity, memo, true);
+  void transfer(name from, name to, extended_asset quantity, std::string memo) {
+    inner_transfer(from, to, quantity, memo);
   }
 
-  void oracle_transfer(name from, name to, asset quantity, std::string memo,
-                       bool is_deferred) {
+  void inner_transfer(name from, name to, extended_asset quantity, std::string memo,
+                       bool is_deferred=false) {
 
     check(from != to, "cannot transfer to self");
     //  require_auth( from );
@@ -261,8 +113,8 @@ public:
     //  require_recipient( from );
     //  require_recipient( to );
 
-    check(quantity.is_valid(), "invalid quantity");
-    check(quantity.amount > 0, "must transfer positive quantity");
+    check(quantity.quantity.is_valid(), "invalid quantity");
+    check(quantity.quantity.amount > 0, "must transfer positive quantity");
     // check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
     check(memo.size() <= 256, "memo has more than 256 bytes");
 
@@ -272,17 +124,17 @@ public:
 
     //  auto payer = has_auth( to ) ? to : from;
     // print("===quantity");
-    quantity.print();
+    quantity.quantity.print();
 
     if (!is_deferred) {
-      action(permission_level{from, "active"_n}, token_account, "transfer"_n,
-             std::make_tuple(from, to, quantity, memo))
+      action(permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
+             std::make_tuple(from, to, quantity.quantity, memo))
           .send();
     } else {
       transaction t;
       t.actions.emplace_back(permission_level{from, active_permission},
-                             token_account, "transfer"_n,
-                             std::make_tuple(from, to, quantity, memo));
+                             quantity.contract, "transfer"_n,
+                             std::make_tuple(from, to, quantity.quantity, memo));
       t.delay_sec = 0;
       uint128_t deferred_id = (uint128_t(to.value) << 64) |
                               current_time_point_sec().sec_since_epoch();
@@ -293,9 +145,9 @@ public:
     // INLINE_ACTION_SENDER(eosio::token, transfer)(token_account, {{from,
     // active_permission}, {to, active_permission}},{from, to, quantity, memo});
   }
-  static std::vector<std::string> get_parameters(const std::string &source) {
+  static std::vector<std::string> parse_string(const std::string &source,const std::string& delimiter = ",") {
     std::vector<std::string> results;
-    const std::string delimiter = ",";
+    // const std::string delimiter = ",";
     size_t prev = 0;
     size_t next = 0;
 
@@ -314,9 +166,9 @@ public:
     return results;
   }
 
-  static uint64_t convert_to_int(const std::string &parameter) {
+  static uint64_t to_int(const std::string &str) {
     bool isOK = false;
-    const char *nptr = parameter.c_str();
+    const char *nptr = str.c_str();
     char *endptr = NULL;
     errno = 0;
     uint64_t val = std::strtoull(nptr, &endptr, 10);

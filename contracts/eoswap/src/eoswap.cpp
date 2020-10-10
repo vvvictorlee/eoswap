@@ -142,6 +142,11 @@ public:
   }
 
   ////////////////// TEST pool TOKEN////////////////////////
+  [[eosio::action]] void extransfer(name from, name to, extended_asset quantity,
+                                     std::string memo) {
+    _transfer_mgmt.transfer(from, to, quantity, memo);
+  }
+
   [[eosio::action]] void newtoken(name msg_sender, name token) {
     factory.setMsgSender(msg_sender);
     factory.newToken(token);
@@ -192,7 +197,8 @@ public:
 
   [[eosio::action]] void move(name msg_sender, name token, name dst, uint amt) {
     factory.setMsgSender(msg_sender);
-    factory.token(token, [&](auto &_token_) { _token_._move(msg_sender,dst, amt); });
+    factory.token(token,
+                  [&](auto &_token_) { _token_._move(msg_sender, dst, amt); });
   }
 
   ////////////////////on_notify////////////////////
@@ -200,21 +206,24 @@ public:
       name from, name to, asset quantity, std::string memo) {
     check(get_first_receiver() == "eosio.token"_n, "should be eosio.token");
     print_f("On notify : % % % %", from, to, quantity, memo);
-    _transfer_mgmt.eosiotoken_transfer(from, to, quantity, memo,
-                                       [&](const auto &ad) {
-                                         //       if (ad.action.size() == 0) {
-                                         //         return;
-                                         //       }
+    _transfer_mgmt.eosiotoken_transfer(
+        from, to, quantity, memo, [&](const auto &action_event) {
+          if (action_event.action.empty()) {
+            return;
+          }
 
-                                         //       if (ad.action == ta_knt) {
-                                         //         int type =
-                                         //         atoi(ad.param.c_str());
-                                         //         knight_controller.hireknight(ad.from,
-                                         //         type, ad.quantity);
-                                         //         admin_controller.add_revenue(ad.quantity,
-                                         //         rv_knight);
-                                         //       }
-                                       });
+          if (action_event.action.compare(bind_action_string) == 0) {
+            auto paras = transfer_mgmt::parse_string(action_event.param);
+            name pool_name;
+            name token;
+            uint balance;
+            uint denorm;
+            factory.setMsgSender(action_event.msg_sender);
+            factory.pool(pool_name, [&](auto &pool) {
+              pool.bind(token, balance, denorm);
+            });
+          }
+        });
   }
 
   [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(
@@ -222,20 +231,8 @@ public:
     check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
     print_f("On notify 2 : % % % %", from, to, quantity, memo);
     _transfer_mgmt.non_eosiotoken_transfer(from, to, quantity, memo,
-                                           [&](const auto &ad) {
-                                             //       if (ad.action.size() == 0)
-                                             //       {
-                                             //         return;
-                                             //       }
+                                           [&](const auto &action_event) {
 
-                                             //       if (ad.action == ta_knt) {
-                                             //         int type =
-                                             //         atoi(ad.param.c_str());
-                                             //         knight_controller.hireknight(ad.from,
-                                             //         type, ad.quantity);
-                                             //         admin_controller.add_revenue(ad.quantity,
-                                             //         rv_knight);
-                                             //       }
                                            });
   }
 };
