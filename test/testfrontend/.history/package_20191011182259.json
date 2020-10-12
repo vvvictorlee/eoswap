@@ -1,0 +1,20 @@
+{
+  "name": "delpi-oracle-utils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "updater.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Guillaume Babin-Tremblay",
+  "license": "ISC",
+  "dependencies": {
+    "coingecko-api": "^1.0.6",
+    "colors": "*",
+    "dotenv": "^6.0.0",
+    "eosjs": "^16.0.9",
+    "request": "*",
+    "sleep": "^6.1.0",
+    "ws": "^7.1.2"
+  }
+}
