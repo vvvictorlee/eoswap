@@ -17,75 +17,68 @@
 
 class storage_mgmt {
 
-private:
-  name self;
-  BFactoryStorageSingleton factory_storage_singleton;
-  BFactoryStorage _factory_storage;
-  BPoolStorageSingleton pool_storage_singleton;
-  BPoolStorage _pool_storage;
-  BTokenStorageSingleton token_storage_singleton;
-  BTokenStorage _token_storage;
+ private:
+   name                     self;
+   BFactoryStorageSingleton factory_storage_singleton;
+   BFactoryStorage          _factory_storage;
+   BPoolStorageSingleton    pool_storage_singleton;
+   BPoolStorage             _pool_storage;
+   BTokenStorageSingleton   token_storage_singleton;
+   BTokenStorage            _token_storage;
 
-public:
-  storage_mgmt(name _self)
-      : self(_self), factory_storage_singleton(_self, _self.value),
-        pool_storage_singleton(_self, _self.value),
-        token_storage_singleton(_self, _self.value) {
-    _factory_storage = factory_storage_singleton.exists()
-                           ? factory_storage_singleton.get()
-                           : BFactoryStorage{};
-    _factory_storage.blabs = _self;
-    _pool_storage = pool_storage_singleton.exists()
-                        ? pool_storage_singleton.get()
-                        : BPoolStorage{};
-    _token_storage = token_storage_singleton.exists()
-                         ? token_storage_singleton.get()
-                         : BTokenStorage{};
-  }
-  ~storage_mgmt() {
-    factory_storage_singleton.set(_factory_storage, self);
-    pool_storage_singleton.set(_pool_storage, self);
-    token_storage_singleton.set(_token_storage, self);
-  }
+ public:
+   storage_mgmt(name _self)
+       : self(_self)
+       , factory_storage_singleton(_self, _self.value)
+       , pool_storage_singleton(_self, _self.value)
+       , token_storage_singleton(_self, _self.value) {
+      _factory_storage       = factory_storage_singleton.exists() ? factory_storage_singleton.get() : BFactoryStorage{};
+      _factory_storage.blabs = _self;
+      _pool_storage          = pool_storage_singleton.exists() ? pool_storage_singleton.get() : BPoolStorage{};
+      _token_storage         = token_storage_singleton.exists() ? token_storage_singleton.get() : BTokenStorage{};
+   }
+   ~storage_mgmt() {
+      factory_storage_singleton.set(_factory_storage, self);
+      pool_storage_singleton.set(_pool_storage, self);
+      token_storage_singleton.set(_token_storage, self);
+   }
 
-  BFactoryStorage &get_factory_store() { return _factory_storage; }
+   BFactoryStorage& get_factory_store() { return _factory_storage; }
 
-  BPoolStore &get_pool_store(name pool_name) {
-    auto p = _pool_storage.pools.find(pool_name);
-    bool f = p != _pool_storage.pools.end();
-    require(f, "NO_POOL");
-    return p->second;
-  }
+   BPoolStore& get_pool_store(name pool_name) {
+      auto p = _pool_storage.pools.find(pool_name);
+      bool f = p != _pool_storage.pools.end();
+      require(f, "NO_POOL");
+      return p->second;
+   }
 
-  BTokenStore &get_token_store(name token) {
-    auto t = _token_storage.tokens.find(token);
-    bool f = (t != _token_storage.tokens.end());
+   BTokenStore& get_token_store(namesym token) {
+      auto t = _token_storage.tokens.find(token);
+      bool f = (t != _token_storage.tokens.end());
 
-    require(f, "NO_TOKEN");
-    return t->second;
-  }
+      require(f, "NO_TOKEN");
+      return t->second;
+   }
 
-  BPoolStore &newPoolStore(name pool_name) {
-    auto p = _pool_storage.pools.find(pool_name);
-    bool f = (p == _pool_storage.pools.end());
-    require(f, "ALREADY_EXIST_POOL");
+   BPoolStore& newPoolStore(name pool_name) {
+      auto p = _pool_storage.pools.find(pool_name);
+      bool f = (p == _pool_storage.pools.end());
+      require(f, "ALREADY_EXIST_POOL");
 
-    auto pb = _pool_storage.pools.insert(
-        std::map<name, BPoolStore>::value_type(pool_name, BPoolStore()));
-    require(pb.second, "INSERT_POOL_FAIL");
+      auto pb = _pool_storage.pools.insert(std::map<name, BPoolStore>::value_type(pool_name, BPoolStore()));
+      require(pb.second, "INSERT_POOL_FAIL");
 
-    return pb.first->second;
-  }
+      return pb.first->second;
+   }
 
-  BTokenStore &newTokenStore(name token) {
-    auto t = _token_storage.tokens.find(token);
+   BTokenStore& newTokenStore(namesym token) {
+      auto t = _token_storage.tokens.find(token);
 
-    bool f = (t == _token_storage.tokens.end());
-    require(f, "ALREADY_EXIST_TOKEN");
+      bool f = (t == _token_storage.tokens.end());
+      require(f, "ALREADY_EXIST_TOKEN");
 
-    auto pb = _token_storage.tokens.insert(
-        std::map<name, BTokenStore>::value_type(token, BTokenStore()));
+      auto pb = _token_storage.tokens.insert(std::map<namesym, BTokenStore>::value_type(token, BTokenStore()));
 
-    return pb.first->second;
-  }
+      return pb.first->second;
+   }
 };

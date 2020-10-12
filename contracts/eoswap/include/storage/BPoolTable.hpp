@@ -18,7 +18,8 @@ struct Record {
   uint index;  // private
   uint denorm; // denormalized weight
   uint balance;
-  EOSLIB_SERIALIZE(Record, (bound)(index)(denorm)(balance))
+  extended_symbol exsym;
+  EOSLIB_SERIALIZE(Record, (bound)(index)(denorm)(balance)(exsym))
 };
 
 struct  BPoolStore {
@@ -33,8 +34,8 @@ struct  BPoolStore {
   uint swapFee;
   bool finalized;
 
-  std::vector<name> tokens;
-  std::map<name, Record> records;
+  std::vector<namesym> tokens;
+  std::map<namesym, Record> records;
   uint totalWeight;
 
   EOSLIB_SERIALIZE(BPoolStore, (mutex)(factory)(controller)(publicSwap)(swapFee)(finalized)(tokens)(records)(totalWeight))

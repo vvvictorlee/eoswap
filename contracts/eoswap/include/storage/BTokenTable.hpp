@@ -28,7 +28,7 @@ struct BTokenStore {
 };
 
 struct [[eosio::table("tokentable"), eosio::contract("eoswap")]] BTokenStorage {
-  std::map<name, BTokenStore> tokens;
+  std::map<namesym, BTokenStore> tokens;
   EOSLIB_SERIALIZE(BTokenStorage, (tokens))
 };
 

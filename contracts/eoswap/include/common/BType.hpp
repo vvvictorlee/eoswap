@@ -22,6 +22,7 @@ using bytes = std::vector<char>;
 using address = name;
 using uint = uint64_t;
 using uint8 = uint8_t;
+using namesym =uint128_t;
 
 static const std::string default_core_symbol = "BPT";
 static const uint8_t default_precision = 4;
@@ -31,6 +32,13 @@ static const std::string address_zero = "0";
 static const uint8_t current_bridge_version = 1;
 
 void require(bool test, const char *cstr) { eosio::check(test, cstr); }
+
+namesym to_namesym(const extended_symbol& exsym)
+{
+    namesym ns = exsym.get_contract().value;
+    ns = ns << 64| exsym.get_symbol().raw();
+    return ns;
+}
 
 constexpr double my_pow(double x, int exp) {
   int sign = 1;
