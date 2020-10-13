@@ -23,10 +23,10 @@ class findx {
  public:
    findx(const string str) { test = str; }
    bool operator()(const fc::variant& v) {
-      if (v["key"].as_string().compare(test) == 0)
+      if (v["key"].as_string().compare(test) == 0) {
          return true;
-      else
-         return false;
+      }
+      return false;
    }
 
  private:
@@ -90,8 +90,8 @@ class eoswap_tester : public tester {
       std::string         amt       = "100000.0000 ";
       std::string         memo      = "";
       for (auto& acc_name : accounts) {
-         std::string token = tokens[j++];
-         std::string amount    = "10000000000.0000 " +token;
+         std::string token     = tokens[j++];
+         std::string amount    = "10000000000.0000 " + token;
          std::string tamount   = amt + token;
          asset       maxsupply = eosio::chain::asset::from_string(amount.c_str());
          name        acc       = name(acc_name.c_str());

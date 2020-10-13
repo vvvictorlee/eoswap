@@ -27,6 +27,23 @@ systemAccounts = [
     'eosio.token',
     'eosio.vpay',
     'eosio.rex',
+    'eoswapeoswap',    
+    'eoswap.token',
+]
+
+testAccounts = [
+    'alice1111111',
+    'bob111111111',
+    'carol1111111',
+    'david1111111',
+    'eve111111111',
+]
+
+testSymbols= [
+    'WETH',
+    'MKR',
+    'DAI',
+    'XXX',
 ]
 
 def jsonArg(a):
@@ -110,6 +127,7 @@ def startNode(nodeIndex, account):
         '    --config-dir ' + os.path.abspath(dir) +
         '    --data-dir ' + os.path.abspath(dir) +
         '    --chain-state-db-size-mb 1024'
+        '    --http-max-response-time-ms 99999'
         '    --http-server-address 127.0.0.1:' + str(8000 + nodeIndex) +
         '    --p2p-listen-endpoint 127.0.0.1:' + str(9000 + nodeIndex) +
         '    --max-clients ' + str(maxClients) +
@@ -290,6 +308,18 @@ def stepStartBoot():
 def stepInstallSystemContracts():
     run(args.cleos + 'set contract eosio.token ' + args.contracts_dir + '/eosio.token/')
     run(args.cleos + 'set contract eosio.msig ' + args.contracts_dir + '/eosio.msig/')
+def stepInstallSwapContracts():
+    sleep(3)
+    run(args.cleos + 'set contract eoswapeoswap ' + args.contracts_dir + '/eoswap/')
+def stepInstallSwapTokenContracts():
+    run(args.cleos + 'set contract eoswap.token ' + args.contracts_dir + '/eosio.token/')
+def stepCreateSwapTokens():
+    for s in testSymbols:
+        run(args.cleos + 'push action eoswap.token create \'["eosio", "10000000000.0000 %s"]\' -p eoswap.token' % (s))
+        run(args.cleos + 'push action eoswap.token issue \'["eosio", "10000000000.0000 %s", "memo"]\' -p eosio' % (s))
+        for a in testAccounts:
+            run(args.cleos + 'push action eoswap.token transfer \'["eosio", "%s","100000.0000 %s", "memo"]\' -p eosio' % (a,s))
+    sleep(1)
 def stepCreateTokens():
     run(args.cleos + 'push action eosio.token create \'["eosio", "10000000000.0000 %s"]\' -p eosio.token' % (args.symbol))
     totalAllocation = allocateFunds(0, len(accounts))
@@ -392,6 +422,9 @@ commands = [
     ('R', 'claim',              claimRewards,               True,    "Claim rewards"),
     ('x', 'proxy',              stepProxyVotes,             True,    "Proxy votes"),
     ('q', 'resign',             stepResign,                 True,    "Resign eosio"),
+    ('e', 'swap-token-contract',stepInstallSwapTokenContracts,True,  "Install swap token contracts (eoswap.token)"),
+    ('o', 'swap-tokens',        stepCreateSwapTokens,       True,    "Create swap tokens"),
+    ('C', 'swap-contract',      stepInstallSwapContracts,   True,    "Install swap contracts (eoswap)"),
     ('m', 'msg-replace',        msigReplaceSystem,          False,   "Replace system contract using msig"),
     ('X', 'xfer',               stepTransfer,               False,   "Random transfer tokens (infinite loop)"),
     ('l', 'log',                stepLog,                    True,    "Show tail of node's log"),
@@ -411,7 +444,7 @@ parser.add_argument('--log-path', metavar='', help="Path to log file", default='
 parser.add_argument('--symbol', metavar='', help="The eosio.system symbol", default='SYS')
 parser.add_argument('--user-limit', metavar='', help="Max number of users. (0 = no limit)", type=int, default=3000)
 parser.add_argument('--max-user-keys', metavar='', help="Maximum user keys to import into wallet", type=int, default=10)
-parser.add_argument('--ram-funds', metavar='', help="How much funds for each user to spend on ram", type=float, default=0.1)
+parser.add_argument('--ram-funds', metavar='', help="How much funds for each user to spend on ram", type=float, default=10.0)
 parser.add_argument('--min-stake', metavar='', help="Minimum stake before allocating unstaked funds", type=float, default=0.9)
 parser.add_argument('--max-unstaked', metavar='', help="Maximum unstaked funds", type=float, default=10)
 parser.add_argument('--producer-limit', metavar='', help="Maximum number of producers. (0 = no limit)", type=int, default=0)
