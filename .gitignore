@@ -33,5 +33,5 @@
 
 build/*
 .DS_Store
-node_moduels
-.history
+**/node_moduels/
+**/.history
