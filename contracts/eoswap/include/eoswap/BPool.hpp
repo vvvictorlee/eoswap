@@ -217,7 +217,7 @@ class BPool : public BToken<TokenStoreType>, public BMath {
          pool_store.records[token].balance = _token_.balanceOf(BToken<TokenStoreType>::get_msg_sender());
          auto tokenBalance =
              transfer_mgmt::get_balance(BToken<TokenStoreType>::get_msg_sender(), pool_store.records[token].exsym);
-         require(pool_store.records[token].balance == tokenBalance.amount, "ERR_BALANCE_FATAL");
+         require(pool_store.records[token].balance <= tokenBalance.amount, "ERR_BALANCE_FATAL");
       });
    }
 

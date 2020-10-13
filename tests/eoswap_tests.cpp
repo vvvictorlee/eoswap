@@ -674,7 +674,7 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
 
    before1();
    collect(admin, N(pool));
-   const auto ab = balanceOf(to_sym("POOL"), admin);
+   const auto ab = balanceOf(to_pool_sym(N(pool)), admin);
    BOOST_REQUIRE_EQUAL(std::to_string(to_wei(100)), ab);
 }
 FC_LOG_AND_RETHROW()
@@ -732,9 +732,9 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(extransfer_tests, eoswap_tester) try {
    push_permission_update_auth_action(N(alice1111111));
    symbol sym{4, "WETH"};
-   extransfer(N(alice1111111), admin, extended_asset{asset{int64_t{1}, sym}, name{"eoswap.token"}});
+   extransfer(N(alice1111111), user2, extended_asset{asset{int64_t{1}, sym}, name{"eoswap.token"}});
 
-   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 WETH"), get_balancex(admin, sym));
+   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 WETH"), get_balancex(user2, sym));
 }
 FC_LOG_AND_RETHROW()
 
