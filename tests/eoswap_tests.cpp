@@ -336,7 +336,7 @@ class eoswap_tester : public tester {
       return push_action(from, N(extransfer), mvo()("from", from)("to", to)("quantity", quantity)("memo", memo));
    }
 
-   action_result newtoken(account_name msg_sender, const extended_symbol& token) {
+   action_result newtoken(account_name msg_sender, const extended_asset& token) {
       return push_action(msg_sender, N(newtoken), mvo()("msg_sender", msg_sender)("token", token));
    }
 
@@ -498,6 +498,10 @@ class eoswap_tester : public tester {
       return extended_symbol{symbol{4, sym.c_str()}, name{"eoswap.token"}};
    }
 
+   extended_asset to_maximum_supply(const std::string& sym) {
+      return extended_asset{asset{1000000000000000, symbol{4, sym.c_str()}}, name{"eoswap.token"}};
+   }
+
    namesym to_namesym(const extended_symbol& exsym) {
       namesym ns = exsym.contract.to_uint64_t();
       return ns << 64 | exsym.sym.value();
@@ -523,10 +527,10 @@ class eoswap_tester : public tester {
    }
 
    void mintBefore() {
-      newtoken(admin, to_sym("WETH"));
-      newtoken(admin, to_sym("MKR"));
-      newtoken(admin, to_sym("DAI"));
-      newtoken(admin, to_sym("XXX"));
+      newtoken(admin, to_maximum_supply("WETH"));
+      newtoken(admin, to_maximum_supply("MKR"));
+      newtoken(admin, to_maximum_supply("DAI"));
+      newtoken(admin, to_maximum_supply("XXX"));
 
       mint(admin, to_wei_asset("WETH", 50));
       mint(admin, to_wei_asset("MKR", 20));
@@ -571,8 +575,8 @@ class eoswap_tester : public tester {
 
    void mintBefore1() {
 
-      newtoken(admin, to_sym("WETH"));
-      newtoken(admin, to_sym("DAI"));
+      newtoken(admin, to_maximum_supply("WETH"));
+      newtoken(admin, to_maximum_supply("DAI"));
 
       mint(admin, to_wei_asset("WETH", 5));
       mint(admin, to_wei_asset("DAI", 200));
@@ -696,8 +700,8 @@ FC_LOG_AND_RETHROW()
 ////////////////token////////////////////
 BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
    newpool(admin, N(pool));
-   newtoken(admin, to_sym("WETH"));
-   newtoken(admin, to_sym("DAI"));
+   newtoken(admin, to_maximum_supply("WETH"));
+   newtoken(admin, to_maximum_supply("DAI"));
    mint(N(alice), to_wei_asset("WETH", 5));
    mint(N(alice), to_wei_asset("DAI", 200));
 

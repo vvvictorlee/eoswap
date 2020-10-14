@@ -21,10 +21,13 @@ struct Account2Amt {
 };
 
 struct BTokenStore {
+  std::string names;
+  std::string symbol ;
+  uint8 decimals ;
   std::map<name, uint> balance;
   std::map<name, Account2Amt> allowance;
   uint totalSupply;
-  EOSLIB_SERIALIZE(BTokenStore, (balance)(allowance)(totalSupply))
+  EOSLIB_SERIALIZE(BTokenStore, (names)(symbol)(decimals)(balance)(allowance)(totalSupply))
 };
 
 struct [[eosio::table("tokentable"), eosio::contract("eoswap")]] BTokenStorage {

@@ -128,7 +128,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
       factory.get_transfer_mgmt().transfer(from, to, quantity, memo);
    }
 
-   [[eosio::action]] void newtoken(name msg_sender, const extended_symbol& token) {
+   [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
       factory.setMsgSender(msg_sender);
       factory.newToken(token);
    }

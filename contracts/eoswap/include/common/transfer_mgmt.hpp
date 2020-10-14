@@ -95,29 +95,12 @@ class transfer_mgmt {
    }
 
    void inner_transfer(name from, name to, extended_asset quantity, std::string memo, bool is_deferred = false) {
-
       check(from != to, "cannot transfer to self");
       //  require_auth( from );
       check(is_account(to), "to account does not exist");
-      //  auto sym = quantity.symbol.code();
-      //  stats statstable( _self, sym.raw() );
-      //  const auto& st = statstable.get( sym.raw() );
-
-      //  require_recipient( from );
-      //  require_recipient( to );
-
       check(quantity.quantity.is_valid(), "invalid quantity");
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
-      // check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
       check(memo.size() <= 256, "memo has more than 256 bytes");
-
-      //   token::transfer_action transfer_act{ token_account, { account,
-      //   active_permission } };
-      //          transfer_act.send( account, consumer_account, amount, memo );
-
-      //  auto payer = has_auth( to ) ? to : from;
-      // print("===quantity");
-      quantity.quantity.print();
 
       if (!is_deferred) {
          action(
@@ -138,6 +121,42 @@ class transfer_mgmt {
       // INLINE_ACTION_SENDER(eosio::token, transfer)(token_account, {{from,
       // active_permission}, {to, active_permission}},{from, to, quantity, memo});
    }
+
+   void create(name issuer, const extended_asset& maximum_supply) {
+      require_auth(issuer);
+      check(is_account(issuer), "issuer account does not exist");
+
+      check(maximum_supply.quantity.is_valid(), "invalid quantity");
+      check(maximum_supply.quantity.amount > 0, "must transfer positive quantity");
+      action(
+          permission_level{issuer, "active"_n}, maximum_supply.contract, "create"_n,
+          std::make_tuple(issuer, maximum_supply.quantity))
+          .send();
+   }
+
+   void issue(name to, const extended_asset& quantity, const string& memo) {
+      check(is_account(to), "to account does not exist");
+      check(quantity.quantity.is_valid(), "invalid quantity");
+      check(quantity.quantity.amount > 0, "must transfer positive quantity");
+      check(memo.size() <= 256, "memo has more than 256 bytes");
+
+      action(
+          permission_level{to, "active"_n}, quantity.contract, "issue"_n, std::make_tuple(to, quantity.quantity, memo))
+          .send();
+   }
+
+   void burn(name issuer, const extended_asset& quantity, const string& memo) {
+      check(is_account(issuer), "issuer account does not exist");
+
+      check(quantity.quantity.is_valid(), "invalid quantity");
+      check(quantity.quantity.amount > 0, "must transfer positive quantity");
+      check(memo.size() <= 256, "memo has more than 256 bytes");
+
+      action(
+          permission_level{issuer, "active"_n}, quantity.contract, "retire"_n, std::make_tuple(quantity.quantity, memo))
+          .send();
+   }
+
    static std::vector<std::string> parse_string(const std::string& source, const std::string& delimiter = ",") {
       std::vector<std::string> results;
       // const std::string delimiter = ",";

@@ -49,10 +49,12 @@ class BFactory : public BBronze {
       pool.setController(msg_sender);
    }
 
-   void newToken(const extended_symbol& tokenx) {
-      namesym      token      = to_namesym(tokenx);
+   void newToken(const extended_asset& tokenx) {
+      const extended_symbol&  exsym = tokenx.get_extended_symbol();
+      const symbol&  sym = exsym.get_symbol();
+      namesym      token      = to_namesym(exsym);
       BTokenStore& tokenStore = _storage_mgmt.newTokenStore(token);
-      BToken       otoken(self, tokenStore);
+      BToken       otoken(self, tokenStore,exsym.get_contract().to_string(),sym.code().to_string(),sym.precision());
       otoken.auth(msg_sender);
    }
 
