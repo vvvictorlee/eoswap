@@ -523,7 +523,6 @@ class eoswap_tester : public tester {
    }
 
    void mintBefore() {
-
       newtoken(admin, to_sym("WETH"));
       newtoken(admin, to_sym("MKR"));
       newtoken(admin, to_sym("DAI"));
@@ -683,14 +682,14 @@ BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eoswap_tester) try {
    push_permission_update_auth_action(N(bob));
 
    before();
-   swapamtin(N(bob), N(pool), to_asset("WETH", 2500000), to_wei_asset("DAI", 475), to_wei(200));
+   swapamtin(user1, N(pool), to_asset("WETH", 2500000), to_wei_asset("DAI", 475), to_wei(200));
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(swapExactAmountOut_tests, eoswap_tester) try {
    push_permission_update_auth_action(N(bob));
    before();
-   swapamtout(N(bob), N(pool), to_wei_asset("WETH", 3), to_wei_asset("MKR", 1), to_wei(500));
+   swapamtout(user1, N(pool), to_wei_asset("WETH", 3), to_wei_asset("MKR", 1), to_wei(500));
 }
 FC_LOG_AND_RETHROW()
 

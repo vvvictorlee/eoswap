@@ -27,7 +27,6 @@ systemAccounts = [
     'eosio.token',
     'eosio.vpay',
     'eosio.rex',
-    'eoswapeoswap',    
     'eoswap.token',
 ]
 
@@ -315,10 +314,10 @@ def stepInstallSwapTokenContracts():
     run(args.cleos + 'set contract eoswap.token ' + args.contracts_dir + '/eosio.token/')
 def stepCreateSwapTokens():
     for s in testSymbols:
-        run(args.cleos + 'push action eoswap.token create \'["eosio", "10000000000.0000 %s"]\' -p eoswap.token' % (s))
-        run(args.cleos + 'push action eoswap.token issue \'["eosio", "10000000000.0000 %s", "memo"]\' -p eosio' % (s))
+        run(args.cleos + 'push action eoswap.token create \'["eoswapeoswap", "10000000000.0000 %s"]\' -p eoswap.token' % (s))
+        run(args.cleos + 'push action eoswap.token issue \'["eoswapeoswap", "10000000000.0000 %s", "memo"]\' -p eoswapeoswap' % (s))
         for a in testAccounts:
-            run(args.cleos + 'push action eoswap.token transfer \'["eosio", "%s","100000.0000 %s", "memo"]\' -p eosio' % (a,s))
+            run(args.cleos + 'push action eoswap.token transfer \'["eoswapeoswap", "%s","10000000.0000 %s", "memo"]\' -p eoswapeoswap' % (a,s))
     sleep(1)
 def stepCreateTokens():
     run(args.cleos + 'push action eosio.token create \'["eosio", "10000000000.0000 %s"]\' -p eosio.token' % (args.symbol))
@@ -442,9 +441,9 @@ parser.add_argument('--genesis', metavar='', help="Path to genesis.json", defaul
 parser.add_argument('--wallet-dir', metavar='', help="Path to wallet directory", default='./wallet/')
 parser.add_argument('--log-path', metavar='', help="Path to log file", default='./output.log')
 parser.add_argument('--symbol', metavar='', help="The eosio.system symbol", default='SYS')
-parser.add_argument('--user-limit', metavar='', help="Max number of users. (0 = no limit)", type=int, default=3000)
+parser.add_argument('--user-limit', metavar='', help="Max number of users. (0 = no limit)", type=int, default=30)
 parser.add_argument('--max-user-keys', metavar='', help="Maximum user keys to import into wallet", type=int, default=10)
-parser.add_argument('--ram-funds', metavar='', help="How much funds for each user to spend on ram", type=float, default=10.0)
+parser.add_argument('--ram-funds', metavar='', help="How much funds for each user to spend on ram", type=float, default=100.0)
 parser.add_argument('--min-stake', metavar='', help="Minimum stake before allocating unstaked funds", type=float, default=0.9)
 parser.add_argument('--max-unstaked', metavar='', help="Maximum unstaked funds", type=float, default=10)
 parser.add_argument('--producer-limit', metavar='', help="Maximum number of producers. (0 = no limit)", type=int, default=0)

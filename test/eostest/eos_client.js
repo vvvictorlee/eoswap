@@ -5,6 +5,8 @@ const request = require('request');
 let sleep = require('sleep');
 // var request = require('request'); // https://www.npmjs.com/package/request
 let async = require('async'); // https://www.npmjs.com/package/async
+// const { logTime } = require("./log_aop");
+const { logTime, observe } = require("./log_aop");
 
 dotenv.load();
 
@@ -13,19 +15,21 @@ const ecc = require('eosjs-ecc')
 
 
 const interval = process.env.FREQ;
-const owner = process.env.ORACLE;
+const owner = process.env.ADMIN;
 const swapContract = process.env.CONTRACT;
 
-const oraclize = "oraclebosbos";
-const nonadmin = "useraaaaaaab";
+const nonadmin = "alice1111111";
+const user1 = "bob111111111";
 const admin = "eoswapeoswap";
 const pool = "pool";
-const admin_pub ="EOS8Znrtgwt8TfpmbVpTKvA2oB8Nqey625CLN8bCN3TEbgx86Dsvr";
-const pub = "EOS7yBtksm8Kkg85r4in4uCbfN77uRwe82apM8jjbhFVDgEgz3w8S";
+const pool1 = "pool3";
+const admin_pub = "EOS69tWc1VS6aP2P1D8ryzTiakPAYbV3whbHeWUzfD8QWYuHKqQxk";
+const pub = "EOS69X3383RzBZj41k73CSjUNXM5MYGpnDxyPnWUKPEtYQmTBWz4D";
+const user1_pub = "EOS7yBtksm8Kkg85r4in4uCbfN77uRwe82apM8jjbhFVDgEgz3w8S";
 
 const eos = Eos({
     httpEndpoint: process.env.EOS_PROTOCOL + "://" + process.env.EOS_HOST + ":" + process.env.EOS_PORT,
-    keyProvider: [process.env.EOS_KEY, '5JtUScZK2XEp3g9gh7F8bwtPTRAkASmNrrftmx4AxDKD5K4zDnr', '5JUNYmkJ5wVmtVY8x9A1KKzYe9UWLZ4Fq1hzGZxfwfzJB8jkw6u', '5K463ynhZoCDDa4RDcr63cUwWLTnKqmdcoTKTHBjqoKfv4u5V7p', '5JBqSZmzhvf3wopwyAwXH5g2DuNw9xdwgnTtuWLpkWP7YLtDdhp', '5JCtWxuqPzcPUfFukj58q8TqyRJ7asGnhSYvvxi16yq3c5p6JRG', '5K79wAY8rgPwWQSRmyQa2BR8vPicieJdLCXL3cM5Db77QnsJess', "5K2L2my3qUKqj67KU61cSACoxgREkqGFi5nKaLGjbAbbRBYRq1m", "5JN8chYis1d8EYsCdDEKXyjLT3QmpW7HYoVB13dFKenK2uwyR65", "5Kju7hDTh3uCZqpzb5VWAdCp7cA1fAiEd94zdNhU59WNaQMQQmE", "5K6ZCUpk2jn1munFdiADgKgfAqcpGMHKCoJUue65p99xKX9WWCW", "5KAyefwicvJyxDaQ1riCztiSgVKiH37VV9JdSRcrqi88qQkV2gJ"],
+    keyProvider: [process.env.EOS_KEY, '5JtUScZK2XEp3g9gh7F8bwtPTRAkASmNrrftmx4AxDKD5K4zDnr', '5JUNYmkJ5wVmtVY8x9A1KKzYe9UWLZ4Fq1hzGZxfwfzJB8jkw6u', '5KZFvhuNuU3es7hEoAorppkhfCuAfqBGGtzqvesArmzwVwJf64B', '5JtUScZK2XEp3g9gh7F8bwtPTRAkASmNrrftmx4AxDKD5K4zDnr', '5JCtWxuqPzcPUfFukj58q8TqyRJ7asGnhSYvvxi16yq3c5p6JRG', '5K79wAY8rgPwWQSRmyQa2BR8vPicieJdLCXL3cM5Db77QnsJess', "5K2L2my3qUKqj67KU61cSACoxgREkqGFi5nKaLGjbAbbRBYRq1m", "5JN8chYis1d8EYsCdDEKXyjLT3QmpW7HYoVB13dFKenK2uwyR65", "5Kju7hDTh3uCZqpzb5VWAdCp7cA1fAiEd94zdNhU59WNaQMQQmE", "5K6ZCUpk2jn1munFdiADgKgfAqcpGMHKCoJUue65p99xKX9WWCW"],
     chainId: process.env.EOS_CHAIN,
     verbose: false,
     logger: {
@@ -123,13 +127,82 @@ function to_wei(value) {
     return value * Math.pow(10, 6);
 }
 
-class EosClient {
-    constructor() {
+function to_sym(sym) {
+    return "4," + sym + "@eoswap.token";
+}
 
+function to_asset(value, sym) {
+    return value + ".0000 " + sym + "@eoswap.token";
+}
+
+function to_wei_asset(value, sym) {
+    return to_asset(value + "00", sym);
+}
+
+
+class EosClient {
+    constructor(pool_name) {
+        this.poolName = pool_name;
+    }
+    allowSwapContract(user, pubk) {
+        eos.transaction(allowContract(user, pubk, swapContract));
     }
 
+    allowSwapContracts() {
+        this.allowSwapContract(admin, admin_pub);
+        this.allowSwapContract(nonadmin, pub);
+        this.allowSwapContract(user1, user1_pub);
+    }
+
+    async newtoken(token) {
+        eos.contract(swapContract)
+            .then((contract) => {
+                contract.newtoken({
+                    msg_sender: admin,
+                    token: token
+                },
+                    {
+                        scope: swapContract,
+                        authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
+                    })
+                    .then(results => {
+                        console.log("results:", results);
+                    })
+                    .catch(error => {
+                        console.log("error:", error);
+                    });
+            })
+            .catch(error => {
+                console.log("error:", error);
+            });
+    }
+
+    async mint(user, amount) {
+        eos.contract(swapContract)
+            .then((contract) => {
+                contract.mint({
+                    msg_sender: user,
+                    amt: amount
+                },
+                    {
+                        scope: swapContract,
+                        authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`]
+                    })
+                    .then(results => {
+                        console.log("results:", results);
+                    })
+                    .catch(error => {
+                        console.log("error:", error);
+                    });
+            })
+            .catch(error => {
+                console.log("error:", error);
+            });
+    }
+
+
     extransfer() {
-        eos.transaction(allowContract(nonadmin, pub, swapContract));
+
         eos.contract(swapContract)
             .then((contract) => {
                 contract.extransfer({
@@ -140,7 +213,7 @@ class EosClient {
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${nonadmin}@${process.env.ORACLE_PERMISSION || 'active'}`]
+                        authorization: [`${nonadmin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
                         console.log("results:", results);
@@ -160,11 +233,11 @@ class EosClient {
             .then((contract) => {
                 contract.newpool({
                     msg_sender: admin,
-                    pool_name: pool
+                    pool_name: this.poolName
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${admin}@${process.env.ORACLE_PERMISSION || 'active'}`]
+                        authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
                         console.log("results:", results);
@@ -177,68 +250,19 @@ class EosClient {
                 console.log("error:", error);
             });
     }
-
-
-    finalize() {
-        eos.contract(swapContract)
-            .then((contract) => {
-                contract.finalize({
-                    msg_sender: admin,
-                    pool_name: pool
-                },
-                    {
-                        scope: swapContract,
-                        authorization: [`${admin}@${process.env.ORACLE_PERMISSION || 'active'}`]
-                    })
-                    .then(results => {
-                        console.log("results:", results);
-                    })
-                    .catch(error => {
-                        console.log("error:", error);
-                    });
-            })
-            .catch(error => {
-                console.log("error:", error);
-            });
-    }
-
-
-    collect() {
-        eos.transaction(allowContract(admin, admin_pub, swapContract));
-        eos.contract(swapContract)
-            .then((contract) => {
-                contract.collect({
-                    msg_sender: admin,
-                    pool_name: pool
-                },
-                    {
-                        scope: swapContract,
-                        authorization: [`${admin}@${process.env.ORACLE_PERMISSION || 'active'}`]
-                    })
-                    .then(results => {
-                        console.log("results:", results);
-                    })
-                    .catch(error => {
-                        console.log("error:", error);
-                    });
-            })
-            .catch(error => {
-                console.log("error:", error);
-            });
-    }
-
 
     setswapfee() {
+
         eos.contract(swapContract)
             .then((contract) => {
                 contract.setswapfee({
                     msg_sender: admin,
-                    pool_name: pool,
+                    pool_name: this.poolName,
                     swapFee: 3000
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${admin}@${process.env.ORACLE_PERMISSION || 'active'}`]
+                        authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
                         console.log("results:", results);
@@ -254,18 +278,42 @@ class EosClient {
 
 
     bind(balance) {
-        eos.transaction(allowContract(admin, admin_pub, swapContract));
+
         eos.contract(swapContract)
             .then((contract) => {
                 contract.bind({
                     msg_sender: admin,
-                    pool_name: pool,
+                    pool_name: this.poolName,
                     balance: balance,
                     denorm: to_wei(5)
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${admin}@${process.env.ORACLE_PERMISSION || 'active'}`]
+                        authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
+                    })
+                    .then(results => {
+                        console.log("results:", results);
+                    })
+                    .catch(error => {
+                        console.log("error:", error);
+                    });
+            })
+            .catch(error => {
+                console.log("error:", error);
+            });
+    }
+
+    finalize() {
+
+        eos.contract(swapContract)
+            .then((contract) => {
+                contract.finalize({
+                    msg_sender: admin,
+                    pool_name: this.poolName
+                },
+                    {
+                        scope: swapContract,
+                        authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
                         console.log("results:", results);
@@ -280,19 +328,18 @@ class EosClient {
     }
 
 
-    joinpool() {
-        eos.transaction(allowContract(nonadmin, pub, swapContract));
+    joinpool(user) {
         eos.contract(swapContract)
             .then((contract) => {
                 contract.joinpool({
-                    msg_sender: nonadmin,
-                    pool_name: pool,
+                    msg_sender: user,
+                    pool_name: this.poolName,
                     poolAmountOut: to_wei(10),
                     maxAmountsIn: [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${nonadmin}@${process.env.ORACLE_PERMISSION || 'active'}`]
+                        authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
                         console.log("results:", results);
@@ -307,18 +354,18 @@ class EosClient {
     }
 
     exitpool() {
-        eos.transaction(allowContract(nonadmin, pub, swapContract));
+
         eos.contract(swapContract)
             .then((contract) => {
                 contract.exitpool({
                     msg_sender: nonadmin,
-                    pool_name: pool,
+                    pool_name: this.poolName,
                     poolAmountIn: to_wei(10),
                     minAmountsOut: [0, 0]
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${nonadmin}@${process.env.ORACLE_PERMISSION || 'active'}`]
+                        authorization: [`${nonadmin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
                         console.log("results:", results);
@@ -333,20 +380,45 @@ class EosClient {
     }
 
 
-    swapamtin() {
-        eos.transaction(allowContract(nonadmin, pub, swapContract));
+
+    collect() {
+
+        eos.contract(swapContract)
+            .then((contract) => {
+                contract.collect({
+                    msg_sender: admin,
+                    pool_name: this.poolName
+                },
+                    {
+                        scope: swapContract,
+                        authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
+                    })
+                    .then(results => {
+                        console.log("results:", results);
+                    })
+                    .catch(error => {
+                        console.log("error:", error);
+                    });
+            })
+            .catch(error => {
+                console.log("error:", error);
+            });
+    }
+
+    swapamtin(user) {
+
         eos.contract(swapContract)
             .then((contract) => {
                 contract.swapamtin({
-                    msg_sender: nonadmin,
-                    pool_name: pool,
-                    tokenAmountIn: "250.0000 WETH@eoswap.token",
-                    minAmountOut: "47500.0000 DAI@eoswap.token",
+                    msg_sender: user,
+                    pool_name: this.poolName,
+                    tokenAmountIn: to_asset(250, "WETH"),
+                    minAmountOut: to_wei_asset(475, "DAI"),
                     maxPrice: to_wei(200)
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${nonadmin}@${process.env.ORACLE_PERMISSION || 'active'}`]
+                        authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
                         console.log("results:", results);
@@ -361,20 +433,20 @@ class EosClient {
     }
 
 
-    swapamtout() {
-        eos.transaction(allowContract(nonadmin, pub, swapContract));
+    swapamtout(user) {
+
         eos.contract(swapContract)
             .then((contract) => {
                 contract.swapamtout({
-                    msg_sender: nonadmin,
-                    pool_name: pool,
-                    maxAmountIn: "300.0000 WETH@eoswap.token",
-                    tokenAmountOut: "100.0000 MKR@eoswap.token",
+                    msg_sender: user,
+                    pool_name: this.poolName,
+                    maxAmountIn: to_wei_asset(3, "WETH"),
+                    tokenAmountOut: to_wei_asset(1, "MKR"),
                     maxPrice: to_wei(500)
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${nonadmin}@${process.env.ORACLE_PERMISSION || 'active'}`]
+                        authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
                         console.log("results:", results);
@@ -387,58 +459,8 @@ class EosClient {
                 console.log("error:", error);
             });
     }
-
-    newtoken(token) {
-        eos.contract(swapContract)
-            .then((contract) => {
-                contract.newtoken({
-                    msg_sender: admin,
-                    token: token
-                },
-                    {
-                        scope: swapContract,
-                        authorization: [`${admin}@${process.env.ORACLE_PERMISSION || 'active'}`]
-                    })
-                    .then(results => {
-                        console.log("results:", results);
-                    })
-                    .catch(error => {
-                        console.log("error:", error);
-                    });
-            })
-            .catch(error => {
-                console.log("error:", error);
-            });
-    }
-
-    mint(pubk,user, amount) {
-        eos.transaction(allowContract(user, pubk, swapContract));
-        eos.contract(swapContract)
-            .then((contract) => {
-                contract.mint({
-                    msg_sender: user,
-                    amt: amount
-                },
-                    {
-                        scope: swapContract,
-                        authorization: [`${user}@${process.env.ORACLE_PERMISSION || 'active'}`]
-                    })
-                    .then(results => {
-                        console.log("results:", results);
-                    })
-                    .catch(error => {
-                        console.log("error:", error);
-                    });
-            })
-            .catch(error => {
-                console.log("error:", error);
-            });
-    }
-
-
 
 }
-
 
 var arguments = process.argv.splice(2);
 console.log('所传递的参数是：', arguments);
@@ -449,43 +471,79 @@ process.argv.forEach(function (val, index, array) {
     console.log(index + ': ' + val);
 });
 
-switch (arguments[0]) {
-    case "p":
-        new EosClient().newpool();
-        break;
-    case "s":
-        new EosClient().setswapfee();
-        break;
-    case "n":
-        new EosClient().newtoken("WETH@eoswap.token");
-        new EosClient().newtoken("DAI@eoswap.token");
-        break;
-    case "m":
-        new EosClient().mint(admin, "500.0000 WETH@eoswap.token");
-        new EosClient().mint(admin, "20000.0000 DAI@eoswap.token");
-        new EosClient().mint(nonadmin, "100.0000 WETH@eoswap.token");
-        new EosClient().mint(nonadmin, "20000.0000 DAI@eoswap.token");
-        break;
-    case "b":
-        new EosClient().bind("500.0000 WETH@eoswap.token");
-        new EosClient().bind("20000.0000 DAI@eoswap.token");
-        break;
-    case "f":
-        new EosClient().finalize();
-        break;
-    case "j":
-        new EosClient().joinpool();
-        break;
-    case "x":
-        new EosClient().exitpool();
-        break;
-    case "c":
-        new EosClient().collect();
-        break;
-    case "e":
-        new EosClient().extransfer();
-        break;
-    default:
-        console.log("test option");
-}
+const client = new EosClient(pool);
+const client1 = new EosClient(pool1);
 
+let handlers = {
+    "a": (async function () {
+        client.allowSwapContracts();
+    }),
+    "n": (async function () {
+        await client.newtoken(to_sym("WETH"));
+        await client.newtoken(to_sym("DAI"));
+    }),
+    "m": (async function () {
+        await client.mint(admin, to_wei_asset(5, "WETH"));
+        await client.mint(admin, to_wei_asset(200, "DAI"));
+        await client.mint(nonadmin, to_wei_asset(1, "WETH"));
+        await client.mint(nonadmin, to_wei_asset(200, "DAI"));
+    }),
+    "p": (async function () {
+        client.newpool();
+    }),
+    "s": (async function () {
+        client.setswapfee();
+    }),
+    "b": (async function () {
+        client.bind(to_wei_asset(5, "WETH"));
+        client.bind(to_wei_asset(200, "DAI"));
+    }),
+    "f": (async function () {
+        client.finalize();
+    }),
+    "j": (async function () {
+        client.joinpool(nonadmin);
+    }),
+    "x": (async function () {
+        client.exitpool();
+    }),
+    "c": (async function () {
+        client.collect();
+    }),
+    "i": (async function () {
+        client1.swapamtin(user1);
+    }),
+    "o": (async function () {
+        client1.swapamtout(user1);
+    }),
+    "e": (async function () {
+        logTime(client.extransfer)();
+    }),
+    "B": (async function () {
+        await client1.newtoken(to_sym("MKR"));
+        await client1.newtoken(to_sym("XXX"));
+        await client1.mint(admin, to_wei_asset(50, "WETH"));
+        await client1.mint(admin, to_wei_asset(200, "MKR"));
+        await client1.mint(admin, to_wei_asset(10000, "DAI"));
+        await client1.mint(admin, to_wei_asset(10, "XXX"));
+        await client1.mint(user1, to_wei_asset(25, "WETH"));
+        await client1.mint(user1, to_wei_asset(4, "MKR"));
+        await client1.mint(user1, to_wei_asset(40000, "DAI"));
+        await client1.mint(user1, to_wei_asset(10, "XXX"));
+        client1.newpool();
+        client1.setswapfee();
+        client1.bind(to_wei_asset(50, "WETH"));
+        client1.bind(to_wei_asset(20, "MKR"));
+        client1.bind(to_wei_asset(10000, "DAI"));
+        client1.finalize();
+        client1.joinpool(user1);
+    }),
+    default: (async function () {
+        console.log("test option");
+    })
+
+};
+
+// console.log(process.argv);
+const f = handlers[arguments[0]] || handlers["default"];
+f();
