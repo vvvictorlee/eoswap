@@ -128,11 +128,11 @@ function to_wei(value) {
 }
 
 function to_sym(sym) {
-    return "4," + sym + "@eoswap.token";
+    return "4," + sym + "@eoswapxtoken";
 }
 
 function to_asset(value, sym) {
-    return value + ".0000 " + sym + "@eoswap.token";
+    return value + ".0000 " + sym + "@eoswapxtoken";
 }
 
 function to_wei_asset(value, sym) {

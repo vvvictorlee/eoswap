@@ -79,6 +79,10 @@ class transfer_mgmt {
       return eosio::token::get_balance(exsym.get_contract(), owner, exsym.get_symbol().code());
    }
 
+   static name get_issuer(const extended_symbol& exsym) {
+      return eosio::token::get_issuer(exsym.get_contract(), exsym.get_symbol().code());
+   }
+
    /**
     * @brief
     *
@@ -129,7 +133,7 @@ class transfer_mgmt {
       check(maximum_supply.quantity.is_valid(), "invalid quantity");
       check(maximum_supply.quantity.amount > 0, "must transfer positive quantity");
       action(
-          permission_level{issuer, "active"_n}, maximum_supply.contract, "create"_n,
+          permission_level{"eoswapxtoken"_n, "active"_n}, maximum_supply.contract, "create"_n,
           std::make_tuple(issuer, maximum_supply.quantity))
           .send();
    }
@@ -139,10 +143,14 @@ class transfer_mgmt {
       check(quantity.quantity.is_valid(), "invalid quantity");
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
       check(memo.size() <= 256, "memo has more than 256 bytes");
-
+      auto issuer = get_issuer(quantity.get_extended_symbol());
       action(
-          permission_level{to, "active"_n}, quantity.contract, "issue"_n, std::make_tuple(to, quantity.quantity, memo))
+          permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
+          std::make_tuple(issuer, quantity.quantity, memo))
           .send();
+      if (to != issuer) {
+         transfer(issuer, to, quantity, memo);
+      }
    }
 
    void burn(name issuer, const extended_asset& quantity, const string& memo) {

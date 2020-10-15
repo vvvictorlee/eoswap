@@ -19,13 +19,12 @@ using eosio::permission_level;
 
 class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
  private:
-   BFactory      factory;
-  
+   BFactory factory;
 
  public:
    eoswap(name s, name code, eosio::datastream<const char*> ds)
        : contract(s, code, ds)
-       , factory(s){}
+       , factory(s) {}
 
    //////////////////factory////////////////////////
    [[eosio::action]] void setblabs(name msg_sender, name blabs) {
@@ -131,6 +130,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
       factory.setMsgSender(msg_sender);
       factory.newToken(token);
+      factory.get_transfer_mgmt().create(msg_sender, token);
    }
 
    [[eosio::action]] void approve(name msg_sender, name dst, const extended_asset& amt) {
@@ -168,12 +168,18 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    /////test interface /////
    [[eosio::action]] void mint(name msg_sender, const extended_asset& amt) {
       factory.setMsgSender(msg_sender);
-      factory.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) { _token_._mint(amt.quantity.amount); });
+      factory.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
+         _token_._mint(amt.quantity.amount);
+         factory.get_transfer_mgmt().issue(msg_sender, amt,"");
+      });
    }
 
    [[eosio::action]] void burn(name msg_sender, const extended_asset& amt) {
       factory.setMsgSender(msg_sender);
-      factory.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) { _token_._burn(amt.quantity.amount); });
+      factory.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
+         _token_._burn(amt.quantity.amount);
+         factory.get_transfer_mgmt().burn(msg_sender, amt,"");
+      });
    }
 
    [[eosio::action]] void move(name msg_sender, name dst, const extended_asset& amt) {
