@@ -6,7 +6,7 @@ let sleep = require('sleep');
 // var request = require('request'); // https://www.npmjs.com/package/request
 let async = require('async'); // https://www.npmjs.com/package/async
 // const { logTime } = require("./log_aop");
-const { logTime, observe } = require("./log_aop");
+require("./log_aop");
 
 dotenv.load();
 
@@ -21,9 +21,11 @@ const swapContract = process.env.CONTRACT;
 const nonadmin = "alice1111111";
 const user1 = "bob111111111";
 const admin = "eoswapeoswap";
+const tokenowner = "eoswapxtoken";
 const pool = "pool";
 const pool1 = "pool3";
 const admin_pub = "EOS69tWc1VS6aP2P1D8ryzTiakPAYbV3whbHeWUzfD8QWYuHKqQxk";
+const tokenowner_pub = "EOS69tWc1VS6aP2P1D8ryzTiakPAYbV3whbHeWUzfD8QWYuHKqQxk";
 const pub = "EOS69X3383RzBZj41k73CSjUNXM5MYGpnDxyPnWUKPEtYQmTBWz4D";
 const user1_pub = "EOS7yBtksm8Kkg85r4in4uCbfN77uRwe82apM8jjbhFVDgEgz3w8S";
 
@@ -127,8 +129,8 @@ function to_wei(value) {
     return value * Math.pow(10, 6);
 }
 
-function to_sym(sym) {
-    return "4," + sym + "@eoswapxtoken";
+function to_max_supply(sym) {
+    return "100000000000.0000 " + sym + "@eoswapxtoken";
 }
 
 function to_asset(value, sym) {
@@ -149,7 +151,8 @@ class EosClient {
     }
 
     allowSwapContracts() {
-        this.allowSwapContract(admin, admin_pub);
+  this.allowSwapContract(admin, admin_pub);
+        this.allowSwapContract(tokenowner, tokenowner_pub);
         this.allowSwapContract(nonadmin, pub);
         this.allowSwapContract(user1, user1_pub);
     }
@@ -166,14 +169,14 @@ class EosClient {
                         authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
@@ -186,17 +189,17 @@ class EosClient {
                 },
                     {
                         scope: swapContract,
-                        authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`]
+                        authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`,`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
@@ -216,14 +219,14 @@ class EosClient {
                         authorization: [`${nonadmin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
@@ -240,19 +243,18 @@ class EosClient {
                         authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
     setswapfee() {
-
         eos.contract(swapContract)
             .then((contract) => {
                 contract.setswapfee({
@@ -265,20 +267,19 @@ class EosClient {
                         authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
 
     bind(balance) {
-
         eos.contract(swapContract)
             .then((contract) => {
                 contract.bind({
@@ -292,19 +293,18 @@ class EosClient {
                         authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
     finalize() {
-
         eos.contract(swapContract)
             .then((contract) => {
                 contract.finalize({
@@ -316,14 +316,14 @@ class EosClient {
                         authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
@@ -342,19 +342,18 @@ class EosClient {
                         authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
     exitpool() {
-
         eos.contract(swapContract)
             .then((contract) => {
                 contract.exitpool({
@@ -368,14 +367,14 @@ class EosClient {
                         authorization: [`${nonadmin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
@@ -394,19 +393,18 @@ class EosClient {
                         authorization: [`${admin}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
     swapamtin(user) {
-
         eos.contract(swapContract)
             .then((contract) => {
                 contract.swapamtin({
@@ -421,18 +419,16 @@ class EosClient {
                         authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
-
-
     swapamtout(user) {
 
         eos.contract(swapContract)
@@ -449,26 +445,26 @@ class EosClient {
                         authorization: [`${user}@${process.env.SWAP_PERMISSION || 'active'}`]
                     })
                     .then(results => {
-                        console.log("results:", results);
+                        console.log(__line); console.log("results:", results);
                     })
                     .catch(error => {
-                        console.log("error:", error);
+                        console.log(__line); console.log("error:", error);
                     });
             })
             .catch(error => {
-                console.log("error:", error);
+                console.log(__line); console.log("error:", error);
             });
     }
 
 }
 
 var arguments = process.argv.splice(2);
-console.log('所传递的参数是：', arguments);
+console.log(__line); console.log('所传递的参数是：', arguments);
 
 //////////////////////////
 // print process.argv
 process.argv.forEach(function (val, index, array) {
-    console.log(index + ': ' + val);
+    console.log(__line); console.log(index + ': ' + val);
 });
 
 const client = new EosClient(pool);
@@ -479,8 +475,8 @@ let handlers = {
         client.allowSwapContracts();
     }),
     "n": (async function () {
-        await client.newtoken(to_sym("WETH"));
-        await client.newtoken(to_sym("DAI"));
+        await client.newtoken(to_max_supply("WETH"));
+        await client.newtoken(to_max_supply("DAI"));
     }),
     "m": (async function () {
         await client.mint(admin, to_wei_asset(5, "WETH"));
@@ -520,30 +516,47 @@ let handlers = {
         logTime(client.extransfer)();
     }),
     "B": (async function () {
-        await client1.newtoken(to_sym("MKR"));
-        await client1.newtoken(to_sym("XXX"));
+        await client1.newtoken(to_max_supply("WETH"));
+        await client1.newtoken(to_max_supply("MKR"));
+        await client1.newtoken(to_max_supply("DAI"));
+        await client1.newtoken(to_max_supply("XXX"));
+
         await client1.mint(admin, to_wei_asset(50, "WETH"));
+
         await client1.mint(admin, to_wei_asset(200, "MKR"));
+
         await client1.mint(admin, to_wei_asset(10000, "DAI"));
+
         await client1.mint(admin, to_wei_asset(10, "XXX"));
+
         await client1.mint(user1, to_wei_asset(25, "WETH"));
+
         await client1.mint(user1, to_wei_asset(4, "MKR"));
+
         await client1.mint(user1, to_wei_asset(40000, "DAI"));
+
         await client1.mint(user1, to_wei_asset(10, "XXX"));
+
         client1.newpool();
+
         client1.setswapfee();
+
         client1.bind(to_wei_asset(50, "WETH"));
+
         client1.bind(to_wei_asset(20, "MKR"));
+
         client1.bind(to_wei_asset(10000, "DAI"));
+
         client1.finalize();
+
         client1.joinpool(user1);
     }),
     default: (async function () {
-        console.log("test option");
+        console.log(__line); console.log("test option");
     })
 
 };
 
-// console.log(process.argv);
+// console.log(__line);console.log(process.argv);
 const f = handlers[arguments[0]] || handlers["default"];
 f();

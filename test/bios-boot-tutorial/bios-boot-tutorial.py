@@ -27,7 +27,6 @@ systemAccounts = [
     'eosio.token',
     'eosio.vpay',
     'eosio.rex',
-    'eoswap.token',
 ]
 
 testAccounts = [
@@ -311,13 +310,13 @@ def stepInstallSwapContracts():
     sleep(3)
     run(args.cleos + 'set contract eoswapeoswap ' + args.contracts_dir + '/eoswap/')
 def stepInstallSwapTokenContracts():
-    run(args.cleos + 'set contract eoswap.token ' + args.contracts_dir + '/eosio.token/')
+    run(args.cleos + 'set contract eoswapxtoken ' + args.contracts_dir + '/eosio.token/')
 def stepCreateSwapTokens():
     for s in testSymbols:
-        run(args.cleos + 'push action eoswap.token create \'["eoswapeoswap", "10000000000.0000 %s"]\' -p eoswap.token' % (s))
-        run(args.cleos + 'push action eoswap.token issue \'["eoswapeoswap", "10000000000.0000 %s", "memo"]\' -p eoswapeoswap' % (s))
+        run(args.cleos + 'push action eoswapxtoken create \'["eoswapeoswap", "10000000000.0000 %s"]\' -p eoswapxtoken' % (s))
+        run(args.cleos + 'push action eoswapxtoken issue \'["eoswapeoswap", "10000000000.0000 %s", "memo"]\' -p eoswapeoswap' % (s))
         for a in testAccounts:
-            run(args.cleos + 'push action eoswap.token transfer \'["eoswapeoswap", "%s","10000000.0000 %s", "memo"]\' -p eoswapeoswap' % (a,s))
+            run(args.cleos + 'push action eoswapxtoken transfer \'["eoswapeoswap", "%s","10000000.0000 %s", "memo"]\' -p eoswapeoswap' % (a,s))
     sleep(1)
 def stepCreateTokens():
     run(args.cleos + 'push action eosio.token create \'["eosio", "10000000000.0000 %s"]\' -p eosio.token' % (args.symbol))
@@ -421,8 +420,8 @@ commands = [
     ('R', 'claim',              claimRewards,               True,    "Claim rewards"),
     ('x', 'proxy',              stepProxyVotes,             True,    "Proxy votes"),
     ('q', 'resign',             stepResign,                 True,    "Resign eosio"),
-    ('e', 'swap-token-contract',stepInstallSwapTokenContracts,True,  "Install swap token contracts (eoswap.token)"),
-    ('o', 'swap-tokens',        stepCreateSwapTokens,       True,    "Create swap tokens"),
+    ('e', 'swap-token-contract',stepInstallSwapTokenContracts,True,  "Install swap token contracts (eoswapxtoken)"),
+    ('o', 'swap-tokens',        stepCreateSwapTokens,       False,    "Create swap tokens"),
     ('C', 'swap-contract',      stepInstallSwapContracts,   True,    "Install swap contracts (eoswap)"),
     ('m', 'msg-replace',        msigReplaceSystem,          False,   "Replace system contract using msig"),
     ('X', 'xfer',               stepTransfer,               False,   "Random transfer tokens (infinite loop)"),
