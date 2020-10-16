@@ -18,7 +18,7 @@
 #include <common/BType.hpp>
 
 struct [
-    [eosio::table("factorytable"), eosio::contract("eoswap")]] BFactoryStorage {
+    [eosio::table("factorystore"), eosio::contract("eoswap")]] BFactoryStorage {
   name blabs;
 
   std::map<name, bool> isBPool;

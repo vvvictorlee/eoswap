@@ -551,7 +551,7 @@ let handlers = {
 
         client1.joinpool(user1);
     }),
-    default: (async function () {
+    "default": (async function () {
         console.log(__line); console.log("test option");
     })
 

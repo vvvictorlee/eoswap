@@ -9,6 +9,9 @@
 
 #include <cmath>
 #include <common/BType.hpp>
+#include <storage/BFactoryTable.hpp>
+#include <storage/BPoolTable.hpp>
+#include <storage/BTokenTable.hpp>
 #include <eoswap/BFactory.hpp>
 #include <eoswap/BPool.hpp>
 

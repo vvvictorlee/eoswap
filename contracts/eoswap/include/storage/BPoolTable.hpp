@@ -42,7 +42,7 @@ struct  BPoolStore {
 };
 
 
-struct [[eosio::table("pooltable"), eosio::contract("eoswap")]] BPoolStorage {
+struct [[eosio::table("poolstore"), eosio::contract("eoswap")]] BPoolStorage {
   std::map<name, BPoolStore> pools;
   EOSLIB_SERIALIZE(BPoolStorage, (pools))
 };

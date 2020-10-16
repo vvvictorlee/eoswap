@@ -30,7 +30,7 @@ struct BTokenStore {
   EOSLIB_SERIALIZE(BTokenStore, (names)(symbol)(decimals)(balance)(allowance)(totalSupply))
 };
 
-struct [[eosio::table("tokentable"), eosio::contract("eoswap")]] BTokenStorage {
+struct [[eosio::table("tokenstore"), eosio::contract("eoswap")]] BTokenStorage {
   std::map<namesym, BTokenStore> tokens;
   EOSLIB_SERIALIZE(BTokenStorage, (tokens))
 };
