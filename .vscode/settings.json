@@ -75,6 +75,12 @@
         "variant": "cpp",
         "vector": "cpp",
         "*.ipp": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "codecvt": "cpp",
+        "condition_variable": "cpp",
+        "csignal": "cpp",
+        "future": "cpp",
+        "random": "cpp",
+        "unordered_set": "cpp"
     }
 }

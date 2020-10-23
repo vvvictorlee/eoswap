@@ -5,18 +5,18 @@
 struct MigrationsStore {
    address owner;
    uint256 last_completed_migration;
-   EOSLIB_SERIALIZE(Migrations, (bound)(index)(denorm)(balance)(exsym))
+   EOSLIB_SERIALIZE(MigrationsStore, (owner)(last_completed_migration))
 };
 
 struct ConstOracleStore {
    uint256 tokenPrice;
-   EOSLIB_SERIALIZE(ConstOracleStore, (bound)(index)(denorm)(balance)(exsym))
+   EOSLIB_SERIALIZE(ConstOracleStore, (tokenPrice))
 };
 
 struct MinimumOracleStore {
    address _OWNER_;
    uint256 tokenPrice;
-   EOSLIB_SERIALIZE(MinimumOracleStore, (bound)(index)(denorm)(balance)(exsym))
+   EOSLIB_SERIALIZE(MinimumOracleStore, (_OWNER_)(tokenPrice))
 };
 
 struct Transaction {
@@ -24,80 +24,64 @@ struct Transaction {
    uint256 value;
    bytes   data;
    bool    executed;
+EOSLIB_SERIALIZE(Transaction, (destination)(value)(data)(executed))
 }
 
 struct EmergencyCall {
    bytes32 selector;
    uint256 paramsBytesCount;
+ EOSLIB_SERIALIZE(EmergencyCall, (selector)(paramsBytesCount))
 }
 
+struct a2b {
+   std::map<address, bool> a2c;
+   EOSLIB_SERIALIZE(a2b, (a2c))
+};
+
 struct MultiSigWalletWithTimelockStore {
-   uint256 constant MAX_OWNER_COUNT = 50;
-   uint256          lockSeconds     = 86400;
+   std::map<uint256, Transaction>   transactions;
+   std::map<uint256, a2b>   confirmations;
+   std::map<address, bool>  isOwner;
+   std::map<address, address>   unlockTimes;
 
-   mapping(uint256 = > Transaction) public transactions;
-   mapping(uint256 = > mapping(address = > bool)) public confirmations;
-   mapping(address = > bool) public isOwner;
-   mapping(uint256 = > uint256) public unlockTimes;
-
-   address[] public owners;
-   uint256 public required;
-   uint256 public transactionCount;
+   std::vector<address> owners;
+   uint256 required;
+   uint256 transactionCount;
 
    // Functions bypass the time lock process
-   EmergencyCall[] public emergencyCalls;
+   std::vector<EmergencyCall>  emergencyCalls;
 
    bool mutex;
 
-   name factory;    // BFactory name to push token exitFee to
-   name controller; // has CONTROL role
-   bool publicSwap; // true if PUBLIC can call SWAP functions
-
-   // `setSwapFee` and `finalize` require CONTROL
-   // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
-   uint swapFee;
-   bool finalized;
-
-   std::vector<namesym>      tokens;
-   std::map<namesym, Record> records;
-   uint                      totalWeight;
-
    EOSLIB_SERIALIZE(
        MultiSigWalletWithTimelockStore,
-       (mutex)(factory)(controller)(publicSwap)(swapFee)(finalized)(tokens)(records)(totalWeight))
+       (transactions)(confirmations)(isOwner)(unlockTimes)(owners)(required)(transactionCount)(emergencyCalls)(mutex))
 };
 
 struct TestERC20Store {
-   string name;
-   uint8 public decimals;
-
-   mapping(address = > uint256) balances;
-   mapping(address = > mapping(address = > uint256)) allowed;
+//    mapping(address = > mapping(address = > uint256)) allowed;
 
    std::string                 names;
-   std::string                 symbol;
    uint8                       decimals;
-   std::map<name, uint>        balance;
-   std::map<name, Account2Amt> allowance;
-   uint                        totalSupply;
-   EOSLIB_SERIALIZE(TestERC20Store, (names)(symbol)(decimals)(balance)(allowance)(totalSupply))
+   std::map<name, uint256>     balances;
+   std::map<name, Account2Amt> allowed;
+   EOSLIB_SERIALIZE(TestERC20Store, (names)(decimals)(balances)(allowed))
 };
 
 struct WETH9Store {
-   string name           = "Wrapped Ether";
-   string symbol         = "WETH";
-   uint8 public decimals = 18;
+//    string name           = "Wrapped Ether";
+//    string symbol         = "WETH";
+//    uint8 public decimals = 18;
 
-   mapping(address = > uint256) balanceOf;
-   mapping(address = > mapping(address = > uint256)) allowance;
+//    mapping(address = > uint256) balanceOf;
+//    mapping(address = > mapping(address = > uint256)) allowance;
 
    std::string                 names;
    std::string                 symbol;
    uint8                       decimals;
-   std::map<name, uint>        balance;
+   std::map<name, uint>        balanceOf;
    std::map<name, Account2Amt> allowance;
-   uint                        totalSupply;
-   EOSLIB_SERIALIZE(WETH9tore, (names)(symbol)(decimals)(balance)(allowance)(totalSupply))
+   EOSLIB_SERIALIZE(WETH9tore, (names)(symbol)(decimals)(balanceOf)(allowance))
 };
 
 struct UniswapV2ERC20Store {
