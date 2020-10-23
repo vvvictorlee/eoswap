@@ -1,5 +1,5 @@
 #pragma once
-#include <common/BType.hpp>
+#include <common/defines.hpp>
 #include <common/eosio.token.hpp>
 class transfer_mgmt {
  private:

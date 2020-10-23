@@ -87,4 +87,11 @@ cleos --wallet-url http://10.11.5.37:6666 --url http://10.11.5.37:8000  set acco
 
 cleos --wallet-url http://10.11.5.37:6666 --url http://10.11.5.37:8000 push action eoswapeoswap extransfer '["useraaaaaaab","useraaaaaaac",{quantity : "1.0000 SYS",contract : "eosio.token"},""]' -p useraaaaaaab@active
 
+cleos --wallet-url http://10.11.5.37:6666 --url http://10.11.5.37:8000 get scope eosio.token stats
+
+curl -X POST --url http://10.11.5.37:8000/v1/chain/get_table_by_scope -d '{
+  "code": "eosio.token",
+  "table": "accounts"
+}'
+
 ```
