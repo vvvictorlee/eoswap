@@ -136,4 +136,12 @@ class DODOZoo : public Ownable {
       DODO       dodo(dodoStore);
       func(dodo);
    }
+
+   template <typename T>
+   void get_lptoken(name lptoken_name, T func) {
+      DODOTokenStore& lptokenStore  = _storage_mgmt.get_lptoken_store(lptoken_name);
+      DODOTokenStore& olptokenStore = _storage_mgmt.get_token_store(to_namesym(lptokenStore.originToken));
+      DODOLpToken     lptoken(lptokenStore, olptokenStore);
+      func(lptoken);
+   }
 };

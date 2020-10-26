@@ -31,6 +31,7 @@ class Trader : public Storage, public Pricing, public Settlement {
  public:
    LiquidityProvider(DODOStore& _stores)
        : stores(_stores)
+    , zoo(_zoo)
        , Storage(_stores)
        , Pricing(_stores)
        , Settlement(_stores) {}
@@ -59,7 +60,7 @@ class Trader : public Storage, public Pricing, public Settlement {
       // settle assets
       _quoteTokenTransferOut(getMsgSender(), receiveQuote);
       if (data.length > 0) {
-        //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
+         //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
       }
       _baseTokenTransferIn(getMsgSender(), amount);
       if (mtFeeQuote != 0) {
@@ -95,7 +96,7 @@ class Trader : public Storage, public Pricing, public Settlement {
       // settle assets
       _baseTokenTransferOut(getMsgSender(), amount);
       if (data.length > 0) {
-        //  IDODOCallee(getMsgSender()).dodoCall(true, amount, payQuote, data);
+         //  IDODOCallee(getMsgSender()).dodoCall(true, amount, payQuote, data);
       }
       _quoteTokenTransferIn(getMsgSender(), payQuote);
       if (mtFeeBase != 0) {
@@ -120,12 +121,13 @@ class Trader : public Storage, public Pricing, public Settlement {
 
    // ============ Query Functions ============
 
-   uint256 receiveQuote querySellBaseToken(uint256 amount) {
+   uint256 querySellBaseToken(uint256 amount) {
+      // tie(i, ignore, s)
       (receiveQuote, , , , , ) = _querySellBaseToken(amount);
       return receiveQuote;
    }
 
-   uint256 payQuote queryBuyBaseToken(uint256 amount) {
+   uint256 queryBuyBaseToken(uint256 amount) {
       (payQuote, , , , , ) = _queryBuyBaseToken(amount);
       return payQuote;
    }
@@ -133,12 +135,12 @@ class Trader : public Storage, public Pricing, public Settlement {
    std::tuple<uint256, uint256, uint256, Types.RStatus, uint256, uint256> _querySellBaseToken(uint256 amount)
 
    {
-      uint256       receiveQuote;
-      uint256       lpFeeQuote;
-      uint256       mtFeeQuote;
-      uint8 newRStatus;
-      uint256       newQuoteTarget;
-      uint256       newBaseTarget;
+      uint256 receiveQuote;
+      uint256 lpFeeQuote;
+      uint256 mtFeeQuote;
+      uint8   newRStatus;
+      uint256 newQuoteTarget;
+      uint256 newBaseTarget;
 
       (newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
@@ -189,21 +191,21 @@ class Trader : public Storage, public Pricing, public Settlement {
       return (receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
 
-   std::tupple<uint256, uint256, uint256, Types.RStatus, uint256, uint256> _queryBuyBaseToken(uint256 amount)
+   std::tupple<uint256, uint256, uint256, uint8, uint256, uint256> _queryBuyBaseToken(uint256 amount)
 
    {
-      uint256       payQuote;
-      uint256       lpFeeBase;
-      uint256       mtFeeBase;
-      uint8 newRStatus;
-      uint256       newQuoteTarget;
-      uint256       newBaseTarget;
+      uint256 payQuote;
+      uint256 lpFeeBase;
+      uint256 mtFeeBase;
+      uint8   newRStatus;
+      uint256 newQuoteTarget;
+      uint256 newBaseTarget;
 
       (newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
       // charge fee from user receive amount
-      lpFeeBase             = DecimalMath.mul(amount, _LP_FEE_RATE_);
-      mtFeeBase             = DecimalMath.mul(amount, _MT_FEE_RATE_);
+      lpFeeBase             = DecimalMath.mul(amount, stores.store._LP_FEE_RATE_);
+      mtFeeBase             = DecimalMath.mul(amount, stores.store._MT_FEE_RATE_);
       uint256 buyBaseAmount = amount.add(lpFeeBase).add(mtFeeBase);
 
       if (stores.store._R_STATUS_ == Types::RStatus::ONE) {

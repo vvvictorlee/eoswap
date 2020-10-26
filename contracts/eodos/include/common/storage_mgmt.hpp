@@ -90,8 +90,9 @@ class storage_mgmt {
       bool            f          = (p == _pool_storage.lptokens.end());
       require(f, "ALREADY_EXIST_LPTOKEN");
       DODOTokenStore t;
-      t.esymbol = esym;
-      auto pb   = _pool_storage.lptokens.insert(std::map<namesym, DODOTokenStore>::value_type(token_name, t));
+      t.esymbol     = esym;
+      t.originToken = token;
+      auto pb       = _pool_storage.lptokens.insert(std::map<namesym, DODOTokenStore>::value_type(token_name, t));
       require(pb.second, "INSERT_LPTOKEN_FAIL");
 
       return pb.first->second;

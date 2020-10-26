@@ -22,12 +22,15 @@
  *
  * @notice Local Variables
  */
+class DODOZoo;
 class Storage : public InitializableOwnable, public ReentrancyGuard {
  private:
    DODOStore& stores;
+, DODOZoo& zoo;
 public:
-   Storage(DODOStore& _stores)
+   Storage(DODOStore& _stores, DODOZoo& _zoo)
        : stores(_stores)
+    , zoo(_zoo)
        , InitializableOwnable(_stores)
        , ReentrancyGuard(_stores){}
 

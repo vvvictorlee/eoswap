@@ -30,8 +30,9 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
    DODOZoo&   zoo;
 
  public:
-   LiquidityProvider(DODOStore& _stores)
+   LiquidityProvider(DODOStore& _stores, DODOZoo& _zoo)
        : stores(_stores)
+       , zoo(_zoo)
        , Storage(_stores)
        , Pricing(_stores)
        , Settlement(_stores) {}
@@ -194,19 +195,23 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
    // ============ Helper Functions ============
 
    void _mintBaseCapital(address user, uint256 amount) {
-      IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).mint(user, amount);
+      namesym lp = to_namesym(stores.store._BASE_CAPITAL_TOKEN_);
+      zoo.get_lptoken(lp, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _mintQuoteCapital(address user, uint256 amount) {
-      IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).mint(user, amount);
+      namesym lp = to_namesym(stores.store._QUOTE_CAPITAL_TOKEN_);
+      zoo.get_lptoken(lp, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _burnBaseCapital(address user, uint256 amount) {
-      IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).burn(user, amount);
+      namesym lp = to_namesym(stores.store._BASE_CAPITAL_TOKEN_);
+      zoo.get_lptoken(lp, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    void _burnQuoteCapital(address user, uint256 amount) {
-      IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).burn(user, amount);
+      namesym lp = to_namesym(stores.store._QUOTE_CAPITAL_TOKEN_);
+      zoo.get_lptoken(lp, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    // ============ Getter Functions ============

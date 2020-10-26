@@ -28,8 +28,9 @@ class Settlement : public Storage {
    DODOStore& stores;
    DODOZoo&   zoo;
 public:
-   Settlement(DODOStore& _stores)
+   Settlement(DODOStore& _stores, DODOZoo& _zoo)
        : stores(_stores)
+    , zoo(_zoo)
        , Storage(_stores)
    {}
    // ============ Events ============
