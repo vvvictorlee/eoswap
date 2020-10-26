@@ -1,7 +1,8 @@
 // This is a file copied from https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol
 // SPDX-License-Identifier: MIT
 #pragma once
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 /**
@@ -28,4 +29,4 @@ class IERC20 {
      * Returns a boolean value indicating whether the operation succeeded.
      *
      * Emits a {Transfer} 
-}
+};

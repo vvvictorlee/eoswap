@@ -4,81 +4,107 @@
 // (at your option) any later version.
 
 // This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// but WITHOUT ANY WARRANTY; without even the dodoied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
-#include <storage/BFactoryTable.hpp>
-#include <storage/BPoolTable.hpp>
-#include <storage/BTokenTable.hpp>
 
+#include <storage/HelperTable.hpp>
+#include <storage/ImplTable.hpp>
+#include <storage/LibTable.hpp>
+#include <storage/TokenTable.hpp>
+#include <storage/ZooTable.hpp>
+const name LP_TOKEN_CONTRACT = "eodoslptoken"_n;
 class storage_mgmt {
-
  private:
-   name                     self;
-   BFactoryStorageSingleton factory_storage_singleton;
-   BFactoryStorage          _factory_storage;
-   BPoolStorageSingleton    pool_storage_singleton;
-   BPoolStorage             _pool_storage;
-   BTokenStorageSingleton   token_storage_singleton;
-   BTokenStorage            _token_storage;
+   name                   self;
+   ZooStorageSingleton    zoo_storage_singleton;
+   ZooStorage             zoo_storage;
+   DODOStorageSingleton   dodo_storage_singleton;
+   DODOStorage            dodo_storage;
+   ProxyStorageSingleton  proxy_storage_singleton;
+   ProxyStorage           proxy_storage;
+   HelperStorageSingleton helper_storage_singleton;
+   HelperStorage          helper_storage;
+   TokenStorageSingleton  token_storage_singleton;
+   TokenStorage           token_storage;
 
  public:
    storage_mgmt(name _self)
        : self(_self)
-       , factory_storage_singleton(_self, _self.value)
-       , pool_storage_singleton(_self, _self.value)
+       , zoo_storage_singleton(_self, _self.value)
+       , dodo_storage_singleton(_self, _self.value)
+       , proxy_storage_singleton(_self, _self.value)
+       , helper_storage_singleton(_self, _self.value)
        , token_storage_singleton(_self, _self.value) {
-      _factory_storage       = factory_storage_singleton.exists() ? factory_storage_singleton.get() : BFactoryStorage{};
-      _factory_storage.blabs = _self;
-      _pool_storage          = pool_storage_singleton.exists() ? pool_storage_singleton.get() : BPoolStorage{};
-      _token_storage         = token_storage_singleton.exists() ? token_storage_singleton.get() : BTokenStorage{};
+      zoo_storage    = zoo_storage_singleton.exists() ? zoo_storage_singleton.get() : ZooStorage{};
+      dodo_storage   = dodo_storage_singleton.exists() ? dodo_storage_singleton.get() : DODOStorage{};
+      proxy_storage  = proxy_storage_singleton.exists() ? proxy_storage_singleton.get() : ProxyStorage{};
+      helper_storage = helper_storage_singleton.exists() ? helper_storage_singleton.get() : HelperStorage{};
+      token_storage  = token_storage_singleton.exists() ? token_storage_singleton.get() : TokenStorage{};
    }
    ~storage_mgmt() {
-      factory_storage_singleton.set(_factory_storage, self);
-      pool_storage_singleton.set(_pool_storage, self);
-      token_storage_singleton.set(_token_storage, self);
+      zoo_storage_singleton.set(zoo_storage, self);
+      dodo_storage_singleton.set(dodo_storage, self);
+      proxy_storage_singleton.set(proxy_storage, self);
+      helper_storage_singleton.set(helper_storage, self);
+      token_storage_singleton.set(token_storage, self);
    }
 
-   BFactoryStorage& get_factory_store() { return _factory_storage; }
+   ZooStorage&    get_zoo_store() { return zoo_storage; }
+   DODOStorage&   get_dodo_store() { return dodo_storage; }
+   ProxyStorage&  get_proxy_store() { return proxy_storage; }
+   HelperStorage& get_helper_store() { return helper_storage; }
+   TokenStorage&  get_token_store() { return token_storage; }
 
-   BPoolStore& get_pool_store(name pool_name) {
-      auto p = _pool_storage.pools.find(pool_name);
-      bool f = p != _pool_storage.pools.end();
-      require(f, "NO_POOL");
+   DODOStore& get_dodo_store(name dodo_name) {
+      auto d = dodo_storage.dodos.find(pool_name);
+      bool f = p != dodo_storage.dodos.end();
+      require(f, "NO_DODO");
       return p->second;
    }
 
-   BTokenStore& get_token_store(namesym token) {
-      auto t = _token_storage.tokens.find(token);
-      bool f = (t != _token_storage.tokens.end());
+   DODOTokenStore& get_token_store(namesym token) {
+      auto t = token_storage.tokens.find(token);
+      bool f = (t != token_storage.tokens.end());
 
       require(f, "NO_TOKEN");
       return t->second;
    }
 
-   BPoolStore& newPoolStore(name pool_name) {
-      auto p = _pool_storage.pools.find(pool_name);
-      bool f = (p == _pool_storage.pools.end());
-      require(f, "ALREADY_EXIST_POOL");
+   DODOTokenStore& get_lptoken_store(namesym token) {
+      auto t = token_storage.lptokens.find(token);
+      bool f = (t != token_storage.lptokens.end());
 
-      auto pb = _pool_storage.pools.insert(std::map<name, BPoolStore>::value_type(pool_name, BPoolStore()));
-      require(pb.second, "INSERT_POOL_FAIL");
+      require(f, "NO_TOKEN");
+      return t->second;
+   }
+
+   DODOTokenStore& newLpTokenStore(const extended_symbol& token) {
+      extended_symbol esym       = extended_symbol(token.get_symbol(), LP_TOKEN_CONTRACT);
+      namesym         token_name = to_namesym(esym);
+      auto            p          = _pool_storage.lptokens.find(token_name);
+      bool            f          = (p == _pool_storage.lptokens.end());
+      require(f, "ALREADY_EXIST_LPTOKEN");
+      DODOTokenStore t;
+      t.esymbol = esym;
+      auto pb   = _pool_storage.lptokens.insert(std::map<namesym, DODOTokenStore>::value_type(token_name, t));
+      require(pb.second, "INSERT_LPTOKEN_FAIL");
 
       return pb.first->second;
    }
 
-   BTokenStore& newTokenStore(namesym token) {
+   DODOTokenStore& newTokenStore(const extended_symbol& token) {
       auto t = _token_storage.tokens.find(token);
 
       bool f = (t == _token_storage.tokens.end());
       require(f, "ALREADY_EXIST_TOKEN");
 
-      auto pb = _token_storage.tokens.insert(std::map<namesym, BTokenStore>::value_type(token, BTokenStore()));
-
+      auto pb = _token_storage.tokens.insert(std::map<namesym, DODOTokenStore>::value_type(token, DODOTokenStore()));
+      require(pb.second, "INSERT_TOKEN_FAIL");
       return pb.first->second;
    }
 };

@@ -5,9 +5,10 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 namespace Types {
-    enum RStatus {ONE, ABOVE_ONE, BELOW_ONE}
+    enum RStatus {ONE, ABOVE_ONE, BELOW_ONE};
 }

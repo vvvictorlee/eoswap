@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 
@@ -21,9 +22,9 @@ class IChainlink {
 class ChainlinkETHUSDTPriceOracleProxy { 
  public:
 
-   address chainlink = 0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46;
+   address chainlink;//= 0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46;
 
     uint256  getPrice() {
         return 10**24 / IChainlink(chainlink).latestAnswer();
     }
-}
+};

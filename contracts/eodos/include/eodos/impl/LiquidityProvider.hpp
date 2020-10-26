@@ -5,6 +5,7 @@
 
 */
 
+#prama once
 #include <common/defines.hpp>
 
 #include <eodos/Pricing.hpp>
@@ -22,29 +23,39 @@
  *
  * @notice Functions for liquidity provider operations
  */
+class DODOZoo;
 class LiquidityProvider : public Storage, public Pricing, public Settlement {
+ private:
+   DODOStore& stores;
+   DODOZoo&   zoo;
 
+ public:
+   LiquidityProvider(DODOStore& _stores)
+       : stores(_stores)
+       , Storage(_stores)
+       , Pricing(_stores)
+       , Settlement(_stores) {}
    // ============ Events ============
 
-   void depositQuoteAllowed() { require(_DEPOSIT_QUOTE_ALLOWED_, "DEPOSIT_QUOTE_NOT_ALLOWED"); }
+   void depositQuoteAllowed() { require(stores.store._DEPOSIT_QUOTE_ALLOWED_, "DEPOSIT_QUOTE_NOT_ALLOWED"); }
 
-   void depositBaseAllowed() { require(_DEPOSIT_BASE_ALLOWED_, "DEPOSIT_BASE_NOT_ALLOWED"); }
+   void depositBaseAllowed() { require(stores.store._DEPOSIT_BASE_ALLOWED_, "DEPOSIT_BASE_NOT_ALLOWED"); }
 
-   void dodoNotClosed() { require(!_CLOSED_, "DODO_CLOSED"); }
+   void dodoNotClosed() { require(!stores.store._CLOSED_, "DODO_CLOSED"); }
 
    // ============ Routine Functions ============
 
-   uint256 withdrawBase(uint256 amount) { return withdrawBaseTo(msg.sender, amount); }
+   uint256 withdrawBase(uint256 amount) { return withdrawBaseTo(getMsgSender(), amount); }
 
-   uint256 depositBase(uint256 amount) { return depositBaseTo(msg.sender, amount); }
+   uint256 depositBase(uint256 amount) { return depositBaseTo(getMsgSender(), amount); }
 
-   uint256 withdrawQuote(uint256 amount) { return withdrawQuoteTo(msg.sender, amount); }
+   uint256 withdrawQuote(uint256 amount) { return withdrawQuoteTo(getMsgSender(), amount); }
 
-   uint256 depositQuote(uint256 amount) { return depositQuoteTo(msg.sender, amount); }
+   uint256 depositQuote(uint256 amount) { return depositQuoteTo(getMsgSender(), amount); }
 
-   uint256 withdrawAllBase() { return withdrawAllBaseTo(msg.sender); }
+   uint256 withdrawAllBase() { return withdrawAllBaseTo(getMsgSender()); }
 
-   uint256 withdrawAllQuote() { return withdrawAllQuoteTo(msg.sender); }
+   uint256 withdrawAllQuote() { return withdrawAllQuoteTo(getMsgSender()); }
 
    // ============ Deposit Functions ============
 
@@ -62,9 +73,9 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
       }
 
       // settlement
-      _quoteTokenTransferIn(msg.sender, amount);
+      _quoteTokenTransferIn(getMsgSender(), amount);
       _mintQuoteCapital(to, capital);
-      _TARGET_QUOTE_TOKEN_AMOUNT_ = _TARGET_QUOTE_TOKEN_AMOUNT_.add(amount);
+      stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = stores.store._TARGET_QUOTE_TOKEN_AMOUNT_.add(amount);
 
       return capital;
    }
@@ -83,9 +94,9 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
       }
 
       // settlement
-      _baseTokenTransferIn(msg.sender, amount);
+      _baseTokenTransferIn(getMsgSender(), amount);
       _mintBaseCapital(to, capital);
-      _TARGET_BASE_TOKEN_AMOUNT_ = _TARGET_BASE_TOKEN_AMOUNT_.add(amount);
+      stores.store._TARGET_BASE_TOKEN_AMOUNT_ = stores.store._TARGET_BASE_TOKEN_AMOUNT_.add(amount);
 
       return capital;
    }
@@ -101,15 +112,15 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
       require(totalQuoteCapital > 0, "NO_QUOTE_LP");
 
       uint256 requireQuoteCapital = amount.mul(totalQuoteCapital).divCeil(quoteTarget);
-      require(requireQuoteCapital <= getQuoteCapitalBalanceOf(msg.sender), "LP_QUOTE_CAPITAL_BALANCE_NOT_ENOUGH");
+      require(requireQuoteCapital <= getQuoteCapitalBalanceOf(getMsgSender()), "LP_QUOTE_CAPITAL_BALANCE_NOT_ENOUGH");
 
       // handle penalty, penalty may exceed amount
       uint256 penalty = getWithdrawQuotePenalty(amount);
       require(penalty < amount, "PENALTY_EXCEED");
 
       // settlement
-      _TARGET_QUOTE_TOKEN_AMOUNT_ = _TARGET_QUOTE_TOKEN_AMOUNT_.sub(amount);
-      _burnQuoteCapital(msg.sender, requireQuoteCapital);
+      stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = stores.store._TARGET_QUOTE_TOKEN_AMOUNT_.sub(amount);
+      _burnQuoteCapital(getMsgSender(), requireQuoteCapital);
       _quoteTokenTransferOut(to, amount.sub(penalty));
       _donateQuoteToken(penalty);
 
@@ -125,15 +136,15 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
       require(totalBaseCapital > 0, "NO_BASE_LP");
 
       uint256 requireBaseCapital = amount.mul(totalBaseCapital).divCeil(baseTarget);
-      require(requireBaseCapital <= getBaseCapitalBalanceOf(msg.sender), "LP_BASE_CAPITAL_BALANCE_NOT_ENOUGH");
+      require(requireBaseCapital <= getBaseCapitalBalanceOf(getMsgSender()), "LP_BASE_CAPITAL_BALANCE_NOT_ENOUGH");
 
       // handle penalty, penalty may exceed amount
       uint256 penalty = getWithdrawBasePenalty(amount);
       require(penalty <= amount, "PENALTY_EXCEED");
 
       // settlement
-      _TARGET_BASE_TOKEN_AMOUNT_ = _TARGET_BASE_TOKEN_AMOUNT_.sub(amount);
-      _burnBaseCapital(msg.sender, requireBaseCapital);
+      stores.store._TARGET_BASE_TOKEN_AMOUNT_ = stores.store._TARGET_BASE_TOKEN_AMOUNT_.sub(amount);
+      _burnBaseCapital(getMsgSender(), requireBaseCapital);
       _baseTokenTransferOut(to, amount.sub(penalty));
       _donateBaseToken(penalty);
 
@@ -145,16 +156,16 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
    uint256 withdrawAllQuoteTo(address to) {
       preventReentrant();
       dodoNotClosed();
-      uint256 withdrawAmount = getLpQuoteBalance(msg.sender);
-      uint256 capital        = getQuoteCapitalBalanceOf(msg.sender);
+      uint256 withdrawAmount = getLpQuoteBalance(getMsgSender());
+      uint256 capital        = getQuoteCapitalBalanceOf(getMsgSender());
 
       // handle penalty, penalty may exceed amount
       uint256 penalty = getWithdrawQuotePenalty(withdrawAmount);
       require(penalty <= withdrawAmount, "PENALTY_EXCEED");
 
       // settlement
-      _TARGET_QUOTE_TOKEN_AMOUNT_ = _TARGET_QUOTE_TOKEN_AMOUNT_.sub(withdrawAmount);
-      _burnQuoteCapital(msg.sender, capital);
+      stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = stores.store._TARGET_QUOTE_TOKEN_AMOUNT_.sub(withdrawAmount);
+      _burnQuoteCapital(getMsgSender(), capital);
       _quoteTokenTransferOut(to, withdrawAmount.sub(penalty));
       _donateQuoteToken(penalty);
 
@@ -164,16 +175,16 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
    uint256 withdrawAllBaseTo(address to) {
       preventReentrant();
       dodoNotClosed();
-      uint256 withdrawAmount = getLpBaseBalance(msg.sender);
-      uint256 capital        = getBaseCapitalBalanceOf(msg.sender);
+      uint256 withdrawAmount = getLpBaseBalance(getMsgSender());
+      uint256 capital        = getBaseCapitalBalanceOf(getMsgSender());
 
       // handle penalty, penalty may exceed amount
       uint256 penalty = getWithdrawBasePenalty(withdrawAmount);
       require(penalty <= withdrawAmount, "PENALTY_EXCEED");
 
       // settlement
-      _TARGET_BASE_TOKEN_AMOUNT_ = _TARGET_BASE_TOKEN_AMOUNT_.sub(withdrawAmount);
-      _burnBaseCapital(msg.sender, capital);
+      stores.store._TARGET_BASE_TOKEN_AMOUNT_ = stores.store._TARGET_BASE_TOKEN_AMOUNT_.sub(withdrawAmount);
+      _burnBaseCapital(getMsgSender(), capital);
       _baseTokenTransferOut(to, withdrawAmount.sub(penalty));
       _donateBaseToken(penalty);
 
@@ -182,13 +193,21 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
 
    // ============ Helper Functions ============
 
-   void _mintBaseCapital(address user, uint256 amount) { IDODOLpToken(_BASE_CAPITAL_TOKEN_).mint(user, amount); }
+   void _mintBaseCapital(address user, uint256 amount) {
+      IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).mint(user, amount);
+   }
 
-   void _mintQuoteCapital(address user, uint256 amount) { IDODOLpToken(_QUOTE_CAPITAL_TOKEN_).mint(user, amount); }
+   void _mintQuoteCapital(address user, uint256 amount) {
+      IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).mint(user, amount);
+   }
 
-   void _burnBaseCapital(address user, uint256 amount) { IDODOLpToken(_BASE_CAPITAL_TOKEN_).burn(user, amount); }
+   void _burnBaseCapital(address user, uint256 amount) {
+      IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).burn(user, amount);
+   }
 
-   void _burnQuoteCapital(address user, uint256 amount) { IDODOLpToken(_QUOTE_CAPITAL_TOKEN_).burn(user, amount); }
+   void _burnQuoteCapital(address user, uint256 amount) {
+      IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).burn(user, amount);
+   }
 
    // ============ Getter Functions ============
 
@@ -214,14 +233,14 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
 
    uint256 penalty getWithdrawQuotePenalty(uint256 amount) {
       require(amount <= _QUOTE_BALANCE_, "DODO_QUOTE_BALANCE_NOT_ENOUGH");
-      if (_R_STATUS_ == Types.RStatus.BELOW_ONE) {
-         uint256 spareBase   = _BASE_BALANCE_.sub(_TARGET_BASE_TOKEN_AMOUNT_);
+      if (stores.store._R_STATUS_ == Types::RStatus::BELOW_ONE) {
+         uint256 spareBase   = stores.store._BASE_BALANCE_.sub(_TARGET_BASE_TOKEN_AMOUNT_);
          uint256 price       = getOraclePrice();
          uint256 fairAmount  = DecimalMath.mul(spareBase, price);
          uint256 targetQuote = DODOMath._SolveQuadraticFunctionForTarget(_QUOTE_BALANCE_, _K_, fairAmount);
          // if amount = _QUOTE_BALANCE_, div error
          uint256 targetQuoteWithWithdraw =
-             DODOMath._SolveQuadraticFunctionForTarget(_QUOTE_BALANCE_.sub(amount), _K_, fairAmount);
+             DODOMath._SolveQuadraticFunctionForTarget(stores.store._QUOTE_BALANCE_.sub(amount), _K_, fairAmount);
          return targetQuote.sub(targetQuoteWithWithdraw.add(amount));
       } else {
          return 0;
@@ -230,17 +249,17 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
 
    uint256 penalty getWithdrawBasePenalty(uint256 amount) {
       require(amount <= _BASE_BALANCE_, "DODO_BASE_BALANCE_NOT_ENOUGH");
-      if (_R_STATUS_ == Types.RStatus.ABOVE_ONE) {
+      if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          uint256 spareQuote = _QUOTE_BALANCE_.sub(_TARGET_QUOTE_TOKEN_AMOUNT_);
          uint256 price      = getOraclePrice();
          uint256 fairAmount = DecimalMath.divFloor(spareQuote, price);
          uint256 targetBase = DODOMath._SolveQuadraticFunctionForTarget(_BASE_BALANCE_, _K_, fairAmount);
          // if amount = _BASE_BALANCE_, div error
          uint256 targetBaseWithWithdraw =
-             DODOMath._SolveQuadraticFunctionForTarget(_BASE_BALANCE_.sub(amount), _K_, fairAmount);
+             DODOMath._SolveQuadraticFunctionForTarget(stores.store._BASE_BALANCE_.sub(amount), _K_, fairAmount);
          return targetBase.sub(targetBaseWithWithdraw.add(amount));
       } else {
          return 0;
       }
    }
-}
+};

@@ -5,7 +5,8 @@
 
 */
 #pragma once
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 
@@ -41,7 +42,7 @@ class IDODO {
         bytes  data
     ) = 0;
 
-    virtual uint256 payQuote  querySellBaseToken(uint256 amount) = 0;
+    virtual uint256  querySellBaseToken(uint256 amount) = 0;
 
     virtual uint256  getExpectedTarget() = 0;
 
@@ -54,4 +55,4 @@ class IDODO {
     virtual address  _QUOTE_CAPITAL_TOKEN_() = 0;
 
     virtual address  _QUOTE_TOKEN_() = 0;
-}
+};

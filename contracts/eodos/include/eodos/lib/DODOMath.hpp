@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 #include <eodos/SafeMath.hpp>
@@ -17,7 +18,7 @@
  *
  * @notice Functions for complex calculating. Including ONE Integration and TWO Quadratic solutions
  */
-library DODOMath {
+namespace DODOMath {
     
 
     /*

@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 #include <eodos/lib/SafeMath.hpp>
@@ -21,13 +22,12 @@
  *
  * @notice Lock Token and release it linearly
  */
-
+#ifdef LockedTokenVault
 class LockedTokenVault : public  Ownable {
  public:
       
    // ============ Modifiers ============
-
-    
+   
     void beforeStartRelease() {
         require(block.timestamp < _START_RELEASE_TIME_, "RELEASE START");
         
@@ -100,21 +100,21 @@ onlyOwner();
     // ============ For Holder ============
 
     void  transferLockedToken(address to) {
-        originBalances[to] = originBalances[to].add(originBalances[msg.sender]);
-        claimedBalances[to] = claimedBalances[to].add(claimedBalances[msg.sender]);
+        originBalances[to] = originBalances[to].add(originBalances[getMsgSender()]);
+        claimedBalances[to] = claimedBalances[to].add(claimedBalances[getMsgSender()]);
 
-        originBalances[msg.sender] = 0;
-        claimedBalances[msg.sender] = 0;
+        originBalances[getMsgSender()] = 0;
+        claimedBalances[getMsgSender()] = 0;
     }
 
     void  claim() {
-        uint256 claimableToken = getClaimableBalance(msg.sender);
-        _tokenTransferOut(msg.sender, claimableToken);
-        claimedBalances[msg.sender] = claimedBalances[msg.sender].add(claimableToken);
+        uint256 claimableToken = getClaimableBalance(getMsgSender());
+        _tokenTransferOut(getMsgSender(), claimableToken);
+        claimedBalances[getMsgSender()] = claimedBalances[getMsgSender()].add(claimableToken);
         emit Claim(
-            msg.sender,
-            originBalances[msg.sender],
-            claimedBalances[msg.sender],
+            getMsgSender(),
+            originBalances[getMsgSender()],
+            claimedBalances[getMsgSender()],
             claimableToken
         );
     }
@@ -165,4 +165,5 @@ onlyOwner();
     void  _tokenTransferOut(address to, uint256 amount) {
         IERC20(_TOKEN_).safeTransfer(to, amount);
     }
-}
+};
+#endif

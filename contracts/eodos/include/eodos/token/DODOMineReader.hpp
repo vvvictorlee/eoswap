@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 #include <eodos/intf/IDODO.hpp>
 #include <eodos/intf/IERC20.hpp>
@@ -15,13 +16,11 @@ class IDODOMine {
  public:
 
    virtual uint256 getUserLpBalance(address _lpToken, address _user) = 0;
-}
+};
 
+#ifdef DODOMINEREADER
 class DODOMineReader { 
  public:
-
-    
-
     std::tuple<uint256, uint256> getUserStakedBalance(address _dodoMine, address _dodo, address _user) {
        uint256 baseBalance;
        uint256 quoteBalance;
@@ -40,4 +39,5 @@ class DODOMineReader {
 
        return (baseBalance, quoteBalance);
     }
-}
+};
+#endif

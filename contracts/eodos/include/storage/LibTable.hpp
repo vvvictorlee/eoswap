@@ -1,31 +1,18 @@
 
 #pragma once
 //////
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
-struct [
-    [eosio::table("factorystore"), eosio::contract("eoswap")]] InitializableOwnableStorage {
+struct OwnableStore {
    address _OWNER_;
    address _NEW_OWNER_;
 
-  EOSLIB_SERIALIZE(InitializableOwnableStorage, (blabs)(isBPool))
+   EOSLIB_SERIALIZE(OwnableStore, (_OWNER_)(_NEW_OWNER_))
 };
 
-struct [
-    [eosio::table("factorystore"), eosio::contract("eoswap")]] OwnableStorage {
-   address _OWNER_;
-   address _NEW_OWNER_;
-
-  EOSLIB_SERIALIZE(OwnableStorage, (blabs)(isBPool))
+struct ReentrancyGuardStore {
+   bool _ENTERED_;
+   EOSLIB_SERIALIZE(ReentrancyGuardStore, (_ENTERED_))
 };
 
-
-struct [
-    [eosio::table("factorystore"), eosio::contract("eoswap")]] ReentrancyGuardStorage {
- bool private _ENTERED_;
-
-  EOSLIB_SERIALIZE(ReentrancyGuardStorage, (blabs)(isBPool))
-};
-
-typedef eosio::singleton<"factorystore"_n, BFactoryStorage>
-    BFactoryStorageSingleton;

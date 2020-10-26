@@ -5,17 +5,16 @@
 
 */
 
+#prama once
 #include <common/defines.hpp>
 
-
-#include <eodos/lib/InitializableOwnable.hpp>
-#include <eodos/lib/SafeMath.hpp>
-#include <eodos/lib/DecimalMath.hpp>
-#include <eodos/lib/ReentrancyGuard.hpp>
-#include <eodos/intf/IOracle.hpp>
 #include <eodos/intf/IDODOLpToken.hpp>
+#include <eodos/intf/IOracle.hpp>
+#include <eodos/lib/DecimalMath.hpp>
+#include <eodos/lib/InitializableOwnable.hpp>
+#include <eodos/lib/ReentrancyGuard.hpp>
+#include <eodos/lib/SafeMath.hpp>
 #include <eodos/lib/Types.hpp>
-
 
 /**
  * @title Storage
@@ -23,52 +22,42 @@
  *
  * @notice Local Variables
  */
-class Storage : public  InitializableOwnable,public  ReentrancyGuard{
-    
+class Storage : public InitializableOwnable, public ReentrancyGuard {
+ private:
+   DODOStore& stores;
+public:
+   Storage(DODOStore& _stores)
+       : stores(_stores)
+       , InitializableOwnable(_stores)
+       , ReentrancyGuard(_stores){}
 
+   // ============ Modifiers ============
+   void onlySupervisorOrOwner() {
+      require(getMsgSender() == _SUPERVISOR_ || getMsgSender() == _OWNER_, "NOT_SUPERVISOR_OR_OWNER");
+   }
 
-    // ============ Modifiers ============
+   void notClosed() { require(!_CLOSED_, "DODO_CLOSED"); }
 
-    void onlySupervisorOrOwner() {
-        require(msg.sender == _SUPERVISOR_ || msg.sender == _OWNER_, "NOT_SUPERVISOR_OR_OWNER");
-        
-    }
+   // ============ Helper Functions ============
 
-    void notClosed() {
-        require(!_CLOSED_, "DODO_CLOSED");
-        
-    }
+   uint256 _checkDODOParameters() {
+      require(_K_ < DecimalMath.ONE, "K>=1");
+      require(_K_ > 0, "K=0");
+      require(_LP_FEE_RATE_.add(_MT_FEE_RATE_) < DecimalMath.ONE, "FEE_RATE>=1");
+   }
 
-    // ============ Helper Functions ============
+   uint256 getOraclePrice() { return IOracle(_ORACLE_).getPrice(); }
 
-    uint256  _checkDODOParameters() {
-        require(_K_ < DecimalMath.ONE, "K>=1");
-        require(_K_ > 0, "K=0");
-        require(_LP_FEE_RATE_.add(_MT_FEE_RATE_) < DecimalMath.ONE, "FEE_RATE>=1");
-    }
+   uint256 getBaseCapitalBalanceOf(address lp) { return IDODOLpToken(_BASE_CAPITAL_TOKEN_).balanceOf(lp); }
 
-    uint256  getOraclePrice() {
-        return IOracle(_ORACLE_).getPrice();
-    }
+   uint256 getTotalBaseCapital() { return IDODOLpToken(_BASE_CAPITAL_TOKEN_).totalSupply(); }
 
-    uint256  getBaseCapitalBalanceOf(address lp) {
-        return IDODOLpToken(_BASE_CAPITAL_TOKEN_).balanceOf(lp);
-    }
+   uint256 getQuoteCapitalBalanceOf(address lp) { return IDODOLpToken(_QUOTE_CAPITAL_TOKEN_).balanceOf(lp); }
 
-    uint256  getTotalBaseCapital() {
-        return IDODOLpToken(_BASE_CAPITAL_TOKEN_).totalSupply();
-    }
+   uint256 getTotalQuoteCapital() { return IDODOLpToken(_QUOTE_CAPITAL_TOKEN_).totalSupply(); }
 
-    uint256  getQuoteCapitalBalanceOf(address lp) {
-        return IDODOLpToken(_QUOTE_CAPITAL_TOKEN_).balanceOf(lp);
-    }
-
-    uint256  getTotalQuoteCapital() {
-        return IDODOLpToken(_QUOTE_CAPITAL_TOKEN_).totalSupply();
-    }
-
-    // ============ Version Control ============
-    uint256  version() {
-        return 101; // 1.0.1
-    }
-}
+   // ============ Version Control ============
+   uint256 version() {
+      return 101; // 1.0.1
+   }
+};

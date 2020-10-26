@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 #include <eodos/lib/Ownable.hpp>
@@ -33,4 +34,4 @@ class DODORewardVault : public  Ownable {
     void  reward(address to, uint256 amount) {
         IERC20(dodoToken).safeTransfer(to, amount);
     }
-}
+};

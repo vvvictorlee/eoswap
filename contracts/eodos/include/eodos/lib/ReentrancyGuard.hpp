@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 /**
@@ -15,16 +16,21 @@
  * @notice Protect functions from Reentrancy Attack
  */
 class ReentrancyGuard { 
+ private:
+   ReentrancyGuardStore& reentrancy_guard_store;
+
  public:
+   ReentrancyGuard(ReentrancyGuardStore& _reentrancy_guard_store)
+       : reentrancy_guard_store(_reentrancy_guard_store)
 
     // https://solidity.readthedocs.io/en/latest/control-structures.html?highlight=zero-state#scoping-and-declarations
     // zero-state of _ENTERED_ is false
-    bool  _ENTERED_;
+    // bool  _ENTERED_;
 
     void preventReentrant() {
-        require(!_ENTERED_, "REENTRANT");
-        _ENTERED_ = true;
+        require(!reentrancy_guard_store._ENTERED_, "REENTRANT");
+        reentrancy_guard_store._ENTERED_ = true;
         
-        _ENTERED_ = false;
+        reentrancy_guard_store._ENTERED_ = false;
     }
-}
+};

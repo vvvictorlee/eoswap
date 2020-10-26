@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 /**
  * @title Ownable
@@ -14,11 +15,18 @@
  * @notice Ownership related functions
  */
 class InitializableOwnable {
+ private:
+   name          msg_sender;
+   OwnableStore& ownable_store;
+
  public:
+   InitializableOwnable(OwnableStore& _ownable_store)
+       : ownable_store(_ownable_store)
 
    // ============ Modifiers ============
-
-   void onlyOwner() { require(msg.sender == _OWNER_, "NOT_OWNER"); }
+   name getMsgSender() { return msg_sender; }
+   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
+   void onlyOwner() { require(getMsgSender() == ownable_store._OWNER_, "NOT_OWNER"); }
 
    // ============ Functions ============
 
@@ -26,13 +34,13 @@ class InitializableOwnable {
       onlyOwner();
       require(newOwner != address(0), "INVALID_OWNER");
 
-      _NEW_OWNER_ = newOwner;
+      ownable_store._NEW_OWNER_ = newOwner;
    }
 
    void claimOwnership() {
-      require(msg.sender == _NEW_OWNER_, "INVALID_CLAIM");
+      require(getMsgSender() == ownable_store._NEW_OWNER_, "INVALID_CLAIM");
 
-      _OWNER_     = _NEW_OWNER_;
-      _NEW_OWNER_ = address(0);
+      ownable_store._OWNER_     = ownable_store._NEW_OWNER_;
+      ownable_store._NEW_OWNER_ = address(0);
    }
-}
+};

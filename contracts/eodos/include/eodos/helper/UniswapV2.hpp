@@ -3,8 +3,10 @@
  */
 
 // File: contracts/interfaces/IUniswapV2Pair.sol
+#pragma once
+#prama once 
+ #include <common/defines.hpp>
 
-pragma solidity >= 0.5.0;
 
 class IUniswapV2Pair {
  public:
@@ -38,11 +40,10 @@ class IUniswapV2Pair {
    virtual void sync() = 0;
 
    virtual void initialize(address, address) = 0;
-}
+};
 
     // File: contracts/interfaces/IUniswapV2ERC20.sol
 
-    pragma solidity >= 0.5.0;
 
 class IUniswapV2ERC20 {
  public:
@@ -62,25 +63,23 @@ class IUniswapV2ERC20 {
 
    virtual void
    permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) = 0;
-}
+};
 
 // File: contracts/libraries/SafeMath.sol
 
-#include <common/defines.hpp>
 
 // a library for performing overflow-safe math, courtesy of DappHub (https://github.com/dapphub/ds-math)
 
-library SafeMath {
-   uint256 z add(uint256 x, uint256 y) { require((z = x + y) >= x, "ds-math-add-overflow"); }
+namespace SafeMath {
+   uint256  add(uint256 x, uint256 y) { require((z = x + y) >= x, "ds-math-add-overflow"); }
 
-   uint256 z sub(uint256 x, uint256 y) { require((z = x - y) <= x, "ds-math-sub-underflow"); }
+   uint256  sub(uint256 x, uint256 y) { require((z = x - y) <= x, "ds-math-sub-underflow"); }
 
-   uint256 z mul(uint256 x, uint256 y) { require(y == 0 || (z = x * y) / y == x, "ds-math-mul-overflow"); }
+   uint256  mul(uint256 x, uint256 y) { require(y == 0 || (z = x * y) / y == x, "ds-math-mul-overflow"); }
 }
 
 // File: contracts/UniswapV2ERC20.sol
 
-#include <common/defines.hpp>
 
 class UniswapV2ERC20 {
  public:
@@ -105,18 +104,18 @@ class UniswapV2ERC20 {
    }
 
    bool approve(address spender, uint256 value) {
-      _approve(msg.sender, spender, value);
+      _approve(getMsgSender(), spender, value);
       return true;
    }
 
    bool transfer(address to, uint256 value) {
-      _transfer(msg.sender, to, value);
+      _transfer(getMsgSender(), to, value);
       return true;
    }
 
    bool transferFrom(address from, address to, uint256 value) {
-      if (allowance[from][msg.sender] != uint256(-1)) {
-         allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
+      if (allowance[from][getMsgSender()] != uint256(-1)) {
+         allowance[from][getMsgSender()] = allowance[from][getMsgSender()].sub(value);
       }
       _transfer(from, to, value);
       return true;
@@ -131,15 +130,14 @@ class UniswapV2ERC20 {
       require(recoveredAddress != address(0) && recoveredAddress == owner, "UniswapV2: INVALID_SIGNATURE");
       _approve(owner, spender, value);
    }
-}
+};
 
 // File: contracts/libraries/Math.sol
 
-#include <common/defines.hpp>
 
 // a library for performing various math operations
 
-library Math {
+namespace Math {
    uint256 z min(uint256 x, uint256 y) { z = x < y ? x : y; }
 
    // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
@@ -159,7 +157,6 @@ library Math {
 
 // File: contracts/libraries/UQ112x112.sol
 
-#include <common/defines.hpp>
 
 // a library for handling binary fixed point numbers (https://en.wikipedia.org/wiki/Q_(number_format))
 
@@ -191,7 +188,7 @@ class IERC20 {
    virtual bool approve(address spender, uint256 value) = 0;
 
    virtual bool transferFrom(address from, address to, uint256 value) = 0;
-}
+};
 
 // File: contracts/interfaces/IUniswapV2Factory.sol
 
@@ -219,11 +216,11 @@ class IUniswapV2Factory {
       require(success && (data.length == 0 || abi.decode(data, (bool))), "UniswapV2: TRANSFER_FAILED");
    }
 
-   IUniswapV2Factory() { factory = msg.sender; }
+   IUniswapV2Factory() { factory = getMsgSender(); }
 
    // called once by the factory at time of deployment
    void initialize(address _token0, address _token1) {
-      require(msg.sender == factory, "UniswapV2: FORBIDDEN"); // sufficient check
+      require(getMsgSender() == factory, "UniswapV2: FORBIDDEN"); // sufficient check
       token0 = _token0;
       token1 = _token1;
    }
@@ -340,7 +337,7 @@ class IUniswapV2Factory {
          if (amount1Out > 0)
             _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
          if (data.length > 0)
-            IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+            IUniswapV2Callee(to).uniswapV2Call(getMsgSender(), amount0Out, amount1Out, data);
          balance0 = IERC20(_token0).balanceOf(address(this));
          balance1 = IERC20(_token1).balanceOf(address(this));
       }
@@ -373,4 +370,4 @@ class IUniswapV2Factory {
       lock();
       _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
    }
-}
+};

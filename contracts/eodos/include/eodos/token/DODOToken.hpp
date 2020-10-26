@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 #include <eodos/lib/SafeMath.hpp>
@@ -15,12 +16,13 @@
  * @title DODO Token
  * @author DODO Breeder
  */
+#ifdef  DODOToken
 class DODOToken { 
  public:
     // ============ Functions ============
 
     DODOToken() {
-        balances[msg.sender] = totalSupply;
+        balances[getMsgSender()] = totalSupply;
     }
 
     /**
@@ -29,9 +31,9 @@ class DODOToken {
      * @param amount The amount to be transferred.
      */
     bool  transfer(address to, uint256 amount) {
-        require(amount <= balances[msg.sender], "BALANCE_NOT_ENOUGH");
+        require(amount <= balances[getMsgSender()], "BALANCE_NOT_ENOUGH");
 
-        balances[msg.sender] = balances[msg.sender].sub(amount);
+        balances[getMsgSender()] = balances[getMsgSender()].sub(amount);
         balances[to] = balances[to].add(amount);
         
         return true;
@@ -58,22 +60,22 @@ class DODOToken {
         uint256 amount
     ) {
         require(amount <= balances[from], "BALANCE_NOT_ENOUGH");
-        require(amount <= allowed[from][msg.sender], "ALLOWANCE_NOT_ENOUGH");
+        require(amount <= allowed[from][getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
 
         balances[from] = balances[from].sub(amount);
         balances[to] = balances[to].add(amount);
-        allowed[from][msg.sender] = allowed[from][msg.sender].sub(amount);
+        allowed[from][getMsgSender()] = allowed[from][getMsgSender()].sub(amount);
         
         return true;
     }
 
     /**
-     * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
+     * @dev Approve the passed address to spend the specified amount of tokens on behalf of getMsgSender().
      * @param spender The address which will spend the funds.
      * @param amount The amount of tokens to be spent.
      */
     bool  approve(address spender, uint256 amount) {
-        allowed[msg.sender][spender] = amount;
+        allowed[getMsgSender()][spender] = amount;
         
         return true;
     }
@@ -87,4 +89,5 @@ class DODOToken {
     uint256  allowance(address owner, address spender) {
         return allowed[owner][spender];
     }
-}
+};
+#endif

@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 #include <eodos/lib/Ownable.hpp>
@@ -22,4 +23,4 @@ class NaiveOracle : public  Ownable {
     uint256  getPrice() {
         return tokenPrice;
     }
-}
+};

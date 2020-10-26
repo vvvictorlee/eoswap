@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 
@@ -15,7 +16,7 @@
  *
  * @notice Math operations with safety checks that revert on error
  */
-library SafeMath {
+ namespace SafeMath {
     uint256  mul(uint256 a, uint256 b) {
         if (a == 0) {
             return 0;

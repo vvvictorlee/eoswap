@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 class IMinimumOracle {
  public:
@@ -20,11 +21,11 @@ class MinimumOracle {
  public:
 
 
-   void onlyOwner() { require(msg.sender == _OWNER_, "NOT_OWNER"); }
+   void onlyOwner() { require(getMsgSender() == _OWNER_, "NOT_OWNER"); }
 
    // ============ Functions ============
 
-   MinimumOracle() { _OWNER_ = msg.sender; }
+   MinimumOracle() { _OWNER_ = getMsgSender(); }
 
    void transferOwnership(address newOwner) {
       onlyOwner();
@@ -39,4 +40,4 @@ class MinimumOracle {
    }
 
    uint256 getPrice() { return tokenPrice; }
-}
+};

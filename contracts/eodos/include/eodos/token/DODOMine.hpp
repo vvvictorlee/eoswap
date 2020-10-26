@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 #include <eodos/DODORewardVault.hpp>
 #include <eodos/intf/IERC20.hpp>
@@ -13,11 +14,9 @@
 #include <eodos/lib/Ownable.hpp>
 #include <eodos/lib/SafeERC20.hpp>
 #include <eodos/lib/SafeMath.hpp>
-
+#ifdef DODOMINE
 class DODOMine : public Ownable {
-
-
-   constructor(address _dodoToken, uint256 _startBlock) public {
+   DODOMine(address _dodoToken, uint256 _startBlock) public {
       dodoRewardVault = address(new DODORewardVault(_dodoToken));
       startBlock      = _startBlock;
    }
@@ -153,13 +152,13 @@ class DODOMine : public Ownable {
    void deposit(address _lpToken, uint256 _amount) {
       uint256  pid          = getPid(_lpToken);
       PoolInfo storage pool = poolInfos[pid];
-      UserInfo storage user = userInfo[pid][msg.sender];
+      UserInfo storage user = userInfo[pid][getMsgSender()];
       updatePool(pid);
       if (user.amount > 0) {
          uint256 pending = DecimalMath.mul(user.amount, pool.accDODOPerShare).sub(user.rewardDebt);
-         safeDODOTransfer(msg.sender, pending);
+         safeDODOTransfer(getMsgSender(), pending);
       }
-      IERC20(pool.lpToken).safeTransferFrom(address(msg.sender), address(this), _amount);
+      IERC20(pool.lpToken).safeTransferFrom(address(getMsgSender()), address(this), _amount);
       user.amount     = user.amount.add(_amount);
       user.rewardDebt = DecimalMath.mul(user.amount, pool.accDODOPerShare);
    }
@@ -167,18 +166,18 @@ class DODOMine : public Ownable {
    void withdraw(address _lpToken, uint256 _amount) {
       uint256  pid          = getPid(_lpToken);
       PoolInfo storage pool = poolInfos[pid];
-      UserInfo storage user = userInfo[pid][msg.sender];
+      UserInfo storage user = userInfo[pid][getMsgSender()];
       require(user.amount >= _amount, "withdraw too much");
       updatePool(pid);
       uint256 pending = DecimalMath.mul(user.amount, pool.accDODOPerShare).sub(user.rewardDebt);
-      safeDODOTransfer(msg.sender, pending);
+      safeDODOTransfer(getMsgSender(), pending);
       user.amount     = user.amount.sub(_amount);
       user.rewardDebt = DecimalMath.mul(user.amount, pool.accDODOPerShare);
-      IERC20(pool.lpToken).safeTransfer(address(msg.sender), _amount);
+      IERC20(pool.lpToken).safeTransfer(address(getMsgSender()), _amount);
    }
 
    void withdrawAll(address _lpToken) {
-      uint256 balance = getUserLpBalance(_lpToken, msg.sender);
+      uint256 balance = getUserLpBalance(_lpToken, getMsgSender());
       withdraw(_lpToken, balance);
    }
 
@@ -186,39 +185,39 @@ class DODOMine : public Ownable {
    void emergencyWithdraw(address _lpToken) {
       uint256  pid          = getPid(_lpToken);
       PoolInfo storage pool = poolInfos[pid];
-      UserInfo storage user = userInfo[pid][msg.sender];
-      IERC20(pool.lpToken).safeTransfer(address(msg.sender), user.amount);
+      UserInfo storage user = userInfo[pid][getMsgSender()];
+      IERC20(pool.lpToken).safeTransfer(address(getMsgSender()), user.amount);
       user.amount     = 0;
       user.rewardDebt = 0;
    }
 
    void claim(address _lpToken) {
       uint256 pid = getPid(_lpToken);
-      if (userInfo[pid][msg.sender].amount == 0 || poolInfos[pid].allocPoint == 0) {
+      if (userInfo[pid][getMsgSender()].amount == 0 || poolInfos[pid].allocPoint == 0) {
          return; // save gas
       }
       PoolInfo storage pool = poolInfos[pid];
-      UserInfo storage user = userInfo[pid][msg.sender];
+      UserInfo storage user = userInfo[pid][getMsgSender()];
       updatePool(pid);
       uint256 pending = DecimalMath.mul(user.amount, pool.accDODOPerShare).sub(user.rewardDebt);
       user.rewardDebt = DecimalMath.mul(user.amount, pool.accDODOPerShare);
-      safeDODOTransfer(msg.sender, pending);
+      safeDODOTransfer(getMsgSender(), pending);
    }
 
    void claimAll() {
       uint256 length  = poolInfos.length;
       uint256 pending = 0;
       for (uint256 pid = 0; pid < length; ++pid) {
-         if (userInfo[pid][msg.sender].amount == 0 || poolInfos[pid].allocPoint == 0) {
+         if (userInfo[pid][getMsgSender()].amount == 0 || poolInfos[pid].allocPoint == 0) {
             continue; // save gas
          }
          PoolInfo storage pool = poolInfos[pid];
-         UserInfo storage user = userInfo[pid][msg.sender];
+         UserInfo storage user = userInfo[pid][getMsgSender()];
          updatePool(pid);
          pending         = pending.add(DecimalMath.mul(user.amount, pool.accDODOPerShare).sub(user.rewardDebt));
          user.rewardDebt = DecimalMath.mul(user.amount, pool.accDODOPerShare);
       }
-      safeDODOTransfer(msg.sender, pending);
+      safeDODOTransfer(getMsgSender(), pending);
    }
 
    // Safe DODO transfer function
@@ -226,4 +225,5 @@ class DODOMine : public Ownable {
       IDODORewardVault(dodoRewardVault).reward(_to, _amount);
       realizedReward[_to] = realizedReward[_to].add(_amount);
    }
-}
+};
+#endif

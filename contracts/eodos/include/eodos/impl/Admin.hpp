@@ -5,11 +5,10 @@
 
 */
 
+#prama once
 #include <common/defines.hpp>
 
-
 #include <eodos/Storage.hpp>
-
 
 /**
  * @title Admin
@@ -17,93 +16,69 @@
  *
  * @notice Functions for admin operations
  */
-class Admin : public  Storage {
-    // ============ Params Setting Functions ============
+class Admin : public Storage {
+ private:
+   DODOStore& stores;
 
-    void  setOracle(address newOracle) {
-        _ORACLE_ = newOracle;
-    }
+ public:
+   Admin(DODOStore& _stores)
+       : stores(_stores)
+       , Storage(_stores)
+       // ============ Params Setting Functions ============
 
-    void  setSupervisor(address newSupervisor) {
-        _SUPERVISOR_ = newSupervisor;
-    }
+       void setOracle(address newOracle) {
+      _ORACLE_ = newOracle;
+   }
 
-    void  setMaintainer(address newMaintainer) {
-        _MAINTAINER_ = newMaintainer;
-    }
+   void setSupervisor(address newSupervisor) { stores.store._SUPERVISOR_ = newSupervisor; }
 
-    void  setLiquidityProviderFeeRate(uint256 newLiquidityPorviderFeeRate) {
-        
-        _LP_FEE_RATE_ = newLiquidityPorviderFeeRate;
-        _checkDODOParameters();
-    }
+   void setMaintainer(address newMaintainer) { stores.store._MAINTAINER_ = newMaintainer; }
 
-    void  setMaintainerFeeRate(uint256 newMaintainerFeeRate) {
-        
-        _MT_FEE_RATE_ = newMaintainerFeeRate;
-        _checkDODOParameters();
-    }
+   void setLiquidityProviderFeeRate(uint256 newLiquidityPorviderFeeRate) {
+      stores.store._LP_FEE_RATE_ = newLiquidityPorviderFeeRate;
+      _checkDODOParameters();
+   }
 
-    void  setK(uint256 newK) {
-        
-        _K_ = newK;
-        _checkDODOParameters();
-    }
+   void setMaintainerFeeRate(uint256 newMaintainerFeeRate) {
+      stores.store._MT_FEE_RATE_ = newMaintainerFeeRate;
+      _checkDODOParameters();
+   }
 
-    void  setGasPriceLimit(uint256 newGasPriceLimit) {
-        
-        _GAS_PRICE_LIMIT_ = newGasPriceLimit;
-    }
+   void setK(uint256 newK) {
 
-    // ============ System Control Functions ============
+      stores.store._K_ = newK;
+      _checkDODOParameters();
+   }
 
-    void  disableTrading() {
-        _TRADE_ALLOWED_ = false;
-    }
+   void setGasPriceLimit(uint256 newGasPriceLimit) { stores.store._GAS_PRICE_LIMIT_ = newGasPriceLimit; }
 
-    void  enableTrading() {
-        _TRADE_ALLOWED_ = true;
-    }
+   // ============ System Control Functions ============
 
-    void  disableQuoteDeposit() {
-        _DEPOSIT_QUOTE_ALLOWED_ = false;
-    }
+   void disableTrading() { stores.store._TRADE_ALLOWED_ = false; }
 
-    void  enableQuoteDeposit() {
-        _DEPOSIT_QUOTE_ALLOWED_ = true;
-    }
+   void enableTrading() { stores.store._TRADE_ALLOWED_ = true; }
 
-    void  disableBaseDeposit() {
-        _DEPOSIT_BASE_ALLOWED_ = false;
-    }
+   void disableQuoteDeposit() { stores.store._DEPOSIT_QUOTE_ALLOWED_ = false; }
 
-    void  enableBaseDeposit() {
-        _DEPOSIT_BASE_ALLOWED_ = true;
-    }
+   void enableQuoteDeposit() { stores.store._DEPOSIT_QUOTE_ALLOWED_ = true; }
 
-    // ============ Advanced Control Functions ============
+   void disableBaseDeposit() { stores.store._DEPOSIT_BASE_ALLOWED_ = false; }
 
-    void  disableBuying() {
-        _BUYING_ALLOWED_ = false;
-    }
+   void enableBaseDeposit() { stores.store._DEPOSIT_BASE_ALLOWED_ = true; }
 
-    void  enableBuying() {
-        _BUYING_ALLOWED_ = true;
-    }
+   // ============ Advanced Control Functions ============
 
-    void  disableSelling() {
-        _SELLING_ALLOWED_ = false;
-    }
+   void disableBuying() { stores.store._BUYING_ALLOWED_ = false; }
 
-    void  enableSelling() {
-        _SELLING_ALLOWED_ = true;
-    }
+   void enableBuying() { stores.store._BUYING_ALLOWED_ = true; }
 
-    void  setBaseBalanceLimit(uint256 newBaseBalanceLimit) {
-        _BASE_BALANCE_LIMIT_ = newBaseBalanceLimit;
-    }
+   void disableSelling() { stores.store._SELLING_ALLOWED_ = false; }
 
-    void  setQuoteBalanceLimit(uint256 newQuoteBalanceLimit) {
-        _QUOTE_BALANCE_LIMIT_ = newQuoteBalanceLimit;
-    }
-}
+   void enableSelling() { stores.store._SELLING_ALLOWED_ = true; }
+
+   void setBaseBalanceLimit(uint256 newBaseBalanceLimit) { stores.store._BASE_BALANCE_LIMIT_ = newBaseBalanceLimit; }
+
+   void setQuoteBalanceLimit(uint256 newQuoteBalanceLimit) {
+      stores.store._QUOTE_BALANCE_LIMIT_ = newQuoteBalanceLimit;
+   }
+};

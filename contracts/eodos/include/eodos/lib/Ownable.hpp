@@ -5,8 +5,9 @@
 
 */
 
+#prama once
 #include <common/defines.hpp>
-
+#include <common/storage_mgmt.hpp>
 /**
  * @title Ownable
  * @author DODO Breeder
@@ -14,31 +15,38 @@
  * @notice Ownership related functions
  */
 class Ownable {
+ private:
+   name          msg_sender;
+   OwnableStore& ownable_store;
+
  public:
-   address _OWNER_;
-   address _NEW_OWNER_;
+   Ownable(OwnableStore& _ownable_store)
+       : ownable_store(_ownable_store)
+       //    address _OWNER_;
+       //    address _NEW_OWNER_;
+   name getMsgSender() { return msg_sender; }
+   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
+       // ============ Modifiers ============
 
-   // ============ Events ============
-
-   // ============ Modifiers ============
-
-   void onlyOwner() { require(msg.sender == _OWNER_, "NOT_OWNER"); }
+       void onlyOwner() {
+      require(msg_sender == ownable_store._OWNER_, "NOT_OWNER");
+   }
 
    // ============ Functions ============
 
-   Ownable() { _OWNER_ = msg.sender; }
+   Ownable() { ownable_store._OWNER_ = msg_sender; }
 
    void transferOwnership(address newOwner) {
       onlyOwner();
       require(newOwner != address(0), "INVALID_OWNER");
 
-      _NEW_OWNER_ = newOwner;
+      ownable_store._NEW_OWNER_ = newOwner;
    }
 
    void claimOwnership() {
-      require(msg.sender == _NEW_OWNER_, "INVALID_CLAIM");
+      require(msg_sender == _NEW_OWNER_, "INVALID_CLAIM");
 
-      _OWNER_     = _NEW_OWNER_;
-      _NEW_OWNER_ = address(0);
+      ownable_store._OWNER_     = _NEW_OWNER_;
+      ownable_store._NEW_OWNER_ = address(0);
    }
-}
+};

@@ -6,11 +6,12 @@
 */
 #pragma once
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 class IOracle { 
  public:
 
     virtual uint256  getPrice() = 0;
-}
+};

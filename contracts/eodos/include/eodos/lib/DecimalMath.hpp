@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 #include <eodos/SafeMath.hpp>
@@ -17,7 +18,7 @@
  *
  * @notice Functions for fixed point number with 18 decimals
  */
-library DecimalMath {
+namespace DecimalMath {
     
 
     uint256 constant ONE = 10**18;

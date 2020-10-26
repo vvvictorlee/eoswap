@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 
@@ -18,7 +19,6 @@ class IBandOracleAggregator {
 
 class BandBNBBUSDPriceOracleProxy { 
  public:
-
     IBandOracleAggregator  aggregator;
 
     BandBNBBUSDPriceOracleProxy(IBandOracleAggregator _aggregator) {
@@ -28,4 +28,4 @@ class BandBNBBUSDPriceOracleProxy {
     uint256  getPrice() {
         return aggregator.getReferenceData("BNB", "USD");
     }
-}
+};

@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 
@@ -21,4 +22,4 @@ class ConstOracle {
     uint256  getPrice() {
         return tokenPrice;
     }
-}
+};

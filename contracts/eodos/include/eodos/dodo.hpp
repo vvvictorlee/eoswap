@@ -5,8 +5,10 @@
 
 */
 
+#prama once
 #include <common/defines.hpp>
 
+#include <common/storage_mgmt.hpp>
 #include <eodos/impl/Admin.hpp>
 #include <eodos/impl/DODOLpToken.hpp>
 #include <eodos/impl/LiquidityProvider.hpp>
@@ -21,42 +23,97 @@
  *
  * @notice Entrance for users
  */
+
 class DODO : public Admin, public Trader, public LiquidityProvider {
+ private:
+   DODOStore& stores;
+   DODOZoo&   zoo;
+
  public:
+   DODO(DODOStore& _stores, DODOZoo& _zoo)
+       : stores(_stores)
+       , zoo(_zoo)
+       , Admin(_stores)
+       , Trader(_stores)
+       , LiquidityProvider(_stores) {}
    void init(
-       address owner, address supervisor, address maintainer, address baseToken, address quoteToken, address oracle,
-       uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
+       address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
+       const extended_symbol& quoteToken, address oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k,
+       uint256 gasPriceLimit) {
       require(!_INITIALIZED_, "DODO_INITIALIZED");
-      _INITIALIZED_ = true;
+      stores.store._INITIALIZED_ = true;
 
-      _OWNER_ = owner;
+      stores.store._OWNER_ = owner;
 
-      _SUPERVISOR_  = supervisor;
-      _MAINTAINER_  = maintainer;
-      _BASE_TOKEN_  = baseToken;
-      _QUOTE_TOKEN_ = quoteToken;
-      _ORACLE_      = oracle;
+      stores.store._SUPERVISOR_  = supervisor;
+      stores.store._MAINTAINER_  = maintainer;
+      stores.store._BASE_TOKEN_  = baseToken;
+      stores.store._QUOTE_TOKEN_ = quoteToken;
+      stores.store._ORACLE_      = oracle;
 
-      _DEPOSIT_BASE_ALLOWED_  = false;
-      _DEPOSIT_QUOTE_ALLOWED_ = false;
-      _TRADE_ALLOWED_         = false;
-      _GAS_PRICE_LIMIT_       = gasPriceLimit;
+      stores.store._DEPOSIT_BASE_ALLOWED_  = false;
+      stores.store._DEPOSIT_QUOTE_ALLOWED_ = false;
+      stores.store._TRADE_ALLOWED_         = false;
+      stores.store._GAS_PRICE_LIMIT_       = gasPriceLimit;
 
       // Advanced controls are disabled by default
-      _BUYING_ALLOWED_      = true;
-      _SELLING_ALLOWED_     = true;
-      uint256 MAX_INT       = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
-      _BASE_BALANCE_LIMIT_  = MAX_INT;
-      _QUOTE_BALANCE_LIMIT_ = MAX_INT;
+      stores.store._BUYING_ALLOWED_  = true;
+      stores.store._SELLING_ALLOWED_ = true;
+      uint256 MAX_INT                = 0xffffffffffffffff;
+      //   ffffffffffffffffffffffffffffffffffffffffffffffff;
+      stores.store._BASE_BALANCE_LIMIT_  = MAX_INT;
+      stores.store._QUOTE_BALANCE_LIMIT_ = MAX_INT;
 
-      _LP_FEE_RATE_ = lpFeeRate;
-      _MT_FEE_RATE_ = mtFeeRate;
-      _K_           = k;
-      _R_STATUS_    = Types.RStatus.ONE;
-
-      _BASE_CAPITAL_TOKEN_  = address(new DODOLpToken(_BASE_TOKEN_));
-      _QUOTE_CAPITAL_TOKEN_ = address(new DODOLpToken(_QUOTE_TOKEN_));
+      stores.store._LP_FEE_RATE_ = lpFeeRate;
+      stores.store._MT_FEE_RATE_ = mtFeeRate;
+      stores.store._K_           = k;
+      stores.store._R_STATUS_    = Types::RStatus::ONE;
+      namesym     bs             = to_namesym(_BASE_TOKEN_);
+      namesym     qs             = to_namesym(_QUOTE_TOKEN_);
+      auto        ob             = zoo.get_storage_mgmt().get_token_store(bs);
+      auto        oq             = zoo.get_storage_mgmt().get_token_store(qs);
+      auto        oblp           = zoo.get_storage_mgmt().newLpTokenStore(_BASE_TOKEN_);
+      auto        oqlp           = zoo.get_storage_mgmt().newLpTokenStore(_QUOTE_TOKEN_);
+      DODOLpToken b(oblp, ob);
+      DODOLpToken q(oq, oqlp);
+      stores.store._BASE_CAPITAL_TOKEN_  = to_namesym(b.get_esymbol()); // address(new DODOLpToken(_BASE_TOKEN_));
+      stores.store._QUOTE_CAPITAL_TOKEN_ = to_namesym(q.get_esymbol()); // address(new DODOLpToken(_QUOTE_TOKEN_));
 
       _checkDODOParameters();
    }
-}
+
+   //      void  transferOwnership(address newOwner){}
+
+   //      void  claimOwnership() {}
+
+   //      uint256 sellBaseToken(
+   //         uint256 amount,
+   //         uint256 minReceiveQuote,
+   //         bytes  data
+   //     ){}
+
+   //      uint256 buyBaseToken(
+   //         uint256 amount,
+   //         uint256 maxPayQuote,
+   //         bytes  data
+   //     ) {
+   // }
+
+   //      uint256  querySellBaseToken(uint256 amount) {}
+
+   //      uint256  getExpectedTarget() {}
+
+   //      uint256  withdrawBase(uint256 amount) {}
+
+   //      uint256  depositQuoteTo(address to, uint256 amount) {}
+
+   //      address  withdrawAllQuote() {}
+
+   namesym _BASE_TOKEN_() { return to_namesym(stores.store._BASE_TOKEN_); }
+
+   namesym _QUOTE_TOKEN_() { return to_namesym(stores.store._QUOTE_TOKEN_); }
+
+   address _QUOTE_CAPITAL_TOKEN_() { return stores.store._QUOTE_CAPITAL_TOKEN_; }
+
+   address _QUOTE_TOKEN_() { return stores.store._QUOTE_TOKEN_; }
+};

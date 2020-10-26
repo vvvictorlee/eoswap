@@ -5,17 +5,18 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 class Migrations {
  public:
 
    void restricted() {
-      if (msg.sender == owner) {
+      if (getMsgSender() == owner) {
       }
    }
 
-   Migrations() { owner = msg.sender; }
+   Migrations() { owner = getMsgSender(); }
 
    void setCompleted(uint256 completed) {
       restricted();
@@ -27,4 +28,4 @@ class Migrations {
       Migrations upgraded = Migrations(newAddress);
       upgraded.setCompleted(last_completed_migration);
    }
-}
+};

@@ -20,7 +20,8 @@ using namespace eosio;
 using bytes = std::vector<char>;
 
 using address = name;
-using uint = uint64_t;
+using uint256 = uint64_t;
+using uint112 = uint64_t;
 using uint8 = uint8_t;
 using namesym =uint128_t;
 

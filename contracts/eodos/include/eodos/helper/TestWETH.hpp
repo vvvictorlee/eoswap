@@ -5,7 +5,8 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 
 class WETH9 { 
@@ -21,14 +22,14 @@ class WETH9 {
     }
 
     void  deposit() {
-        balanceOf[msg.sender] += msg.value;
+        balanceOf[getMsgSender()] += msg.value;
         
     }
 
     void  withdraw(uint256 wad) {
-        require(balanceOf[msg.sender] >= wad);
-        balanceOf[msg.sender] -= wad;
-        msg.sender.transfer(wad);
+        require(balanceOf[getMsgSender()] >= wad);
+        balanceOf[getMsgSender()] -= wad;
+        getMsgSender().transfer(wad);
         
     }
 
@@ -37,13 +38,13 @@ class WETH9 {
     }
 
     bool  approve(address guy, uint256 wad) {
-        allowance[msg.sender][guy] = wad;
+        allowance[getMsgSender()][guy] = wad;
         
         return true;
     }
 
     bool  transfer(address dst, uint256 wad) {
-        return transferFrom(msg.sender, dst, wad);
+        return transferFrom(getMsgSender(), dst, wad);
     }
 
     bool transferFrom(
@@ -53,9 +54,9 @@ class WETH9 {
     ) {
         require(balanceOf[src] >= wad);
 
-        if (src != msg.sender && allowance[src][msg.sender] != uint256(-1)) {
-            require(allowance[src][msg.sender] >= wad);
-            allowance[src][msg.sender] -= wad;
+        if (src != getMsgSender() && allowance[src][getMsgSender()] != uint256(-1)) {
+            require(allowance[src][getMsgSender()] >= wad);
+            allowance[src][getMsgSender()] -= wad;
         }
 
         balanceOf[src] -= wad;
@@ -65,4 +66,4 @@ class WETH9 {
 
         return true;
     }
-}
+};

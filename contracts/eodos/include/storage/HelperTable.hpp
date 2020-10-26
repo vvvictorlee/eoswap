@@ -1,6 +1,13 @@
 
 #pragma once
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
+
+struct Account2Amt {
+   std::map<name, uint> dst2amt; // is token bound to pool
+
+   EOSLIB_SERIALIZE(Account2Amt, (dst2amt))
+};
 
 struct MigrationsStore {
    address owner;
@@ -11,6 +18,10 @@ struct MigrationsStore {
 struct ConstOracleStore {
    uint256 tokenPrice;
    EOSLIB_SERIALIZE(ConstOracleStore, (tokenPrice))
+};
+struct NaiveOracleStore {
+   uint256 tokenPrice;
+   EOSLIB_SERIALIZE(NaiveOracleStore, (tokenPrice))
 };
 
 struct MinimumOracleStore {
@@ -24,13 +35,13 @@ struct Transaction {
    uint256 value;
    bytes   data;
    bool    executed;
-EOSLIB_SERIALIZE(Transaction, (destination)(value)(data)(executed))
+   EOSLIB_SERIALIZE(Transaction, (destination)(value)(data)(executed))
 }
 
 struct EmergencyCall {
    bytes32 selector;
    uint256 paramsBytesCount;
- EOSLIB_SERIALIZE(EmergencyCall, (selector)(paramsBytesCount))
+   EOSLIB_SERIALIZE(EmergencyCall, (selector)(paramsBytesCount))
 }
 
 struct a2b {
@@ -39,17 +50,17 @@ struct a2b {
 };
 
 struct MultiSigWalletWithTimelockStore {
-   std::map<uint256, Transaction>   transactions;
-   std::map<uint256, a2b>   confirmations;
-   std::map<address, bool>  isOwner;
-   std::map<address, address>   unlockTimes;
+   std::map<uint256, Transaction> transactions;
+   std::map<uint256, a2b>         confirmations;
+   std::map<address, bool>        isOwner;
+   std::map<address, address>     unlockTimes;
 
    std::vector<address> owners;
-   uint256 required;
-   uint256 transactionCount;
+   uint256              required;
+   uint256              transactionCount;
 
    // Functions bypass the time lock process
-   std::vector<EmergencyCall>  emergencyCalls;
+   std::vector<EmergencyCall> emergencyCalls;
 
    bool mutex;
 
@@ -59,7 +70,7 @@ struct MultiSigWalletWithTimelockStore {
 };
 
 struct TestERC20Store {
-//    mapping(address = > mapping(address = > uint256)) allowed;
+   //    mapping(address = > mapping(address = > uint256)) allowed;
 
    std::string                 names;
    uint8                       decimals;
@@ -69,12 +80,12 @@ struct TestERC20Store {
 };
 
 struct WETH9Store {
-//    string name           = "Wrapped Ether";
-//    string symbol         = "WETH";
-//    uint8 public decimals = 18;
+   //    string name           = "Wrapped Ether";
+   //    string symbol         = "WETH";
+   //    uint8 public decimals = 18;
 
-//    mapping(address = > uint256) balanceOf;
-//    mapping(address = > mapping(address = > uint256)) allowance;
+   //    mapping(address = > uint256) balanceOf;
+   //    mapping(address = > mapping(address = > uint256)) allowance;
 
    std::string                 names;
    std::string                 symbol;
@@ -85,23 +96,23 @@ struct WETH9Store {
 };
 
 struct UniswapV2ERC20Store {
-   string constant name           = "Uniswap V2";
-   string constant       symbol   = "UNI-V2";
-   uint8 public constant decimals = 18;
-   uint256               totalSupply;
-   mapping(address = > uint256) balanceOf;
-   mapping(address = > mapping(address = > uint256)) allowance;
+   //    string constant name           = "Uniswap V2";
+   //    string constant       symbol   = "UNI-V2";
+   //    uint8 public constant decimals = 18;
+   //    uint256               totalSupply;
+   //    mapping(address = > uint256) balanceOf;
+   //    mapping(address = > mapping(address = > uint256)) allowance;
 
-   bytes32 public DOMAIN_SEPARATOR;
-   mapping(address = > uint256) nonces;
+   //    bytes32 public DOMAIN_SEPARATOR;
+   //    mapping(address = > uint256) nonces;
 
    std::string                 names;
    std::string                 symbol;
    uint8                       decimals;
-   std::map<name, uint>        balance;
+   std::map<name, uint>        balanceOf;
    std::map<name, Account2Amt> allowance;
    uint                        totalSupply;
-   EOSLIB_SERIALIZE(TestERC20Store, (names)(symbol)(decimals)(balance)(allowance)(totalSupply))
+   EOSLIB_SERIALIZE(UniswapV2ERC20Store, (names)(symbol)(decimals)(balanceOf)(allowance)(totalSupply))
 };
 
 struct IUniswapV2FactoryStore {
@@ -109,36 +120,19 @@ struct IUniswapV2FactoryStore {
    address token0;
    address token1;
 
-   uint112 private reserve0;          // uses single storage slot, accessible via getReserves
-   uint112 private reserve1;          // uses single storage slot, accessible via getReserves
-   uint32 private blockTimestampLast; // uses single storage slot, accessible via getReserves
+   uint112 reserve0;           // uses single storage slot, accessible via getReserves
+   uint112 reserve1;           // uses single storage slot, accessible via getReserves
+   uint32  blockTimestampLast; // uses single storage slot, accessible via getReserves
 
    uint256 price0CumulativeLast;
    uint256 price1CumulativeLast;
    uint256 kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity
-   uint256 private unlocked = 1;
+   uint256 unlocked = 1;
 
-   std::string                 names;
-   std::string                 symbol;
-   uint8                       decimals;
-   std::map<name, uint>        balance;
-   std::map<name, Account2Amt> allowance;
-   uint                        totalSupply;
-   EOSLIB_SERIALIZE(TestERC20Store, (names)(symbol)(decimals)(balance)(allowance)(totalSupply))
-};
-
-struct NaiveOracleStore {
-   uint256 tokenPrice;
    EOSLIB_SERIALIZE(
-       MultiSigWalletWithTimelockStore,
-       (mutex)(factory)(controller)(publicSwap)(swapFee)(finalized)(tokens)(records)(totalWeight))
+       IUniswapV2FactoryStore, (factory)(token0)(token1)(reserve0)(reserve1)(blockTimestampLast)(price0CumulativeLast)(
+                                   price1CumulativeLast)(kLast)(unlocked))
 };
-
-struct [[eosio::table("poolstore"), eosio::contract("eoswap")]] BPoolStorage {
-   std::map<name, BPoolStore> pools;
-   EOSLIB_SERIALIZE(BPoolStorage, (pools))
-};
-
 
 struct UniswapArbitrageurStore {
    address _UNISWAP_;
@@ -148,10 +142,23 @@ struct UniswapArbitrageurStore {
 
    bool _REVERSE_; // true if dodo.baseToken=uniswap.token0
 
-   EOSLIB_SERIALIZE(
-       MultiSigWalletWithTimelockStore,
-       (mutex)(factory)(controller)(publicSwap)(swapFee)(finalized)(tokens)(records)(totalWeight))
+   EOSLIB_SERIALIZE(UniswapArbitrageurStore, (_UNISWAP_)(_DODO_)(_BASE_)(_QUOTE_)(_REVERSE_))
 };
 
+struct [[eosio::table("helpstore"), eosio::contract("eodos")]] HelperStorage {
+   MigrationsStore                 mig;
+   ConstOracleStore                coralce;
+   NaiveOracleStore                noracle;
+   MinimumOracleStore              moracle;
+   MultiSigWalletWithTimelockStore msig;
+   TestERC20Store                  testerc20;
+   WETH9Store                      weth9;
+   UniswapV2ERC20Store             erc20;
+   IUniswapV2FactoryStore          factory;
+   UniswapArbitrageurStore         arbit;
 
-typedef eosio::singleton<"helpstore"_n, BPoolStorage> BPoolStorageSingleton;
+   EOSLIB_SERIALIZE(
+       HelperStorage, (mig)(coralce)(noracle)(moracle)(msig)(testerc20)(weth9)(erc20)(factory)(arbit))
+};
+
+typedef eosio::singleton<"helpstore"_n, HelperStorage> HelperStorageSingleton;

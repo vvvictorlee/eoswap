@@ -9,14 +9,15 @@
 
 */
 
-#include <common/defines.hpp>
+#prama once 
+ #include <common/defines.hpp>
 
 const uint256 MAX_OWNER_COUNT = 50;
 const uint256 lockSeconds     = 86400;
 class MultiSigWalletWithTimelock {
  public:
    void onlyWallet() {
-      if (msg.sender != address(this))
+      if (getMsgSender() != address(this))
          revert("ONLY_WALLET_ERROR");
    }
 
@@ -175,7 +176,7 @@ class MultiSigWalletWithTimelock {
     * @return transactionId Returns transaction ID.
     */
    uint256 submitTransaction(address destination, uint256 value, bytes data) {
-      ownerExists(msg.sender);
+      ownerExists(getMsgSender());
       notNull(destination);
       transactionId = transactionCount;
       transactions[transactionId] =
@@ -189,11 +190,11 @@ class MultiSigWalletWithTimelock {
     * @param transactionId Transaction ID.
     */
    void confirmTransaction(uint256 transactionId) {
-      ownerExists(msg.sender);
+      ownerExists(getMsgSender());
       transactionExists(transactionId);
-      notConfirmed(transactionId, msg.sender);
+      notConfirmed(transactionId, getMsgSender());
 
-      confirmations[transactionId][msg.sender] = true;
+      confirmations[transactionId][getMsgSender()] = true;
 
       if (isConfirmed(transactionId) && unlockTimes[transactionId] == 0 && !isEmergencyCall(transactionId)) {
          uint256 unlockTime         = block.timestamp + lockSeconds;
@@ -226,13 +227,13 @@ class MultiSigWalletWithTimelock {
    /** @dev Allows an owner to revoke a confirmation for a transaction.
     * @param transactionId Transaction ID.
     */
-   void revokeConfirmation(uint256 transactionId) { confirmations[transactionId][msg.sender] = false; }
+   void revokeConfirmation(uint256 transactionId) { confirmations[transactionId][getMsgSender()] = false; }
 
    /** @dev Allows anyone to execute a confirmed transaction.
     * @param transactionId Transaction ID.
     */
    void executeTransaction(uint256 transactionId) {
-      ownerExists(msg.sender);
+      ownerExists(getMsgSender());
       notExecuted(transactionId);
       require(block.timestamp >= unlockTimes[transactionId], "TRANSACTION_NEED_TO_UNLOCK");
 
@@ -322,4 +323,4 @@ class MultiSigWalletWithTimelock {
          _confirmations[i] = confirmationsTemp[i];
       }
    }
-}
+};
