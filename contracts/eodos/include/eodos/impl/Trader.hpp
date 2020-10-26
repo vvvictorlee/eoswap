@@ -36,13 +36,13 @@ class Trader : public Storage, public Pricing, public Settlement {
        , Settlement(_stores) {}
    // ============ Events ============
 
-   void tradeAllowed() { require(_TRADE_ALLOWED_, "TRADE_NOT_ALLOWED"); }
+   void tradeAllowed() { require(stores.store._TRADE_ALLOWED_, "TRADE_NOT_ALLOWED"); }
 
-   void buyingAllowed() { require(_BUYING_ALLOWED_, "BUYING_NOT_ALLOWED"); }
+   void buyingAllowed() { require(stores.store._BUYING_ALLOWED_, "BUYING_NOT_ALLOWED"); }
 
-   void sellingAllowed() { require(_SELLING_ALLOWED_, "SELLING_NOT_ALLOWED"); }
+   void sellingAllowed() { require(stores.store._SELLING_ALLOWED_, "SELLING_NOT_ALLOWED"); }
 
-   void gasPriceLimit() { require(tx.gasprice <= _GAS_PRICE_LIMIT_, "GAS_PRICE_EXCEED"); }
+   void gasPriceLimit() { require(tx.gasprice <= stores.store._GAS_PRICE_LIMIT_, "GAS_PRICE_EXCEED"); }
 
    // ============ Trade Functions ============
 
@@ -52,29 +52,29 @@ class Trader : public Storage, public Pricing, public Settlement {
       gasPriceLimit();
       preventReentrant();
       // query price
-      (uint256 receiveQuote, uint256 lpFeeQuote, uint256 mtFeeQuote, Types.RStatus newRStatus, uint256 newQuoteTarget,
+      (uint256 receiveQuote, uint256 lpFeeQuote, uint256 mtFeeQuote, uint8 newRStatus, uint256 newQuoteTarget,
        uint256 newBaseTarget) = _querySellBaseToken(amount);
       require(receiveQuote >= minReceiveQuote, "SELL_BASE_RECEIVE_NOT_ENOUGH");
 
       // settle assets
       _quoteTokenTransferOut(getMsgSender(), receiveQuote);
       if (data.length > 0) {
-         IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
+        //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
       }
       _baseTokenTransferIn(getMsgSender(), amount);
       if (mtFeeQuote != 0) {
-         _quoteTokenTransferOut(_MAINTAINER_, mtFeeQuote);
+         _quoteTokenTransferOut(stores.store._MAINTAINER_, mtFeeQuote);
       }
 
       // update TARGET
-      if (_TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
-         _TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
+      if (stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
+         stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
       }
-      if (_TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
-         _TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
+      if (stores.store._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
+         stores.store._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
       }
-      if (_R_STATUS_ != newRStatus) {
-         _R_STATUS_ = newRStatus;
+      if (stores.store._R_STATUS_ != newRStatus) {
+         stores.store._R_STATUS_ = newRStatus;
       }
 
       _donateQuoteToken(lpFeeQuote);
@@ -95,22 +95,22 @@ class Trader : public Storage, public Pricing, public Settlement {
       // settle assets
       _baseTokenTransferOut(getMsgSender(), amount);
       if (data.length > 0) {
-         IDODOCallee(getMsgSender()).dodoCall(true, amount, payQuote, data);
+        //  IDODOCallee(getMsgSender()).dodoCall(true, amount, payQuote, data);
       }
       _quoteTokenTransferIn(getMsgSender(), payQuote);
       if (mtFeeBase != 0) {
-         _baseTokenTransferOut(_MAINTAINER_, mtFeeBase);
+         _baseTokenTransferOut(stores.store._MAINTAINER_, mtFeeBase);
       }
 
       // update TARGET
-      if (_TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
-         _TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
+      if (stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
+         stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
       }
-      if (_TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
-         _TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
+      if (stores.store._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
+         stores.store._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
       }
-      if (_R_STATUS_ != newRStatus) {
-         _R_STATUS_ = newRStatus;
+      if (stores.store._R_STATUS_ != newRStatus) {
+         stores.store._R_STATUS_ = newRStatus;
       }
 
       _donateBaseToken(lpFeeBase);
@@ -136,7 +136,7 @@ class Trader : public Storage, public Pricing, public Settlement {
       uint256       receiveQuote;
       uint256       lpFeeQuote;
       uint256       mtFeeQuote;
-      Types.RStatus newRStatus;
+      uint8 newRStatus;
       uint256       newQuoteTarget;
       uint256       newBaseTarget;
 
@@ -144,19 +144,19 @@ class Trader : public Storage, public Pricing, public Settlement {
 
       uint256 sellBaseAmount = amount;
 
-      if (_R_STATUS_ == Types::RStatus::ONE) {
+      if (stores.store._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
          // R falls below one
          receiveQuote = _ROneSellBaseToken(sellBaseAmount, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
-      } else if (_R_STATUS_ == Types::RStatus::ABOVE_ONE) {
+      } else if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          uint256 backToOnePayBase      = newBaseTarget.sub(_BASE_BALANCE_);
          uint256 backToOneReceiveQuote = _QUOTE_BALANCE_.sub(newQuoteTarget);
          // case 2: R>1
          // complex case, R status depends on trading amount
          if (sellBaseAmount < backToOnePayBase) {
             // case 2.1: R status do not change
-            receiveQuote = _RAboveSellBaseToken(sellBaseAmount, _BASE_BALANCE_, newBaseTarget);
+            receiveQuote = _RAboveSellBaseToken(sellBaseAmount, stores.store._BASE_BALANCE_, newBaseTarget);
             newRStatus   = Types::RStatus::ABOVE_ONE;
             if (receiveQuote > backToOneReceiveQuote) {
                // [Important corner case!] may enter this branch when some precision problem happens. And consequently
@@ -195,7 +195,7 @@ class Trader : public Storage, public Pricing, public Settlement {
       uint256       payQuote;
       uint256       lpFeeBase;
       uint256       mtFeeBase;
-      Types.RStatus newRStatus;
+      uint8 newRStatus;
       uint256       newQuoteTarget;
       uint256       newBaseTarget;
 
@@ -206,23 +206,23 @@ class Trader : public Storage, public Pricing, public Settlement {
       mtFeeBase             = DecimalMath.mul(amount, _MT_FEE_RATE_);
       uint256 buyBaseAmount = amount.add(lpFeeBase).add(mtFeeBase);
 
-      if (_R_STATUS_ == Types::RStatus::ONE) {
+      if (stores.store._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
          payQuote   = _ROneBuyBaseToken(buyBaseAmount, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
-      } else if (_R_STATUS_ == Types::RStatus::ABOVE_ONE) {
+      } else if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          // case 2: R>1
-         payQuote   = _RAboveBuyBaseToken(buyBaseAmount, _BASE_BALANCE_, newBaseTarget);
+         payQuote   = _RAboveBuyBaseToken(buyBaseAmount, stores.store._BASE_BALANCE_, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
       } else if (_R_STATUS_ == Types::RStatus::BELOW_ONE) {
-         uint256 backToOnePayQuote    = newQuoteTarget.sub(_QUOTE_BALANCE_);
-         uint256 backToOneReceiveBase = _BASE_BALANCE_.sub(newBaseTarget);
+         uint256 backToOnePayQuote    = newQuoteTarget.sub(stores.store._QUOTE_BALANCE_);
+         uint256 backToOneReceiveBase = stores.store._BASE_BALANCE_.sub(newBaseTarget);
          // case 3: R<1
          // complex case, R status may change
          if (buyBaseAmount < backToOneReceiveBase) {
             // case 3.1: R status do not change
             // no need to check payQuote because spare base token must be greater than zero
-            payQuote   = _RBelowBuyBaseToken(buyBaseAmount, _QUOTE_BALANCE_, newQuoteTarget);
+            payQuote   = _RBelowBuyBaseToken(buyBaseAmount, stores.store._QUOTE_BALANCE_, newQuoteTarget);
             newRStatus = Types::RStatus::BELOW_ONE;
          } else if (buyBaseAmount == backToOneReceiveBase) {
             // case 3.2: R status changes to ONE

@@ -22,6 +22,7 @@ class IUniswapV2Pair {
 
    virtual void swap(uint256 amount0Out, uint256 amount1Out, address to, bytes data) = 0;
 };
+#ifdef  UNISWAPARBITRAGEUR
 class UniswapArbitrageur {
  public:
    UniswapArbitrageur(address _uniswap, address _dodo) {
@@ -117,3 +118,4 @@ class UniswapArbitrageur {
 
    void retrieve(address token, uint256 amount) { IERC20(token).safeTransfer(getMsgSender(), amount); }
 };
+#endif

@@ -33,7 +33,7 @@ public:
 
    // ============ Modifiers ============
    void onlySupervisorOrOwner() {
-      require(getMsgSender() == _SUPERVISOR_ || getMsgSender() == _OWNER_, "NOT_SUPERVISOR_OR_OWNER");
+      require(getMsgSender() == stores.store._SUPERVISOR_ || getMsgSender() == stores.store._OWNER_, "NOT_SUPERVISOR_OR_OWNER");
    }
 
    void notClosed() { require(!_CLOSED_, "DODO_CLOSED"); }
@@ -41,20 +41,20 @@ public:
    // ============ Helper Functions ============
 
    uint256 _checkDODOParameters() {
-      require(_K_ < DecimalMath.ONE, "K>=1");
-      require(_K_ > 0, "K=0");
-      require(_LP_FEE_RATE_.add(_MT_FEE_RATE_) < DecimalMath.ONE, "FEE_RATE>=1");
+      require(stores.store._K_ < DecimalMath.ONE, "K>=1");
+      require(stores.store._K_ > 0, "K=0");
+      require(stores.store._LP_FEE_RATE_.add(_MT_FEE_RATE_) < DecimalMath.ONE, "FEE_RATE>=1");
    }
 
    uint256 getOraclePrice() { return IOracle(_ORACLE_).getPrice(); }
 
-   uint256 getBaseCapitalBalanceOf(address lp) { return IDODOLpToken(_BASE_CAPITAL_TOKEN_).balanceOf(lp); }
+   uint256 getBaseCapitalBalanceOf(address lp) { return IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).balanceOf(lp); }
 
-   uint256 getTotalBaseCapital() { return IDODOLpToken(_BASE_CAPITAL_TOKEN_).totalSupply(); }
+   uint256 getTotalBaseCapital() { return IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).totalSupply(); }
 
-   uint256 getQuoteCapitalBalanceOf(address lp) { return IDODOLpToken(_QUOTE_CAPITAL_TOKEN_).balanceOf(lp); }
+   uint256 getQuoteCapitalBalanceOf(address lp) { return IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).balanceOf(lp); }
 
-   uint256 getTotalQuoteCapital() { return IDODOLpToken(_QUOTE_CAPITAL_TOKEN_).totalSupply(); }
+   uint256 getTotalQuoteCapital() { return IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).totalSupply(); }
 
    // ============ Version Control ============
    uint256 version() {
