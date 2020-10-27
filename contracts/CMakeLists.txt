@@ -22,4 +22,4 @@ set(VOTING_ICON_URI   "voting.png#db28cd3db6e62d4509af3644ce7d377329482a14bb4bfa
 # add_subdirectory(eosio.token)
 # add_subdirectory(eosio.wrap)
 # add_subdirectory(eoswap)
-add_subdirectory(eodos)
+add_subdirectory(eosdos)
