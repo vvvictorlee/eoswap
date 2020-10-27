@@ -5,7 +5,7 @@
 
 */
 
-#prama once
+#pragma once
 #include <common/defines.hpp>
 
 #include <eodos/intf/IERC20.hpp>
@@ -24,7 +24,7 @@ class DODOLpToken : public Ownable {
    DODOTokenStore& ostores;
 
  public:
-   DODOLpToken(DODOTokenStore& _stores, DODOLpTokenStore& _ostores)
+   DODOLpToken(DODOTokenStore& _stores, DODOTokenStore& _ostores)
        : stores(_stores)
        , Ownable(_stores.ownable) {}
 

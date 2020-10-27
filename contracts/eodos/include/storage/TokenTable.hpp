@@ -1,7 +1,7 @@
 
 #pragma once
 
-#prama once
+#pragma once
 #include <common/defines.hpp>
 
 // Info of each user.
@@ -20,7 +20,7 @@ struct UserInfo {
                        //   3. User's `amount` gets updated.
                        //   4. User's `rewardDebt` gets updated.
    EOSLIB_SERIALIZE(UserInfo, (amount)(rewardDebt))
-}
+};
 
 // Info of each pool.
 struct PoolInfo {
@@ -29,7 +29,7 @@ struct PoolInfo {
    uint256 lastRewardBlock; // Last block number that DODOs distribution occurs.
    uint256 accDODOPerShare; // Accumulated DODOs per share, times 1e12. See below.
    EOSLIB_SERIALIZE(PoolInfo, (lpToken)(allocPoint)(lastRewardBlock)(accDODOPerShare))
-}
+};
 
 struct user2info {
    std::map<address, UserInfo> a2info; // is token bound to pool
@@ -64,7 +64,7 @@ struct DODORewardVaultStore {
 };
 
 struct Account2Amt {
-   std::map<name, uint> dst2amt; // is token bound to pool
+   std::map<name, uint256> dst2amt; // is token bound to pool
 
    EOSLIB_SERIALIZE(Account2Amt, (dst2amt))
 };
@@ -85,7 +85,7 @@ struct DODOTokenStore {
    std::string                 names;
    std::string                 symbol;
    uint256                     decimals;
-   std::map<name, uint>        balances;
+   std::map<name, uint256>        balances;
    std::map<name, Account2Amt> allowed;
    uint256                     totalSupply;
    EOSLIB_SERIALIZE(

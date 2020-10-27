@@ -1,7 +1,8 @@
 
 #pragma once
-#prama once
+#pragma once
 #include <common/defines.hpp>
+#include<storage/LibTable.hpp>
 #include <storage/TokenTable.hpp>
 
 struct MigrationsStore {
@@ -23,13 +24,13 @@ struct Transaction {
    bytes   data;
    bool    executed;
    EOSLIB_SERIALIZE(Transaction, (destination)(value)(data)(executed))
-}
+};
 
 struct EmergencyCall {
    bytes32 selector;
    uint256 paramsBytesCount;
    EOSLIB_SERIALIZE(EmergencyCall, (selector)(paramsBytesCount))
-}
+};
 
 struct a2b {
    std::map<address, bool> a2c;
@@ -77,9 +78,9 @@ struct WETH9Store {
    std::string                 names;
    std::string                 symbol;
    uint8                       decimals;
-   std::map<name, uint>        balanceOf;
+   std::map<name, uint256>        balanceOf;
    std::map<name, Account2Amt> allowance;
-   EOSLIB_SERIALIZE(WETH9tore, (names)(symbol)(decimals)(balanceOf)(allowance))
+   EOSLIB_SERIALIZE(WETH9Store, (names)(symbol)(decimals)(balanceOf)(allowance))
 };
 
 struct UniswapV2ERC20Store {
@@ -96,9 +97,9 @@ struct UniswapV2ERC20Store {
    std::string                 names;
    std::string                 symbol;
    uint8                       decimals;
-   std::map<name, uint>        balanceOf;
+   std::map<name, uint256>        balanceOf;
    std::map<name, Account2Amt> allowance;
-   uint                        totalSupply;
+   uint256                        totalSupply;
    EOSLIB_SERIALIZE(UniswapV2ERC20Store, (names)(symbol)(decimals)(balanceOf)(allowance)(totalSupply))
 };
 

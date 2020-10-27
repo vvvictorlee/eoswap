@@ -5,7 +5,7 @@
 
 */
 
-#prama once
+#pragma once
 #include <common/defines.hpp>
 
 #include <common/storage_mgmt.hpp>

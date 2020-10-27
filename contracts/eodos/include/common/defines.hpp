@@ -18,11 +18,12 @@
 using namespace eosio;
 
 using bytes = std::vector<char>;
-
+using bytes32 = std::vector<char>;
 using address = name;
 using uint256 = uint64_t;
 using uint112 = uint64_t;
 using uint8 = uint8_t;
+using uint32 = uint32_t;
 using namesym =uint128_t;
 
 static const std::string default_core_symbol = "BPT";

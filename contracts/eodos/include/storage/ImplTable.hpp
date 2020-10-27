@@ -1,6 +1,6 @@
 
 #pragma once
-#prama once
+#pragma once
 #include <common/defines.hpp>
 #include <storage/LibTable.hpp>
 
@@ -53,7 +53,7 @@ struct DoStore {
    std::map<address, bool> _CLAIMED_;
    EOSLIB_SERIALIZE(
        DoStore, (_INITIALIZED_)(_CLOSED_)(_DEPOSIT_QUOTE_ALLOWED_)(_DEPOSIT_BASE_ALLOWED_)(_TRADE_ALLOWED_)(
-                    uint256 _GAS_PRICE_LIMIT_;)(_BUYING_ALLOWED_)(_SELLING_ALLOWED_)(_BASE_BALANCE_LIMIT_)(
+                     _GAS_PRICE_LIMIT_)(_BUYING_ALLOWED_)(_SELLING_ALLOWED_)(_BASE_BALANCE_LIMIT_)(
                     _QUOTE_BALANCE_LIMIT_)(_SUPERVISOR_)(_MAINTAINER_)(_BASE_TOKEN_)(_QUOTE_TOKEN_)(_ORACLE_)(
                     _LP_FEE_RATE_)(_MT_FEE_RATE_)(_K_)(_R_STATUS_)(_TARGET_BASE_TOKEN_AMOUNT_)(
                     _TARGET_QUOTE_TOKEN_AMOUNT_)(_BASE_BALANCE_)(_QUOTE_BALANCE_)(_BASE_CAPITAL_TOKEN_)(

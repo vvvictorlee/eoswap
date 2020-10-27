@@ -5,7 +5,7 @@
 
 */
 
-#prama once
+#pragma once
 #include <common/defines.hpp>
 #include <common/storage_mgmt.hpp>
 #include <common/transfer_mgmt.hpp>
@@ -34,7 +34,7 @@ class DODOZoo : public Ownable {
        , _transfer_mgmt(_self)
        , zoo_storage(_storage_mgmt.get_zoo_store())
        , Ownable(zoo_storage.ownable) {}
- name get_self(){return self;}
+   name           get_self() { return self; }
    storage_mgmt&  get_storage_mgmt() { return _storage_mgmt; }
    transfer_mgmt& get_transfer_mgmt() { return _transfer_mgmt; }
 
@@ -68,14 +68,13 @@ class DODOZoo : public Ownable {
          namesym quoteToken = dodo._QUOTE_TOKEN_();
 
          require(isDODORegistered(baseToken, quoteToken), "DODO_NOT_REGISTERED");
+         zoo_storage._DODO_REGISTER_[baseToken].q2d[quoteToken] = address(0);
       });
 
-      zoo_storage._DODO_REGISTER_[baseToken].q2d[quoteToken] = address(0);
-
-      for (uint256 i = 0; i <= _DODOs.length - 1; i++) {
-         if (_DODOs[i] == _dodo) {
-            _DODOs[i] = _DODOs[_DODOs.length - 1];
-            _DODOs.pop();
+      for (uint256 i = 0; i <= zoo_storage._DODOs.size() - 1; i++) {
+         if (zoo_storage._DODOs[i] == _dodo) {
+            zoo_storage._DODOs[i] = zoo_storage._DODOs[zoo_storage._DODOs.size() - 1];
+            zoo_storage._DODOs.pop_back();
             break;
          }
       }
@@ -87,28 +86,35 @@ class DODOZoo : public Ownable {
          namesym quoteToken = dodo._QUOTE_TOKEN_();
 
          require(!isDODORegistered(baseToken, quoteToken), "DODO_REGISTERED");
+         zoo_storage._DODO_REGISTER_[baseToken].q2d[quoteToken] = _dodo;
       });
-      zoo_storage._DODO_REGISTER_[baseToken].q2d[quoteToken] = _dodo;
-      zoo_storage._DODOs.push(dodo);
+      zoo_storage._DODOs.push(_dodo);
    }
 
    // ============ Breed DODO Function ============
    address breedDODO(
-       address maintainer, const extended_symbol& baseToken, const extended_symbol& quoteToken, address oracle,
+       address maintainer, const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
        uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
 
+      namesym nbaseToken  = to_namesym(baseToken);
+      namesym nquoteToken = to_namesym(quoteToken);
+
+      require(!isDODORegistered(nbaseToken, nquoteToken), "DODO_REGISTERED");
+
+      auto _dodo = _storage_mgmt.newDodoStore(zoo_storage._DODO_LOGIC_);
+     
       get_dodo(_dodo, [&](auto& dodo) {
-         namesym nbaseToken  = to_namesym(baseToken);
-         namesym nquoteToken = to_namesym(quoteToken);
-
-         require(!isDODORegistered(nbaseToken, nquoteToken), "DODO_REGISTERED");
+         dodo.init(
+             zoo_storage._OWNER_, zoo_storage._DEFAULT_SUPERVISOR_, maintainer, baseToken, quoteToken, oracle,
+             lpFeeRate, mtFeeRate, k, gasPriceLimit);
       });
+      //   newBornDODO = ICloneFactory(_CLONE_FACTORY_).clone(_DODO_LOGIC_);
 
-      newBornDODO = ICloneFactory(_CLONE_FACTORY_).clone(_DODO_LOGIC_);
-      IDODO(newBornDODO)
-          .init(
-              _OWNER_, _DEFAULT_SUPERVISOR_, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
-              gasPriceLimit);
+      //   IDODO(newBornDODO)
+      //       .init(
+      //           zoo_storage._OWNER_, zoo_storage._DEFAULT_SUPERVISOR_, maintainer, baseToken, quoteToken, oracle,
+      //           lpFeeRate, mtFeeRate, k, gasPriceLimit);
+
       addDODO(newBornDODO);
 
       return newBornDODO;
@@ -116,7 +122,7 @@ class DODOZoo : public Ownable {
 
    // ============ View Functions ============
 
-   bool isDODORegistered(address baseToken, address quoteToken) {
+   bool isDODORegistered(namesym baseToken, namesym quoteToken) {
       if (zoo_storage._DODO_REGISTER_[baseToken][quoteToken] == address(0) &&
           zoo_storage._DODO_REGISTER_[quoteToken][baseToken] == address(0)) {
          return false;
@@ -148,9 +154,8 @@ class DODOZoo : public Ownable {
 
    template <typename T>
    void get_oracle(const extended_symbol& oracle, T func) {
-      OracleStore& oracleStore  = _storage_mgmt.get_oracle_store(oracle);
-      MinimumOracle     minioracle(oracleStore);
+      OracleStore&  oracleStore = _storage_mgmt.get_oracle_store(oracle);
+      MinimumOracle minioracle(oracleStore);
       func(minioracle);
    }
-
 };

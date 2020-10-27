@@ -9,7 +9,7 @@
 
 */
 
-#prama once 
+#pragma once 
  #include <common/defines.hpp>
 
 const uint256 MAX_OWNER_COUNT = 50;

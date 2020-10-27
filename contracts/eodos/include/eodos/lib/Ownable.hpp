@@ -5,7 +5,7 @@
 
 */
 
-#prama once
+#pragma once
 #include <common/defines.hpp>
 #include <common/storage_mgmt.hpp>
 /**
@@ -46,9 +46,9 @@ class Ownable {
    }
 
    void claimOwnership() {
-      require(msg_sender == _NEW_OWNER_, "INVALID_CLAIM");
+      require(msg_sender == ownable_store._NEW_OWNER_, "INVALID_CLAIM");
 
-      ownable_store._OWNER_     = _NEW_OWNER_;
+      ownable_store._OWNER_     = ownable_store._NEW_OWNER_;
       ownable_store._NEW_OWNER_ = address(0);
    }
 };

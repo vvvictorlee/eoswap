@@ -1,7 +1,7 @@
 // This is a file copied from https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol
 // SPDX-License-Identifier: MIT
 #pragma once
-#prama once 
+#pragma once 
  #include <common/defines.hpp>
 
 

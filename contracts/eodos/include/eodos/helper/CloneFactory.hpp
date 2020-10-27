@@ -5,7 +5,7 @@
 
 */
 
-#prama once 
+#pragma once 
  #include <common/defines.hpp>
 
 
@@ -13,7 +13,7 @@ class ICloneFactory {
  public:
 
     virtual address  clone(address prototype) = 0;
-}
+};
 
 // introduction of proxy mode design: https://docs.openzeppelin.com/upgrades/2.8/
 // minimum implementation of transparent proxy: https://eips.ethereum.org/EIPS/eip-1167

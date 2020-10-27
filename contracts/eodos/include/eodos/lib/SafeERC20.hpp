@@ -6,7 +6,7 @@
 
 */
 
-#prama once
+#pragma once
 #include <common/defines.hpp>
 
 #include <eodos/SafeMath.hpp>

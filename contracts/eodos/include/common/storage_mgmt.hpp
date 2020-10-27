@@ -42,7 +42,7 @@ class storage_mgmt {
        , proxy_storage_singleton(_self, _self.value)
        , helper_storage_singleton(_self, _self.value)
        , token_storage_singleton(_self, _self.value)
-       , helper_storage_singleton(_self, _self.value) {
+       , oracle_storage_singleton(_self, _self.value) {
       zoo_storage    = zoo_storage_singleton.exists() ? zoo_storage_singleton.get() : ZooStorage{};
       dodo_storage   = dodo_storage_singleton.exists() ? dodo_storage_singleton.get() : DODOStorage{};
       proxy_storage  = proxy_storage_singleton.exists() ? proxy_storage_singleton.get() : ProxyStorage{};
@@ -66,15 +66,15 @@ class storage_mgmt {
    TokenStorage&  get_token_store() { return token_storage; }
 
    DODOStore& get_dodo_store(name dodo_name) {
-      auto d = dodo_storage.dodos.find(pool_name);
-      bool f = p != dodo_storage.dodos.end();
+      auto d = dodo_storage.dodos.find(dodo_name);
+      bool f = d != dodo_storage.dodos.end();
       require(f, "NO_DODO");
-      return p->second;
+      return d->second;
    }
 
    DODOTokenStore& get_token_store(const extended_symbol& token) {
       namesym token_name = to_namesym(token);
-      auto    t          = token_storage.tokens.find(token);
+      auto    t          = token_storage.tokens.find(token_name);
       bool    f          = (t != token_storage.tokens.end());
 
       require(f, "NO_TOKEN");
@@ -83,14 +83,14 @@ class storage_mgmt {
 
    DODOTokenStore& get_lptoken_store(const extended_symbol& token) {
       namesym token_name = to_namesym(token);
-      auto    t          = token_storage.lptokens.find(token);
+      auto    t          = token_storage.lptokens.find(token_name);
       bool    f          = (t != token_storage.lptokens.end());
 
       require(f, "NO_TOKEN");
       return t->second;
    }
 
-   DODOTokenStore& get_oracle_store(const extended_symbol& oracle) {
+   OracleStore& get_oracle_store(const extended_symbol& oracle) {
       namesym oracle_name = to_namesym(oracle);
       auto    t           = oracle_storage.oracles.find(oracle_name);
       bool    f           = (t != oracle_storage.oracles.end());
@@ -125,7 +125,7 @@ class storage_mgmt {
       return pb.first->second;
    }
 
-   DODOTokenStore& newOracleStore(const extended_symbol& oracle) {
+   OracleStore& newOracleStore(const extended_symbol& oracle) {
       namesym oracle_name = to_namesym(oracle);
       auto    t           = oracle_storage.oracles.find(oracle_name);
       bool    f           = (t == oracle_storage.oracles.end());
@@ -134,5 +134,16 @@ class storage_mgmt {
       auto pb = oracle_storage.oracles.insert(std::map<namesym, OracleStore>::value_type(oracle_name, OracleStore()));
       require(pb.second, "INSERT_TOKEN_FAIL");
       return pb.first->second;
+   }
+
+   name newDodoStore(name& dodo_name) {
+      dodo_name.value++;
+      auto t             = dodo_storage.dodos.find(dodo_name);
+      bool f             = (t == dodo_storage.dodos.end());
+      require(f, "ALREADY_EXIST_DODO");
+
+      auto pb = dodo_storage.dodos.insert(std::map<name, DODOStore>::value_type(dodo_name, DODOStore()));
+      require(pb.second, "INSERT_DODO_FAIL");
+      return dodo_name;
    }
 };
