@@ -21,7 +21,9 @@ class Ownable {
 
  public:
    Ownable(OwnableStore& _ownable_store)
-       : ownable_store(_ownable_store)
+       : ownable_store(_ownable_store){
+}
+
        //    address _OWNER_;
        //    address _NEW_OWNER_;
    name getMsgSender() { return msg_sender; }
@@ -34,7 +36,7 @@ class Ownable {
 
    // ============ Functions ============
 
-   Ownable() { ownable_store._OWNER_ = msg_sender; }
+   void init() { ownable_store._OWNER_ = msg_sender; }
 
    void transferOwnership(address newOwner) {
       onlyOwner();

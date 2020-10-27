@@ -34,6 +34,7 @@ class DODOZoo : public Ownable {
        , _transfer_mgmt(_self)
        , zoo_storage(_storage_mgmt.get_zoo_store())
        , Ownable(zoo_storage.ownable) {}
+ name get_self(){return self;}
    storage_mgmt&  get_storage_mgmt() { return _storage_mgmt; }
    transfer_mgmt& get_transfer_mgmt() { return _transfer_mgmt; }
 
@@ -138,10 +139,18 @@ class DODOZoo : public Ownable {
    }
 
    template <typename T>
-   void get_lptoken(name lptoken_name, T func) {
-      DODOTokenStore& lptokenStore  = _storage_mgmt.get_lptoken_store(lptoken_name);
-      DODOTokenStore& olptokenStore = _storage_mgmt.get_token_store(to_namesym(lptokenStore.originToken));
+   void get_lptoken(const extended_symbol& lptoken, T func) {
+      DODOTokenStore& lptokenStore  = _storage_mgmt.get_lptoken_store(lptoken);
+      DODOTokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
       DODOLpToken     lptoken(lptokenStore, olptokenStore);
       func(lptoken);
    }
+
+   template <typename T>
+   void get_oracle(const extended_symbol& oracle, T func) {
+      OracleStore& oracleStore  = _storage_mgmt.get_oracle_store(oracle);
+      MinimumOracle     minioracle(oracleStore);
+      func(minioracle);
+   }
+
 };

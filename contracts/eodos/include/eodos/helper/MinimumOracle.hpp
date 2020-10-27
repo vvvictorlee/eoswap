@@ -5,8 +5,8 @@
 
 */
 
-#prama once 
- #include <common/defines.hpp>
+#prama once
+#include <common/defines.hpp>
 
 class IMinimumOracle {
  public:
@@ -18,26 +18,35 @@ class IMinimumOracle {
 }
 
 class MinimumOracle {
+ private:
+   OracleStore& stores;
+
  public:
+   MinimumOracle(OracleStore& _stores)
+       : stores(_stores) {}
 
+   // ============ Functions ============
+   name getMsgSender() { return msg_sender; }
+   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
+   // ============ Modifiers ============
 
-   void onlyOwner() { require(getMsgSender() == _OWNER_, "NOT_OWNER"); }
+   void onlyOwner() { require(msg_sender == stores._OWNER_, "NOT_OWNER"); }
 
    // ============ Functions ============
 
-   MinimumOracle() { _OWNER_ = getMsgSender(); }
+   void init() { stores._OWNER_ = msg_sender; }
 
    void transferOwnership(address newOwner) {
       onlyOwner();
       require(newOwner != address(0), "INVALID_OWNER");
 
-      _OWNER_ = newOwner;
+      stores_OWNER_ = newOwner;
    }
 
-   void setPrice(uint256 newPrice) {
+   void setPrice(const extended_asset&  newPrice) {
       onlyOwner();
-      tokenPrice = newPrice;
+      stores.tokenPrice = newPrice;
    }
 
-   uint256 getPrice() { return tokenPrice; }
+   uint256 getPrice() { return stores.tokenPrice.quantity.amount; }
 };

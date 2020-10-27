@@ -5,27 +5,19 @@
 
 */
 
-#prama once 
- #include <common/defines.hpp>
+#prama once
+#include <common/defines.hpp>
 
-
-
-class IBandOracleAggregator { 
+class IBandOracleAggregator {
  public:
-
-    virtual uint256  getReferenceData(string  base, string  quote) = 0;
+   virtual uint256 getReferenceData(string base, string quote) = 0;
 }
 
-
-class BandBNBBUSDPriceOracleProxy { 
+class BandBNBBUSDPriceOracleProxy {
  public:
-    IBandOracleAggregator  aggregator;
+   IBandOracleAggregator aggregator;
 
-    BandBNBBUSDPriceOracleProxy(IBandOracleAggregator _aggregator) {
-        aggregator = _aggregator;
-    }
+   BandBNBBUSDPriceOracleProxy(IBandOracleAggregator _aggregator) { aggregator = _aggregator; }
 
-    uint256  getPrice() {
-        return aggregator.getReferenceData("BNB", "USD");
-    }
+   uint256 getPrice() { return aggregator.getReferenceData("BNB", "USD"); }
 };

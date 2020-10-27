@@ -28,7 +28,7 @@ struct DoStore {
 
    extended_symbol _BASE_TOKEN_;
    extended_symbol _QUOTE_TOKEN_;
-   address _ORACLE_;
+   extended_symbol _ORACLE_;
 
    // ============ Variables for PMM Algorithm ============
 

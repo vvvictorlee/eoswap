@@ -193,25 +193,20 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
    }
 
    // ============ Helper Functions ============
-
    void _mintBaseCapital(address user, uint256 amount) {
-      namesym lp = to_namesym(stores.store._BASE_CAPITAL_TOKEN_);
-      zoo.get_lptoken(lp, [&](auto& lptoken) { lptoken.mint(user, amount); });
+      zoo.get_lptoken(stores.store._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _mintQuoteCapital(address user, uint256 amount) {
-      namesym lp = to_namesym(stores.store._QUOTE_CAPITAL_TOKEN_);
-      zoo.get_lptoken(lp, [&](auto& lptoken) { lptoken.mint(user, amount); });
+      zoo.get_lptoken(stores.store._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _burnBaseCapital(address user, uint256 amount) {
-      namesym lp = to_namesym(stores.store._BASE_CAPITAL_TOKEN_);
-      zoo.get_lptoken(lp, [&](auto& lptoken) { lptoken.burn(user, amount); });
+      zoo.get_lptoken(stores.store._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    void _burnQuoteCapital(address user, uint256 amount) {
-      namesym lp = to_namesym(stores.store._QUOTE_CAPITAL_TOKEN_);
-      zoo.get_lptoken(lp, [&](auto& lptoken) { lptoken.burn(user, amount); });
+      zoo.get_lptoken(stores.store._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    // ============ Getter Functions ============
@@ -237,15 +232,15 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
    }
 
    uint256 penalty getWithdrawQuotePenalty(uint256 amount) {
-      require(amount <= _QUOTE_BALANCE_, "DODO_QUOTE_BALANCE_NOT_ENOUGH");
+      require(amount <= stores.store._QUOTE_BALANCE_, "DODO_QUOTE_BALANCE_NOT_ENOUGH");
       if (stores.store._R_STATUS_ == Types::RStatus::BELOW_ONE) {
-         uint256 spareBase   = stores.store._BASE_BALANCE_.sub(_TARGET_BASE_TOKEN_AMOUNT_);
+         uint256 spareBase   = stores.store._BASE_BALANCE_.sub(stores.store._TARGET_BASE_TOKEN_AMOUNT_);
          uint256 price       = getOraclePrice();
          uint256 fairAmount  = DecimalMath.mul(spareBase, price);
-         uint256 targetQuote = DODOMath._SolveQuadraticFunctionForTarget(_QUOTE_BALANCE_, _K_, fairAmount);
+         uint256 targetQuote = DODOMath._SolveQuadraticFunctionForTarget(stores.store._QUOTE_BALANCE_, stores.store._K_, fairAmount);
          // if amount = _QUOTE_BALANCE_, div error
          uint256 targetQuoteWithWithdraw =
-             DODOMath._SolveQuadraticFunctionForTarget(stores.store._QUOTE_BALANCE_.sub(amount), _K_, fairAmount);
+             DODOMath._SolveQuadraticFunctionForTarget(stores.store._QUOTE_BALANCE_.sub(amount), stores.store._K_, fairAmount);
          return targetQuote.sub(targetQuoteWithWithdraw.add(amount));
       } else {
          return 0;
@@ -253,12 +248,12 @@ class LiquidityProvider : public Storage, public Pricing, public Settlement {
    }
 
    uint256 penalty getWithdrawBasePenalty(uint256 amount) {
-      require(amount <= _BASE_BALANCE_, "DODO_BASE_BALANCE_NOT_ENOUGH");
+      require(amount <= stores.store._BASE_BALANCE_, "DODO_BASE_BALANCE_NOT_ENOUGH");
       if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
-         uint256 spareQuote = _QUOTE_BALANCE_.sub(_TARGET_QUOTE_TOKEN_AMOUNT_);
+         uint256 spareQuote = stores.store._QUOTE_BALANCE_.sub(_TARGET_QUOTE_TOKEN_AMOUNT_);
          uint256 price      = getOraclePrice();
          uint256 fairAmount = DecimalMath.divFloor(spareQuote, price);
-         uint256 targetBase = DODOMath._SolveQuadraticFunctionForTarget(_BASE_BALANCE_, _K_, fairAmount);
+         uint256 targetBase = DODOMath._SolveQuadraticFunctionForTarget(stores.store._BASE_BALANCE_, stores.store._K_, fairAmount);
          // if amount = _BASE_BALANCE_, div error
          uint256 targetBaseWithWithdraw =
              DODOMath._SolveQuadraticFunctionForTarget(stores.store._BASE_BALANCE_.sub(amount), _K_, fairAmount);

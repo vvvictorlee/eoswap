@@ -26,8 +26,8 @@ class Admin : public Storage {
        , Storage(_stores)
        // ============ Params Setting Functions ============
 
-       void setOracle(address newOracle) {
-      _ORACLE_ = newOracle;
+       void setOracle(const extended_symbol&  newOracle) {
+      stores.store._ORACLE_ = newOracle;
    }
 
    void setSupervisor(address newSupervisor) { stores.store._SUPERVISOR_ = newSupervisor; }

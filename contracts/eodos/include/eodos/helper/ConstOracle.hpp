@@ -11,15 +11,17 @@
 
 
 class ConstOracle { 
+private:
+   OracleStore& stores;
+
  public:
-
-   uint256 tokenPrice;
-
-    ConstOracle(uint256 _price) {
-        tokenPrice = _price;
+   ConstOracle(OracleStore& _stores,const extended_asset& _price)
+       : stores(_stores)
+    {
+        stores.tokenPrice = _price;
     }
 
     uint256  getPrice() {
-        return tokenPrice;
+        return stores.tokenPrice.quantity.amount;
     }
 };

@@ -26,20 +26,23 @@ class DODOZoo;
 class Storage : public InitializableOwnable, public ReentrancyGuard {
  private:
    DODOStore& stores;
-, DODOZoo& zoo;
-public:
+   , DODOZoo& zoo;
+
+ public:
    Storage(DODOStore& _stores, DODOZoo& _zoo)
        : stores(_stores)
-    , zoo(_zoo)
+       , zoo(_zoo)
        , InitializableOwnable(_stores)
-       , ReentrancyGuard(_stores){}
+       , ReentrancyGuard(_stores) {}
 
    // ============ Modifiers ============
    void onlySupervisorOrOwner() {
-      require(getMsgSender() == stores.store._SUPERVISOR_ || getMsgSender() == stores.store._OWNER_, "NOT_SUPERVISOR_OR_OWNER");
+      require(
+          getMsgSender() == stores.store._SUPERVISOR_ || getMsgSender() == stores.store._OWNER_,
+          "NOT_SUPERVISOR_OR_OWNER");
    }
 
-   void notClosed() { require(!_CLOSED_, "DODO_CLOSED"); }
+   void notClosed() { require(!stores.store._CLOSED_, "DODO_CLOSED"); }
 
    // ============ Helper Functions ============
 
@@ -49,15 +52,41 @@ public:
       require(stores.store._LP_FEE_RATE_.add(_MT_FEE_RATE_) < DecimalMath.ONE, "FEE_RATE>=1");
    }
 
-   uint256 getOraclePrice() { return IOracle(_ORACLE_).getPrice(); }
+   uint256 getOraclePrice() {
+      uint256 price = 0;
+      zoo.get_oracle(_ORACLE_, [&](auto& oracle) { balance = oracle.getPrice(); });
+      return price;
+      // return IOracle(_ORACLE_).getPrice();
+   }
 
-   uint256 getBaseCapitalBalanceOf(address lp) { return IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).balanceOf(lp); }
+   uint256 getBaseCapitalBalanceOf(address _lp) {
+      uint256 balance = 0;
+      zoo.get_lptoken(stores.store._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
+      return balance;
+      // return IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).balanceOf(lp);
+   }
 
-   uint256 getTotalBaseCapital() { return IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).totalSupply(); }
+   uint256 getTotalBaseCapital() {
+      uint256 totalSupply = 0;
+      zoo.get_lptoken(stores.store._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
+      return totalSupply;
 
-   uint256 getQuoteCapitalBalanceOf(address lp) { return IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).balanceOf(lp); }
+      // return IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).totalSupply();
+   }
 
-   uint256 getTotalQuoteCapital() { return IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).totalSupply(); }
+   uint256 getQuoteCapitalBalanceOf(address lp) {
+      uint256 balance = 0;
+      zoo.get_lptoken(stores.store._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
+      return balance;
+      //   return IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).balanceOf(lp);
+   }
+
+   uint256 getTotalQuoteCapital() {
+      uint256 totalSupply = 0;
+      zoo.get_lptoken(stores.store._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
+      return totalSupply;
+      // return IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).totalSupply();
+   }
 
    // ============ Version Control ============
    uint256 version() {

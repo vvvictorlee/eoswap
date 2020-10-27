@@ -31,7 +31,7 @@ class Trader : public Storage, public Pricing, public Settlement {
  public:
    LiquidityProvider(DODOStore& _stores)
        : stores(_stores)
-    , zoo(_zoo)
+       , zoo(_zoo)
        , Storage(_stores)
        , Pricing(_stores)
        , Settlement(_stores) {}
@@ -53,8 +53,14 @@ class Trader : public Storage, public Pricing, public Settlement {
       gasPriceLimit();
       preventReentrant();
       // query price
-      (uint256 receiveQuote, uint256 lpFeeQuote, uint256 mtFeeQuote, uint8 newRStatus, uint256 newQuoteTarget,
-       uint256 newBaseTarget) = _querySellBaseToken(amount);
+      uint256 receiveQuote;
+      uint256 lpFeeQuote;
+      uint256 mtFeeQuote;
+      uint8   newRStatus;
+      uint256 newQuoteTarget;
+      uint256 newBaseTarget;
+      std::tie(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget) =
+          _querySellBaseToken(amount);
       require(receiveQuote >= minReceiveQuote, "SELL_BASE_RECEIVE_NOT_ENOUGH");
 
       // settle assets
@@ -89,8 +95,10 @@ class Trader : public Storage, public Pricing, public Settlement {
       gasPriceLimit();
       preventReentrant();
       // query price
-      (uint256 payQuote, uint256 lpFeeBase, uint256 mtFeeBase, uint8 newRStatus, uint256 newQuoteTarget,
-       uint256 newBaseTarget) = _queryBuyBaseToken(amount);
+      uint256 payQuote;
+      uint256 lpFeeBase; uint256 mtFeeBase; uint8 newRStatus; uint256 newQuoteTarget; uint256 newBaseTarget;
+      std::tie( payQuote,  lpFeeBase,  mtFeeBase,  newRStatus,  newQuoteTarget,
+        newBaseTarget) = _queryBuyBaseToken(amount);
       require(payQuote <= maxPayQuote, "BUY_BASE_COST_TOO_MUCH");
 
       // settle assets
@@ -122,13 +130,15 @@ class Trader : public Storage, public Pricing, public Settlement {
    // ============ Query Functions ============
 
    uint256 querySellBaseToken(uint256 amount) {
+uint256 receiveQuote = 0;
       // tie(i, ignore, s)
-      (receiveQuote, , , , , ) = _querySellBaseToken(amount);
+      std::tie(receiveQuote,std::ignore , std::ignore, std::ignore, std::ignore, std::ignore) = _querySellBaseToken(amount);
       return receiveQuote;
    }
 
    uint256 queryBuyBaseToken(uint256 amount) {
-      (payQuote, , , , , ) = _queryBuyBaseToken(amount);
+uint256 payQuote = 0;
+      (payQuote, std::ignore,std::ignore , std::ignore,std::ignore ,std::ignore ) = _queryBuyBaseToken(amount);
       return payQuote;
    }
 
@@ -142,7 +152,7 @@ class Trader : public Storage, public Pricing, public Settlement {
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
 
-      (newBaseTarget, newQuoteTarget) = getExpectedTarget();
+      std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
       uint256 sellBaseAmount = amount;
 
@@ -153,7 +163,7 @@ class Trader : public Storage, public Pricing, public Settlement {
          newRStatus   = Types::RStatus::BELOW_ONE;
       } else if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          uint256 backToOnePayBase      = newBaseTarget.sub(_BASE_BALANCE_);
-         uint256 backToOneReceiveQuote = _QUOTE_BALANCE_.sub(newQuoteTarget);
+         uint256 backToOneReceiveQuote = stores.store._QUOTE_BALANCE_.sub(newQuoteTarget);
          // case 2: R>1
          // complex case, R status depends on trading amount
          if (sellBaseAmount < backToOnePayBase) {
@@ -184,11 +194,11 @@ class Trader : public Storage, public Pricing, public Settlement {
       }
 
       // count fees
-      lpFeeQuote   = DecimalMath.mul(receiveQuote, _LP_FEE_RATE_);
-      mtFeeQuote   = DecimalMath.mul(receiveQuote, _MT_FEE_RATE_);
+      lpFeeQuote   = DecimalMath.mul(receiveQuote, stores.store._LP_FEE_RATE_);
+      mtFeeQuote   = DecimalMath.mul(receiveQuote, stores.store._MT_FEE_RATE_);
       receiveQuote = receiveQuote.sub(lpFeeQuote).sub(mtFeeQuote);
 
-      return (receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
+      return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
 
    std::tupple<uint256, uint256, uint256, uint8, uint256, uint256> _queryBuyBaseToken(uint256 amount)
@@ -201,7 +211,7 @@ class Trader : public Storage, public Pricing, public Settlement {
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
 
-      (newBaseTarget, newQuoteTarget) = getExpectedTarget();
+      std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
       // charge fee from user receive amount
       lpFeeBase             = DecimalMath.mul(amount, stores.store._LP_FEE_RATE_);
@@ -237,6 +247,6 @@ class Trader : public Storage, public Pricing, public Settlement {
          }
       }
 
-      return (payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget);
+      return std::make_tuple(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget);
    }
 };

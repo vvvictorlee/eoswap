@@ -1,13 +1,8 @@
 
 #pragma once
-#prama once 
- #include <common/defines.hpp>
-
-struct Account2Amt {
-   std::map<name, uint> dst2amt; // is token bound to pool
-
-   EOSLIB_SERIALIZE(Account2Amt, (dst2amt))
-};
+#prama once
+#include <common/defines.hpp>
+#include <storage/TokenTable.hpp>
 
 struct MigrationsStore {
    address owner;
@@ -15,19 +10,11 @@ struct MigrationsStore {
    EOSLIB_SERIALIZE(MigrationsStore, (owner)(last_completed_migration))
 };
 
-struct ConstOracleStore {
-   uint256 tokenPrice;
-   EOSLIB_SERIALIZE(ConstOracleStore, (tokenPrice))
-};
-struct NaiveOracleStore {
-   uint256 tokenPrice;
-   EOSLIB_SERIALIZE(NaiveOracleStore, (tokenPrice))
-};
-
-struct MinimumOracleStore {
-   address _OWNER_;
-   uint256 tokenPrice;
-   EOSLIB_SERIALIZE(MinimumOracleStore, (_OWNER_)(tokenPrice))
+struct OracleStore {
+   OwnableStore ownable;
+   address      _OWNER_;
+   extended_asset      tokenPrice;
+   EOSLIB_SERIALIZE(OracleStore, (ownable)(_OWNER_)(tokenPrice))
 };
 
 struct Transaction {
@@ -147,9 +134,6 @@ struct UniswapArbitrageurStore {
 
 struct [[eosio::table("helpstore"), eosio::contract("eodos")]] HelperStorage {
    MigrationsStore                 mig;
-   ConstOracleStore                coralce;
-   NaiveOracleStore                noracle;
-   MinimumOracleStore              moracle;
    MultiSigWalletWithTimelockStore msig;
    TestERC20Store                  testerc20;
    WETH9Store                      weth9;
@@ -157,8 +141,14 @@ struct [[eosio::table("helpstore"), eosio::contract("eodos")]] HelperStorage {
    IUniswapV2FactoryStore          factory;
    UniswapArbitrageurStore         arbit;
 
-   EOSLIB_SERIALIZE(
-       HelperStorage, (mig)(coralce)(noracle)(moracle)(msig)(testerc20)(weth9)(erc20)(factory)(arbit))
+   EOSLIB_SERIALIZE(HelperStorage, (mig)(msig)(testerc20)(weth9)(erc20)(factory)(arbit))
 };
 
 typedef eosio::singleton<"helpstore"_n, HelperStorage> HelperStorageSingleton;
+
+struct [[eosio::table("oracle"), eosio::contract("eodos")]] OracleStorage {
+   std::map<namesym, OracleStore> oracles;
+   EOSLIB_SERIALIZE(OracleStorage, (oracles))
+};
+
+typedef eosio::singleton<"oracle"_n, OracleStorage> OracleStorageSingleton;

@@ -5,22 +5,23 @@
 
 */
 
-#prama once 
- #include <common/defines.hpp>
-
+#prama once
+#include <common/defines.hpp>
 
 #include <eodos/lib/Ownable.hpp>
 
-
 // Oracle only for test
-class NaiveOracle : public  Ownable {
-   uint256 tokenPrice;
+class NaiveOracle : public Ownable {
+ private:
+   OracleStore& stores;
+ public:
+   NaiveOracle(OracleStore& _stores)
+       : stores(_stores)
+       , Ownable(_stores.ownable) {}
+   void setPrice(const extended_asset& newPrice) {
+      onlyOwner();
+      stores.tokenPrice = newPrice;
+   }
 
-    void  setPrice(uint256 newPrice) {
-        tokenPrice = newPrice;
-    }
-
-    uint256  getPrice() {
-        return tokenPrice;
-    }
+   uint256 getPrice() { return stores.tokenPrice.quantity.amount; }
 };

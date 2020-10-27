@@ -38,7 +38,7 @@ class DODO : public Admin, public Trader, public LiquidityProvider {
        , LiquidityProvider(_stores) {}
    void init(
        address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
-       const extended_symbol& quoteToken, address oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k,
+       const extended_symbol& quoteToken, const extended_symbol&  oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k,
        uint256 gasPriceLimit) {
       require(!_INITIALIZED_, "DODO_INITIALIZED");
       stores.store._INITIALIZED_ = true;
@@ -68,10 +68,8 @@ class DODO : public Admin, public Trader, public LiquidityProvider {
       stores.store._MT_FEE_RATE_ = mtFeeRate;
       stores.store._K_           = k;
       stores.store._R_STATUS_    = Types::RStatus::ONE;
-      namesym     bs             = to_namesym(_BASE_TOKEN_);
-      namesym     qs             = to_namesym(_QUOTE_TOKEN_);
-      auto        ob             = zoo.get_storage_mgmt().get_token_store(bs);
-      auto        oq             = zoo.get_storage_mgmt().get_token_store(qs);
+      auto        ob             = zoo.get_storage_mgmt().get_token_store(_BASE_TOKEN_);
+      auto        oq             = zoo.get_storage_mgmt().get_token_store(_QUOTE_TOKEN_);
       auto        oblp           = zoo.get_storage_mgmt().newLpTokenStore(_BASE_TOKEN_);
       auto        oqlp           = zoo.get_storage_mgmt().newLpTokenStore(_QUOTE_TOKEN_);
       DODOLpToken b(oblp, ob);
