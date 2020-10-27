@@ -8,7 +8,7 @@
 #pragma once
 #include <common/defines.hpp>
 
-#include <eodos/Storage.hpp>
+#include <eodos/impl/Storage.hpp>
 
 /**
  * @title Admin
@@ -16,14 +16,13 @@
  *
  * @notice Functions for admin operations
  */
-class Admin : public Storage {
+class Admin : virtual  public Storage {
  private:
    DODOStore& stores;
-
  public:
-   Admin(DODOStore& _stores)
+   Admin(DODOStore& _stores, IStorage& _storage)
        : stores(_stores)
-       , Storage(_stores)
+       , Storage(_stores,_storage){}
        // ============ Params Setting Functions ============
 
        void setOracle(const extended_symbol&  newOracle) {

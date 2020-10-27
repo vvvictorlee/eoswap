@@ -11,7 +11,7 @@
 #include <eodos/intf/IERC20.hpp>
 #include <eodos/lib/Ownable.hpp>
 #include <eodos/lib/SafeMath.hpp>
-
+using namespace SafeMath;
 /**
  * @title DODOLpToken
  * @author DODO Breeder
@@ -25,7 +25,7 @@ class DODOLpToken : public Ownable {
 
  public:
    DODOLpToken(DODOTokenStore& _stores, DODOTokenStore& _ostores)
-       : stores(_stores)
+       : stores(_stores),ostores(_ostores)
        , Ownable(_stores.ownable) {}
 
    // ============ Functions ============
@@ -48,8 +48,8 @@ class DODOLpToken : public Ownable {
    bool transfer(address to, uint256 amount) {
       require(amount <= stores.balances[getMsgSender()], "BALANCE_NOT_ENOUGH");
 
-      stores.balances[getMsgSender()] = stores.balances[getMsgSender()].sub(amount);
-      stores.balances[to]             = stores.balances[to].add(amount);
+      stores.balances[getMsgSender()] = sub(stores.balances[getMsgSender()],amount);
+      stores.balances[to]             =  add(stores.balances[to],amount);
 
       return true;
    }
@@ -69,11 +69,11 @@ class DODOLpToken : public Ownable {
     */
    bool transferFrom(address from, address to, uint256 amount) {
       require(amount <= stores.balances[from], "BALANCE_NOT_ENOUGH");
-      require(amount <= stores.allowed[from][getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
+      require(amount <= stores.allowed[from].dst2amt[getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
 
-      stores.balances[from]                = stores.balances[from].sub(amount);
-      stores.balances[to]                  = stores.balances[to].add(amount);
-      stores.allowed[from][getMsgSender()] = stores.allowed[from][getMsgSender()].sub(amount);
+      stores.balances[from]                = sub(stores.balances[from],amount);
+      stores.balances[to]                  = sub(stores.balances[to],amount);
+      stores.allowed[from].dst2amt[getMsgSender()] = sub(stores.allowed[from].dst2amt[getMsgSender()],amount);
 
       return true;
    }
@@ -84,7 +84,7 @@ class DODOLpToken : public Ownable {
     * @param amount The amount of tokens to be spent.
     */
    bool approve(address spender, uint256 amount) {
-      stores.allowed[getMsgSender()][spender] = amount;
+      stores.allowed[getMsgSender()].dst2amt[spender] = amount;
 
       return true;
    }
@@ -95,15 +95,15 @@ class DODOLpToken : public Ownable {
     * @param spender address The address which will spend the funds.
     * @return A uint256 specifying the amount of tokens still available for the spender.
     */
-   uint256 allowance(address owner, address spender) { return stores.allowed[owner][spender]; }
+   uint256 allowance(address owner, address spender) { return stores.allowed[owner].dst2amt[spender]; }
 
    void mint(address user, uint256 value) {
-      stores.balances[user] = stores.balances[user].add(value);
-      stores.totalSupply    = stores.totalSupply.add(value);
+      stores.balances[user] = add(stores.balances[user],value);
+      stores.totalSupply    = add(stores.totalSupply,value);
    }
 
    void burn(address user, uint256 value) {
-      stores.balances[user] = stores.balances[user].sub(value);
-      stores.totalSupply    = stores.totalSupply.sub(value);
+      stores.balances[user] = sub(stores.balances[user],value);
+      stores.totalSupply    = sub(stores.totalSupply,value);
    }
 };

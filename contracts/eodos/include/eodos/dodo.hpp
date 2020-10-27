@@ -27,23 +27,23 @@
 class DODO : public Admin, public Trader, public LiquidityProvider {
  private:
    DODOStore& stores;
-   DODOZoo&   zoo;
+   IStorage& storage;
 
  public:
-   DODO(DODOStore& _stores, DODOZoo& _zoo)
+   DODO(DODOStore& _stores, IStorage& _storage)
        : stores(_stores)
-       , zoo(_zoo)
-       , Admin(_stores)
-       , Trader(_stores)
-       , LiquidityProvider(_stores) {}
+       , storage(_storage)
+       , Admin(_stores,_storage)
+       , Trader(_stores,_storage)
+       , LiquidityProvider(_stores,_storage),Storage(_stores, _storage) {}
    void init(
        address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
        const extended_symbol& quoteToken, const extended_symbol&  oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k,
        uint256 gasPriceLimit) {
-      require(!_INITIALIZED_, "DODO_INITIALIZED");
+      require(!stores.store._INITIALIZED_, "DODO_INITIALIZED");
       stores.store._INITIALIZED_ = true;
 
-      stores.store._OWNER_ = owner;
+      stores.initownable._OWNER_ = owner;
 
       stores.store._SUPERVISOR_  = supervisor;
       stores.store._MAINTAINER_  = maintainer;
@@ -68,14 +68,14 @@ class DODO : public Admin, public Trader, public LiquidityProvider {
       stores.store._MT_FEE_RATE_ = mtFeeRate;
       stores.store._K_           = k;
       stores.store._R_STATUS_    = Types::RStatus::ONE;
-      auto        ob             = zoo.get_storage_mgmt().get_token_store(_BASE_TOKEN_);
-      auto        oq             = zoo.get_storage_mgmt().get_token_store(_QUOTE_TOKEN_);
-      auto        oblp           = zoo.get_storage_mgmt().newLpTokenStore(_BASE_TOKEN_);
-      auto        oqlp           = zoo.get_storage_mgmt().newLpTokenStore(_QUOTE_TOKEN_);
+      auto        ob             = storage.get_storage_mgmt().get_token_store(stores.store._BASE_TOKEN_);
+      auto        oq             = storage.get_storage_mgmt().get_token_store(stores.store._QUOTE_TOKEN_);
+      auto        oblp           = storage.get_storage_mgmt().newLpTokenStore(stores.store._BASE_TOKEN_);
+      auto        oqlp           = storage.get_storage_mgmt().newLpTokenStore(stores.store._QUOTE_TOKEN_);
       DODOLpToken b(oblp, ob);
       DODOLpToken q(oq, oqlp);
-      stores.store._BASE_CAPITAL_TOKEN_  = to_namesym(b.get_esymbol()); // address(new DODOLpToken(_BASE_TOKEN_));
-      stores.store._QUOTE_CAPITAL_TOKEN_ = to_namesym(q.get_esymbol()); // address(new DODOLpToken(_QUOTE_TOKEN_));
+      stores.store._BASE_CAPITAL_TOKEN_  = b.get_esymbol(); // address(new DODOLpToken(_BASE_TOKEN_));
+      stores.store._QUOTE_CAPITAL_TOKEN_ = q.get_esymbol(); // address(new DODOLpToken(_QUOTE_TOKEN_));
 
       _checkDODOParameters();
    }
@@ -111,7 +111,7 @@ class DODO : public Admin, public Trader, public LiquidityProvider {
 
    namesym _QUOTE_TOKEN_() { return to_namesym(stores.store._QUOTE_TOKEN_); }
 
-   address _QUOTE_CAPITAL_TOKEN_() { return stores.store._QUOTE_CAPITAL_TOKEN_; }
+   const extended_symbol& _BASE_CAPITAL_TOKEN_() { return stores.store._BASE_CAPITAL_TOKEN_; }
+  const extended_symbol& _QUOTE_CAPITAL_TOKEN_() { return stores.store._QUOTE_CAPITAL_TOKEN_; }
 
-   address _QUOTE_TOKEN_() { return stores.store._QUOTE_TOKEN_; }
 };

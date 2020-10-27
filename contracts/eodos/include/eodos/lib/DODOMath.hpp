@@ -9,8 +9,9 @@
  #include <common/defines.hpp>
 
 
-#include <eodos/SafeMath.hpp>
-#include <eodos/DecimalMath.hpp>
+#include <eodos/lib/SafeMath.hpp>
+#include <eodos/lib/DecimalMath.hpp>
+using namespace SafeMath;
 
 /**
  * @title DODOMath
@@ -35,10 +36,10 @@ namespace DODOMath {
         uint256 i,
         uint256 k
     ) {
-        uint256 fairAmount = DecimalMath.mul(i, V1.sub(V2)); // i*delta
-        uint256 V0V0V1V2 = DecimalMath.divCeil(V0.mul(V0).div(V1), V2);
-        uint256 penalty = DecimalMath.mul(k, V0V0V1V2); // k(V0^2/V1/V2)
-        return DecimalMath.mul(fairAmount, DecimalMath.ONE.sub(k).add(penalty));
+        uint256 fairAmount = DecimalMath::mul(i, sub(V1,V2)); // i*delta
+        uint256 V0V0V1V2 = DecimalMath::divCeil(div(mul(V0,V0),V1), V2);
+        uint256 penalty = DecimalMath::mul(k, V0V0V1V2); // k(V0^2/V1/V2)
+        return DecimalMath::mul(fairAmount, add(sub(DecimalMath::ONE,k),penalty));
     }
 
     /*
@@ -64,42 +65,42 @@ namespace DODOMath {
     ) {
         // calculate -b value and sig
         // -b = (1-k)Q1-kQ0^2/Q1+i*deltaB
-        uint256 kQ02Q1 = DecimalMath.mul(k, Q0).mul(Q0).div(Q1); // kQ0^2/Q1
-        uint256 b = DecimalMath.mul(DecimalMath.ONE.sub(k), Q1); // (1-k)Q1
+        uint256 kQ02Q1 = div(mul(DecimalMath::mul(k, Q0),Q0),Q1); // kQ0^2/Q1
+        uint256 b = DecimalMath::mul(sub(DecimalMath::ONE,k), Q1); // (1-k)Q1
         bool minusbSig = true;
         if (deltaBSig) {
-            b = b.add(ideltaB); // (1-k)Q1+i*deltaB
+            b = add(b,ideltaB); // (1-k)Q1+i*deltaB
         } else {
-            kQ02Q1 = kQ02Q1.add(ideltaB); // i*deltaB+kQ0^2/Q1
+            kQ02Q1 = add(kQ02Q1,ideltaB); // i*deltaB+kQ0^2/Q1
         }
         if (b >= kQ02Q1) {
-            b = b.sub(kQ02Q1);
+            b = sub(b,kQ02Q1);
             minusbSig = true;
         } else {
-            b = kQ02Q1.sub(b);
+            b = sub(kQ02Q1,b);
             minusbSig = false;
         }
 
         // calculate sqrt
-        uint256 squareRoot = DecimalMath.mul(
-            DecimalMath.ONE.sub(k).mul(4),
-            DecimalMath.mul(k, Q0).mul(Q0)
+        uint256 squareRoot = DecimalMath::mul(
+            mul(sub(DecimalMath::ONE,k),4),
+            mul(DecimalMath::mul(k, Q0),Q0)
         ); // 4(1-k)kQ0^2
-        squareRoot = b.mul(b).add(squareRoot).sqrt(); // sqrt(b*b+4(1-k)kQ0*Q0)
+        squareRoot = sqrt(add(mul(b,b),squareRoot)); // sqrt(b*b+4(1-k)kQ0*Q0)
 
         // final res
-        uint256 denominator = DecimalMath.ONE.sub(k).mul(2); // 2(1-k)
+        uint256 denominator = mul(sub(DecimalMath::ONE,k),2); // 2(1-k)
         uint256 numerator;
         if (minusbSig) {
-            numerator = b.add(squareRoot);
+            numerator = add(b,squareRoot);
         } else {
-            numerator = squareRoot.sub(b);
+            numerator = sub(squareRoot,b);
         }
 
         if (deltaBSig) {
-            return DecimalMath.divFloor(numerator, denominator);
+            return DecimalMath::divFloor(numerator, denominator);
         } else {
-            return DecimalMath.divCeil(numerator, denominator);
+            return DecimalMath::divCeil(numerator, denominator);
         }
     }
 
@@ -115,10 +116,10 @@ namespace DODOMath {
         uint256 fairAmount
     ) {
         // V0 = V1+V1*(sqrt-1)/2k
-        uint256 sqrt = DecimalMath.divCeil(DecimalMath.mul(k, fairAmount).mul(4), V1);
-        sqrt = sqrt.add(DecimalMath.ONE).mul(DecimalMath.ONE).sqrt();
-        uint256 premium = DecimalMath.divCeil(sqrt.sub(DecimalMath.ONE), k.mul(2));
+        uint256 sqrtv = DecimalMath::divCeil(mul(DecimalMath::mul(k, fairAmount),4), V1);
+        sqrtv = sqrt(mul(add(sqrtv,DecimalMath::ONE),DecimalMath::ONE));
+        uint256 premium = DecimalMath::divCeil(sub(sqrtv,DecimalMath::ONE), mul(k,2));
         // V0 is greater than or equal to V1 according to the solution
-        return DecimalMath.mul(V1, DecimalMath.ONE.add(premium));
+        return DecimalMath::mul(V1, add(DecimalMath::ONE,premium));
     }
 }

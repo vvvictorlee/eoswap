@@ -4,7 +4,6 @@
     SPDX-License-Identifier: Apache-2.0
 
 */
-#pragma once
 #pragma once 
  #include <common/defines.hpp>
 

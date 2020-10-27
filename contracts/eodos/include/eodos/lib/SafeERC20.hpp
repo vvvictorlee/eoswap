@@ -9,7 +9,7 @@
 #pragma once
 #include <common/defines.hpp>
 
-#include <eodos/SafeMath.hpp>
+#include <eodos/lib/SafeMath.hpp>
 #include <eodos/intf/IERC20.hpp>
 
 /**
@@ -23,32 +23,14 @@
  */
 namespace SafeERC20 {
 
-void safeTransfer(IERC20 token, address to, uint256 value) {
-   _callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
-}
-
-void safeTransferFrom(IERC20 token, address from, address to, uint256 value) {
-   _callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
-}
-
-void safeApprove(IERC20 token, address spender, uint256 value) {
-   // safeApprove should only be called when setting an initial allowance,
-   // or when resetting it to zero. To increase and decrease it, use
-   // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
-   // solhint-disable-next-line max-line-length
-   require(
-       (value == 0) || (token.allowance(address(this), spender) == 0),
-       "SafeERC20: approve from non-zero to non-zero allowance");
-   _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
-}
-
 /**
  * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
  * on the return value: the return value is optional (but if data is returned, it must not be false).
  * @param token The token targeted by the call.
  * @param data The call data (encoded using abi.encode or one of its variants).
  */
-void _callOptionalReturn(IERC20 token, bytes data) {
+template <typename T>
+void _callOptionalReturn(IERC20& token, T data) {
    // We need to perform a low level call here, to bypass Solidity's return data size checking mechanism, since
    // we're implementing it ourselves.
 
@@ -70,4 +52,24 @@ void _callOptionalReturn(IERC20 token, bytes data) {
    }
 #endif
 }
+
+void safeTransfer(IERC20& token, address to, uint256 value) {
+   _callOptionalReturn(token, std::make_tuple("token.transfer.selector", to, value));
+}
+
+void safeTransferFrom(IERC20& token, address from, address to, uint256 value) {
+   _callOptionalReturn(token, std::make_tuple("token.transferFrom.selector", from, to, value));
+}
+
+void safeApprove(IERC20& token, name self,address spender, uint256 value) {
+   // safeApprove should only be called when setting an initial allowance,
+   // or when resetting it to zero. To increase and decrease it, use
+   // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
+   // solhint-disable-next-line max-line-length
+   require(
+       (value == 0) || (token.allowance(self, spender) == 0),
+       "SafeERC20: approve from non-zero to non-zero allowance");
+   _callOptionalReturn(token, std::make_tuple("token.approve.selector", spender, value));
+}
+
 } // namespace SafeERC20

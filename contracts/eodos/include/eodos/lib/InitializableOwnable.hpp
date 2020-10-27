@@ -21,7 +21,7 @@ class InitializableOwnable {
 
  public:
    InitializableOwnable(OwnableStore& _ownable_store)
-       : ownable_store(_ownable_store)
+       : ownable_store(_ownable_store){}
 
    // ============ Modifiers ============
    name getMsgSender() { return msg_sender; }

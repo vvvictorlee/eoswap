@@ -15,10 +15,11 @@ class IMinimumOracle {
    virtual void setPrice(uint256 newPrice) = 0;
 
    virtual void transferOwnership(address newOwner) = 0;
-}
+};
 
 class MinimumOracle {
  private:
+   name         msg_sender;
    OracleStore& stores;
 
  public:
@@ -40,10 +41,10 @@ class MinimumOracle {
       onlyOwner();
       require(newOwner != address(0), "INVALID_OWNER");
 
-      stores_OWNER_ = newOwner;
+      stores._OWNER_ = newOwner;
    }
 
-   void setPrice(const extended_asset&  newPrice) {
+   void setPrice(const extended_asset& newPrice) {
       onlyOwner();
       stores.tokenPrice = newPrice;
    }

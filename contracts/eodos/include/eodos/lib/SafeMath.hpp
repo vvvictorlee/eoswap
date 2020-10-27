@@ -54,12 +54,14 @@
         return c;
     }
 
-    uint256 y  sqrt(uint256 x) {
+    uint256  sqrt(uint256 x) {
         uint256 z = x / 2 + 1;
-        y = x;
+        uint256 y = x;
         while (z < y) {
             y = z;
             z = (x / z + z) / 2;
         }
+
+        return y;
     }
 }

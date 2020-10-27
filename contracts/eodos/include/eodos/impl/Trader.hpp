@@ -8,33 +8,30 @@
 #pragma once
 #include <common/defines.hpp>
 
-#include <eodos/Pricing.hpp>
-#include <eodos/Settlement.hpp>
-#include <eodos/Storage.hpp>
+#include <eodos/impl/Pricing.hpp>
+#include <eodos/impl/Settlement.hpp>
+#include <eodos/impl/Storage.hpp>
 #include <eodos/intf/IDODOCallee.hpp>
 #include <eodos/lib/DecimalMath.hpp>
 #include <eodos/lib/SafeMath.hpp>
 #include <eodos/lib/Types.hpp>
-
 /**
  * @title Trader
  * @author DODO Breeder
  *
  * @notice Functions for trader operations
  */
-class DODOZoo;
-class Trader : public Storage, public Pricing, public Settlement {
+static const uint256 tx_gasprice = 0;
+class Trader : virtual public Storage, public Pricing, public Settlement {
  private:
    DODOStore& stores;
-   DODOZoo&   zoo;
 
  public:
-   LiquidityProvider(DODOStore& _stores)
+   Trader(DODOStore& _stores, IStorage& _storage)
        : stores(_stores)
-       , zoo(_zoo)
-       , Storage(_stores)
-       , Pricing(_stores)
-       , Settlement(_stores) {}
+       , Storage(_stores, _storage)
+       , Pricing(_stores, _storage)
+       , Settlement(_stores, _storage) {}
    // ============ Events ============
 
    void tradeAllowed() { require(stores.store._TRADE_ALLOWED_, "TRADE_NOT_ALLOWED"); }
@@ -43,7 +40,7 @@ class Trader : public Storage, public Pricing, public Settlement {
 
    void sellingAllowed() { require(stores.store._SELLING_ALLOWED_, "SELLING_NOT_ALLOWED"); }
 
-   void gasPriceLimit() { require(tx.gasprice <= stores.store._GAS_PRICE_LIMIT_, "GAS_PRICE_EXCEED"); }
+   void gasPriceLimit() { require(tx_gasprice <= stores.store._GAS_PRICE_LIMIT_, "GAS_PRICE_EXCEED"); }
 
    // ============ Trade Functions ============
 
@@ -64,13 +61,13 @@ class Trader : public Storage, public Pricing, public Settlement {
       require(receiveQuote >= minReceiveQuote, "SELL_BASE_RECEIVE_NOT_ENOUGH");
 
       // settle assets
-      _quoteTokenTransferOut(getMsgSender(), receiveQuote);
-      if (data.length > 0) {
+      _quoteTokenTransferOut(getMsgSender(), extended_asset(receiveQuote, stores.store._QUOTE_TOKEN_));
+      if (data.size() > 0) {
          //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
       }
-      _baseTokenTransferIn(getMsgSender(), amount);
+      _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores.store._BASE_TOKEN_));
       if (mtFeeQuote != 0) {
-         _quoteTokenTransferOut(stores.store._MAINTAINER_, mtFeeQuote);
+         _quoteTokenTransferOut(stores.store._MAINTAINER_, extended_asset(mtFeeQuote, stores.store._QUOTE_TOKEN_));
       }
 
       // update TARGET
@@ -96,19 +93,22 @@ class Trader : public Storage, public Pricing, public Settlement {
       preventReentrant();
       // query price
       uint256 payQuote;
-      uint256 lpFeeBase; uint256 mtFeeBase; uint8 newRStatus; uint256 newQuoteTarget; uint256 newBaseTarget;
-      std::tie( payQuote,  lpFeeBase,  mtFeeBase,  newRStatus,  newQuoteTarget,
-        newBaseTarget) = _queryBuyBaseToken(amount);
+      uint256 lpFeeBase;
+      uint256 mtFeeBase;
+      uint8   newRStatus;
+      uint256 newQuoteTarget;
+      uint256 newBaseTarget;
+      std::tie(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget) = _queryBuyBaseToken(amount);
       require(payQuote <= maxPayQuote, "BUY_BASE_COST_TOO_MUCH");
 
       // settle assets
-      _baseTokenTransferOut(getMsgSender(), amount);
-      if (data.length > 0) {
+      _baseTokenTransferOut(getMsgSender(), extended_asset(amount, stores.store._BASE_TOKEN_));
+      if (data.size() > 0) {
          //  IDODOCallee(getMsgSender()).dodoCall(true, amount, payQuote, data);
       }
-      _quoteTokenTransferIn(getMsgSender(), payQuote);
+      _quoteTokenTransferIn(getMsgSender(), extended_asset(payQuote, stores.store._QUOTE_TOKEN_));
       if (mtFeeBase != 0) {
-         _baseTokenTransferOut(stores.store._MAINTAINER_, mtFeeBase);
+         _baseTokenTransferOut(stores.store._MAINTAINER_, extended_asset(mtFeeBase, stores.store._BASE_TOKEN_));
       }
 
       // update TARGET
@@ -130,21 +130,20 @@ class Trader : public Storage, public Pricing, public Settlement {
    // ============ Query Functions ============
 
    uint256 querySellBaseToken(uint256 amount) {
-uint256 receiveQuote = 0;
+      uint256 receiveQuote = 0;
       // tie(i, ignore, s)
-      std::tie(receiveQuote,std::ignore , std::ignore, std::ignore, std::ignore, std::ignore) = _querySellBaseToken(amount);
+      std::tie(receiveQuote, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) =
+          _querySellBaseToken(amount);
       return receiveQuote;
    }
 
    uint256 queryBuyBaseToken(uint256 amount) {
-uint256 payQuote = 0;
-      (payQuote, std::ignore,std::ignore , std::ignore,std::ignore ,std::ignore ) = _queryBuyBaseToken(amount);
+      uint256 payQuote = 0 ;                                                        
+      std::tie(payQuote, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = _queryBuyBaseToken(amount);
       return payQuote;
    }
 
-   std::tuple<uint256, uint256, uint256, Types.RStatus, uint256, uint256> _querySellBaseToken(uint256 amount)
-
-   {
+   std::tuple<uint256, uint256, uint256, uint8, uint256, uint256> _querySellBaseToken(uint256 amount) {
       uint256 receiveQuote;
       uint256 lpFeeQuote;
       uint256 mtFeeQuote;
@@ -162,8 +161,8 @@ uint256 payQuote = 0;
          receiveQuote = _ROneSellBaseToken(sellBaseAmount, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
       } else if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
-         uint256 backToOnePayBase      = newBaseTarget.sub(_BASE_BALANCE_);
-         uint256 backToOneReceiveQuote = stores.store._QUOTE_BALANCE_.sub(newQuoteTarget);
+         uint256 backToOnePayBase      = sub(newBaseTarget, stores.store._BASE_BALANCE_);
+         uint256 backToOneReceiveQuote = sub(stores.store._QUOTE_BALANCE_, newQuoteTarget);
          // case 2: R>1
          // complex case, R status depends on trading amount
          if (sellBaseAmount < backToOnePayBase) {
@@ -183,25 +182,25 @@ uint256 payQuote = 0;
          } else {
             // case 2.3: R status changes to BELOW_ONE
             receiveQuote =
-                backToOneReceiveQuote.add(_ROneSellBaseToken(sellBaseAmount.sub(backToOnePayBase), newQuoteTarget));
+                add(backToOneReceiveQuote, _ROneSellBaseToken(sub(sellBaseAmount, backToOnePayBase), newQuoteTarget));
             newRStatus = Types::RStatus::BELOW_ONE;
          }
       } else {
          // _R_STATUS_ == Types::RStatus::BELOW_ONE
          // case 3: R<1
-         receiveQuote = _RBelowSellBaseToken(sellBaseAmount, _QUOTE_BALANCE_, newQuoteTarget);
+         receiveQuote = _RBelowSellBaseToken(sellBaseAmount, stores.store._QUOTE_BALANCE_, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
       }
 
       // count fees
-      lpFeeQuote   = DecimalMath.mul(receiveQuote, stores.store._LP_FEE_RATE_);
-      mtFeeQuote   = DecimalMath.mul(receiveQuote, stores.store._MT_FEE_RATE_);
-      receiveQuote = receiveQuote.sub(lpFeeQuote).sub(mtFeeQuote);
+      lpFeeQuote   = DecimalMath::mul(receiveQuote, stores.store._LP_FEE_RATE_);
+      mtFeeQuote   = DecimalMath::mul(receiveQuote, stores.store._MT_FEE_RATE_);
+      receiveQuote = sub(sub(receiveQuote, lpFeeQuote), mtFeeQuote);
 
       return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
 
-   std::tupple<uint256, uint256, uint256, uint8, uint256, uint256> _queryBuyBaseToken(uint256 amount)
+   std::tuple<uint256, uint256, uint256, uint8, uint256, uint256> _queryBuyBaseToken(uint256 amount)
 
    {
       uint256 payQuote;
@@ -214,9 +213,9 @@ uint256 payQuote = 0;
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
       // charge fee from user receive amount
-      lpFeeBase             = DecimalMath.mul(amount, stores.store._LP_FEE_RATE_);
-      mtFeeBase             = DecimalMath.mul(amount, stores.store._MT_FEE_RATE_);
-      uint256 buyBaseAmount = amount.add(lpFeeBase).add(mtFeeBase);
+      lpFeeBase             = DecimalMath::mul(amount, stores.store._LP_FEE_RATE_);
+      mtFeeBase             = DecimalMath::mul(amount, stores.store._MT_FEE_RATE_);
+      uint256 buyBaseAmount = add(add(amount, lpFeeBase), mtFeeBase);
 
       if (stores.store._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
@@ -226,9 +225,9 @@ uint256 payQuote = 0;
          // case 2: R>1
          payQuote   = _RAboveBuyBaseToken(buyBaseAmount, stores.store._BASE_BALANCE_, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
-      } else if (_R_STATUS_ == Types::RStatus::BELOW_ONE) {
-         uint256 backToOnePayQuote    = newQuoteTarget.sub(stores.store._QUOTE_BALANCE_);
-         uint256 backToOneReceiveBase = stores.store._BASE_BALANCE_.sub(newBaseTarget);
+      } else if (stores.store._R_STATUS_ == Types::RStatus::BELOW_ONE) {
+         uint256 backToOnePayQuote    = sub(newQuoteTarget, stores.store._QUOTE_BALANCE_);
+         uint256 backToOneReceiveBase = sub(stores.store._BASE_BALANCE_, newBaseTarget);
          // case 3: R<1
          // complex case, R status may change
          if (buyBaseAmount < backToOneReceiveBase) {
@@ -242,7 +241,8 @@ uint256 payQuote = 0;
             newRStatus = Types::RStatus::ONE;
          } else {
             // case 3.3: R status changes to ABOVE_ONE
-            payQuote = backToOnePayQuote.add(_ROneBuyBaseToken(buyBaseAmount.sub(backToOneReceiveBase), newBaseTarget));
+            payQuote =
+                add(backToOnePayQuote, _ROneBuyBaseToken(sub(buyBaseAmount, backToOneReceiveBase), newBaseTarget));
             newRStatus = Types::RStatus::ABOVE_ONE;
          }
       }

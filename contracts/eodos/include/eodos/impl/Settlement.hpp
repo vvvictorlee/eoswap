@@ -8,7 +8,7 @@
 #pragma once
 #include <common/defines.hpp>
 
-#include <eodos/Storage.hpp>
+#include <eodos/impl/Storage.hpp>
 #include <eodos/intf/IDODOLpToken.hpp>
 #include <eodos/intf/IERC20.hpp>
 #include <eodos/lib/DecimalMath.hpp>
@@ -22,64 +22,72 @@
  *
  * @notice Functions for assets settlement
  */
-class DODOZoo;
-class Settlement : public Storage {
+class Settlement : virtual  public Storage {
  private:
    DODOStore& stores;
-   DODOZoo&   zoo;
+   IStorage&  storage;
 
  public:
-   Settlement(DODOStore& _stores, DODOZoo& _zoo)
+   Settlement(DODOStore& _stores, IStorage& _storage)
        : stores(_stores)
-       , zoo(_zoo)
-       , Storage(_stores) {}
+       , storage(_storage)
+       , Storage(_stores, _storage) {}
    // ============ Events ============
 
    // ============ Assets IN/OUT Functions ============
 
-   void _baseTokenTransferIn(address from, uint256 amount) {
+   void _baseTokenTransferIn(address from, const extended_asset& tokenamount) {
+      uint256 amount = tokenamount.quantity.amount;
       require(
-          stores.store._BASE_BALANCE_.add(amount) <= stores.store._BASE_BALANCE_LIMIT_, "BASE_BALANCE_LIMIT_EXCEEDED");
+          add(stores.store._BASE_BALANCE_, amount) <= stores.store._BASE_BALANCE_LIMIT_, "BASE_BALANCE_LIMIT_EXCEEDED");
       //   IERC20(_BASE_TOKEN_).safeTransferFrom(from, address(this), amount);
-
-      stores.store._BASE_BALANCE_ = stores.store._BASE_BALANCE_.add(amount);
+      storage.get_transfer_mgmt().transfer(from, storage.get_self(), tokenamount, "");
+      stores.store._BASE_BALANCE_ = add(stores.store._BASE_BALANCE_, amount);
    }
 
-   void _quoteTokenTransferIn(address from, uint256 amount) {
+   void _quoteTokenTransferIn(address from, const extended_asset& tokenamount) {
+      uint256 amount = tokenamount.quantity.amount;
       require(
-          stores.store._QUOTE_BALANCE_.add(amount) <= stores.store._QUOTE_BALANCE_LIMIT_,
+          add(stores.store._QUOTE_BALANCE_, amount) <= stores.store._QUOTE_BALANCE_LIMIT_,
           "QUOTE_BALANCE_LIMIT_EXCEEDED");
-      IERC20(stores.store._QUOTE_TOKEN_).safeTransferFrom(from, address(this), amount);
-      stores.store._QUOTE_BALANCE_ = stores.store._QUOTE_BALANCE_.add(amount);
+      //   IERC20(stores.store._QUOTE_TOKEN_).safeTransferFrom(from, address(this), amount);
+      storage.get_transfer_mgmt().transfer(from, storage.get_self(), tokenamount, "");
+      stores.store._QUOTE_BALANCE_ = add(stores.store._QUOTE_BALANCE_, amount);
    }
 
-   void _baseTokenTransferOut(address to, uint256 amount) {
-      IERC20(_BASE_TOKEN_).safeTransfer(to, amount);
-      stores.store._BASE_BALANCE_ = stores.store._BASE_BALANCE_.sub(amount);
+   void _baseTokenTransferOut(address to, const extended_asset& tokenamount) {
+      uint256 amount = tokenamount.quantity.amount;
+      //   IERC20(_BASE_TOKEN_).safeTransfer(to, amount);
+      storage.get_transfer_mgmt().transfer(storage.get_self(), to, tokenamount, "");
+      stores.store._BASE_BALANCE_ = sub(stores.store._BASE_BALANCE_, amount);
    }
 
-   void _quoteTokenTransferOut(address to, uint256 amount) {
-      IERC20(_QUOTE_TOKEN_).safeTransfer(to, amount);
-      stores.store._QUOTE_BALANCE_ = stores.store._QUOTE_BALANCE_.sub(amount);
+   void _quoteTokenTransferOut(address to, const extended_asset& tokenamount) {
+      uint256 amount = tokenamount.quantity.amount;
+      //   IERC20(_QUOTE_TOKEN_).safeTransfer(to, amount);
+      storage.get_transfer_mgmt().transfer(storage.get_self(), to, tokenamount, "");
+      stores.store._QUOTE_BALANCE_ = sub(stores.store._QUOTE_BALANCE_, amount);
    }
 
    // ============ Donate to Liquidity Pool Functions ============
 
    void _donateBaseToken(uint256 amount) {
-      stores.store._TARGET_BASE_TOKEN_AMOUNT_ = stores.store._TARGET_BASE_TOKEN_AMOUNT_.add(amount);
+      stores.store._TARGET_BASE_TOKEN_AMOUNT_ = add(stores.store._TARGET_BASE_TOKEN_AMOUNT_, amount);
    }
 
    void _donateQuoteToken(uint256 amount) {
-      stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = stores.store._TARGET_QUOTE_TOKEN_AMOUNT_.add(amount);
+      stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = add(stores.store._TARGET_QUOTE_TOKEN_AMOUNT_, amount);
    }
 
-   void donateBaseToken(uint256 amount) {
-      _baseTokenTransferIn(getMsgSender(), amount);
+   void donateBaseToken(const extended_asset& tokenamount) {
+      uint256 amount = tokenamount.quantity.amount;
+      _baseTokenTransferIn(getMsgSender(), tokenamount);
       _donateBaseToken(amount);
    }
 
-   void donateQuoteToken(uint256 amount) {
-      _quoteTokenTransferIn(getMsgSender(), amount);
+   void donateQuoteToken(const extended_asset& tokenamount) {
+      uint256 amount = tokenamount.quantity.amount;
+      _quoteTokenTransferIn(getMsgSender(), tokenamount);
       _donateQuoteToken(amount);
    }
 
@@ -95,20 +103,20 @@ class Settlement : public Storage {
       uint256 totalQuoteCapital            = getTotalQuoteCapital();
 
       if (stores.store._QUOTE_BALANCE_ > stores.store._TARGET_QUOTE_TOKEN_AMOUNT_) {
-         uint256 spareQuote = stores.store._QUOTE_BALANCE_.sub(stores.store._TARGET_QUOTE_TOKEN_AMOUNT_);
-         stores.store._BASE_CAPITAL_RECEIVE_QUOTE_ = DecimalMath.divFloor(spareQuote, totalBaseCapital);
+         uint256 spareQuote = sub(stores.store._QUOTE_BALANCE_, stores.store._TARGET_QUOTE_TOKEN_AMOUNT_);
+         stores.store._BASE_CAPITAL_RECEIVE_QUOTE_ = DecimalMath::divFloor(spareQuote, totalBaseCapital);
       } else {
          stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = stores.store._QUOTE_BALANCE_;
       }
 
       if (stores.store._BASE_BALANCE_ > stores.store._TARGET_BASE_TOKEN_AMOUNT_) {
-         uint256 spareBase = stores.store._BASE_BALANCE_.sub(stores.store._TARGET_BASE_TOKEN_AMOUNT_);
-         stores.store._QUOTE_CAPITAL_RECEIVE_BASE_ = DecimalMath.divFloor(spareBase, totalQuoteCapital);
+         uint256 spareBase = sub(stores.store._BASE_BALANCE_, stores.store._TARGET_BASE_TOKEN_AMOUNT_);
+         stores.store._QUOTE_CAPITAL_RECEIVE_BASE_ = DecimalMath::divFloor(spareBase, totalQuoteCapital);
       } else {
          stores.store._TARGET_BASE_TOKEN_AMOUNT_ = stores.store._BASE_BALANCE_;
       }
 
-      _R_STATUS_ = Types::RStatus::ONE;
+      stores.store._R_STATUS_ = Types::RStatus::ONE;
    }
 
    // claim remaining assets after final settlement
@@ -122,28 +130,30 @@ class Settlement : public Storage {
 
       uint256 quoteAmount = 0;
       if (quoteCapital > 0) {
-         quoteAmount = stores.store._TARGET_QUOTE_TOKEN_AMOUNT_.mul(quoteCapital).div(getTotalQuoteCapital());
+         quoteAmount = div(mul(stores.store._TARGET_QUOTE_TOKEN_AMOUNT_, quoteCapital), getTotalQuoteCapital());
       }
       uint256 baseAmount = 0;
       if (baseCapital > 0) {
-         baseAmount = stores.store._TARGET_BASE_TOKEN_AMOUNT_.mul(baseCapital).div(getTotalBaseCapital());
+         baseAmount = div(mul(stores.store._TARGET_BASE_TOKEN_AMOUNT_, baseCapital), getTotalBaseCapital());
       }
 
-      stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = stores.store._TARGET_QUOTE_TOKEN_AMOUNT_.sub(quoteAmount);
-      stores.store._TARGET_BASE_TOKEN_AMOUNT_  = stores.store._TARGET_BASE_TOKEN_AMOUNT_.sub(baseAmount);
+      stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = sub(stores.store._TARGET_QUOTE_TOKEN_AMOUNT_, quoteAmount);
+      stores.store._TARGET_BASE_TOKEN_AMOUNT_  = sub(stores.store._TARGET_BASE_TOKEN_AMOUNT_, baseAmount);
 
-      quoteAmount = quoteAmount.add(DecimalMath.mul(baseCapital, stores.store._BASE_CAPITAL_RECEIVE_QUOTE_));
-      baseAmount  = baseAmount.add(DecimalMath.mul(quoteCapital, stores.store._QUOTE_CAPITAL_RECEIVE_BASE_));
+      quoteAmount = add(quoteAmount,DecimalMath::mul(baseCapital, stores.store._BASE_CAPITAL_RECEIVE_QUOTE_));
+      baseAmount  = add(baseAmount,DecimalMath::mul(quoteCapital, stores.store._QUOTE_CAPITAL_RECEIVE_BASE_));
 
-      _baseTokenTransferOut(getMsgSender(), baseAmount);
-      _quoteTokenTransferOut(getMsgSender(), quoteAmount);
+      _baseTokenTransferOut(getMsgSender(), extended_asset(baseAmount,stores.store._BASE_TOKEN_));
+      _quoteTokenTransferOut(getMsgSender(), extended_asset(quoteAmount,stores.store._QUOTE_TOKEN_));
 
       //   IDODOLpToken(stores.store._BASE_CAPITAL_TOKEN_).burn(getMsgSender(), baseCapital);
       //   IDODOLpToken(stores.store._QUOTE_CAPITAL_TOKEN_).burn(getMsgSender(), quoteCapital);
 
-      zoo.get_lptoken(stores.store._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(getMsgSender(), baseCapital); });
+      storage.get_lptoken(
+          stores.store._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(getMsgSender(), baseCapital); });
 
-      zoo.get_lptoken(stores.store._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(getMsgSender(), quoteCapital); });
+      storage.get_lptoken(
+          stores.store._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(getMsgSender(), quoteCapital); });
 
       return;
    }
@@ -154,21 +164,20 @@ class Settlement : public Storage {
       const extended_symbol token  = tokenamount.get_extended_symbol();
       uint256               amount = tokenamount.quantity.amount;
       if (token == stores.store._BASE_TOKEN_) {
-         asset balance = zoo.get_transfer_mgmt().get_balance(zoo.get_self(), stores.store._BASE_TOKEN_);
-         require(balance.amount >= stores.store._BASE_BALANCE_.add(amount), "DODO_BASE_BALANCE_NOT_ENOUGH");
+         asset balance = storage.get_transfer_mgmt().get_balance(storage.get_self(), stores.store._BASE_TOKEN_);
+         require(balance.amount >= add(stores.store._BASE_BALANCE_,amount), "DODO_BASE_BALANCE_NOT_ENOUGH");
          //  require(
-         //      IERC20(stores.store._BASE_TOKEN_).balanceOf(address(this)) >= stores.store._BASE_BALANCE_.add(amount),
+         //      IERC20(stores.store._BASE_TOKEN_).balanceOf(address(this)) >= stores.store._BASE_BALANCE_,amount),
          //      "DODO_BASE_BALANCE_NOT_ENOUGH");
       }
       if (token == stores.store._QUOTE_TOKEN_) {
-         asset balance = zoo.get_transfer_mgmt().get_balance(zoo.get_self(), stores.store._QUOTE_TOKEN_);
-         require(balance.amount >= stores.store._QUOTE_BALANCE_.add(amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
+         asset balance = storage.get_transfer_mgmt().get_balance(storage.get_self(), stores.store._QUOTE_TOKEN_);
+         require(balance.amount >= add(stores.store._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
          //  require(
          //      IERC20(stores.store._QUOTE_TOKEN_).balanceOf(address(this)) >=
-         //      stores.store._QUOTE_BALANCE_.add(amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
+         //      stores.store._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
       }
       //   IERC20(token).safeTransfer(getMsgSender(), amount);
-      zoo.get_transfer_mgmt().transfer(
-          zoo.get_self(), getMsgSender(), tokenamount, "");
+      storage.get_transfer_mgmt().transfer(storage.get_self(), getMsgSender(), tokenamount, "");
    }
 };

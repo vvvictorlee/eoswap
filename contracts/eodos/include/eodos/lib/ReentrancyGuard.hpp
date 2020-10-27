@@ -18,11 +18,10 @@
 class ReentrancyGuard { 
  private:
    ReentrancyGuardStore& reentrancy_guard_store;
-
  public:
    ReentrancyGuard(ReentrancyGuardStore& _reentrancy_guard_store)
        : reentrancy_guard_store(_reentrancy_guard_store)
-
+{}
     // https://solidity.readthedocs.io/en/latest/control-structures.html?highlight=zero-state#scoping-and-declarations
     // zero-state of _ENTERED_ is false
     // bool  _ENTERED_;

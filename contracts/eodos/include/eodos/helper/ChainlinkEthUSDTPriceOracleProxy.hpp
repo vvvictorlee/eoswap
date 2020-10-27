@@ -25,6 +25,6 @@ class ChainlinkETHUSDTPriceOracleProxy {
    address chainlink;//= 0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46;
 
     uint256  getPrice() {
-        return 10**24 / IChainlink(chainlink).latestAnswer();
+        return my_pow(10,8) / IChainlink(chainlink).latestAnswer();
     }
 };
