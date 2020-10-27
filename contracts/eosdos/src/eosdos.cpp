@@ -38,7 +38,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void breeddodo(
        name msg_sender, address maintainer, const extended_symbol& baseToken, const extended_symbol& quoteToken,
-       const extended_symbol&  oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
+       const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
       proxy.setMsgSender(msg_sender);
       proxy.getZoo().breedDODO(maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
    }
@@ -106,65 +106,41 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.withdrawAllEthAsQuote(baseToken);
    }
 
-   //    ////////////////// TEST pool TOKEN////////////////////////
-   //    [[eosio::action]] void extransfer(name from, name to, extended_asset quantity,
-   //    std::string memo) {
-   //       proxy.get_transfer_mgmt().transfer(from, to, quantity, memo);
-   //    }
+   ////////////////////   Oracle////////////////////////
+   [[eosio::action]] void neworacle(name msg_sender, const extended_symbol& token) {
+      proxy.setMsgSender(msg_sender);
+      proxy.getZoo().get_storage_mgmt().newOracleStore(token);
+   }
 
-   //    [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
-   //       proxy.setMsgSender(msg_sender);
-   //       proxy.newToken(token);
-   //       proxy.get_transfer_mgmt().create(msg_sender, token);
-   //    }
+   [[eosio::action]] void setprice(name msg_sender, const extended_asset& amt) {
+      proxy.setMsgSender(msg_sender);
+      proxy.getZoo().get_oracle(amt.get_extended_symbol(), [&](auto& oracle) { oracle.setPrice(amt); });
+   }
 
-   //    [[eosio::action]] void approve(name msg_sender, name dst, const extended_asset&
-   //    amt) {
-   //       proxy.setMsgSender(msg_sender);
-   //       proxy.token(
-   //           to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-   //           _token_.approve(dst, amt.quantity.amount); });
-   //    }
+   ////////////////////  TOKEN////////////////////////
+   [[eosio::action]] void extransfer(name from, name to, extended_asset quantity, std::string memo) {
+      proxy.getZoo().get_transfer_mgmt().transfer(from, to, quantity, memo);
+   }
 
-   //    [[eosio::action]] void transfer(name msg_sender, name dst, const extended_asset&
-   //    amt) {
-   //       proxy.setMsgSender(msg_sender);
-   //       proxy.token(
-   //           to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-   //           _token_.transfer(dst, amt.quantity.amount); });
-   //    }
+   [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
+      proxy.setMsgSender(msg_sender);
+      proxy.getZoo().get_transfer_mgmt().create(msg_sender, token);
+   }
 
-   //    [[eosio::action]] void transferfrom(name msg_sender, name src, name dst, const
-   //    extended_asset& amt) {
-   //       proxy.setMsgSender(msg_sender);
-   //       proxy.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-   //          _token_.transferFrom(src, dst, amt.quantity.amount);
-   //       });
-   //    }
+   [[eosio::action]] void transfer(name msg_sender, name dst, const extended_asset& amt) {
+      proxy.setMsgSender(msg_sender);
+      proxy.getZoo().token(
+          to_namesym(amt.get_extended_symbol()), [&](auto& _token_) { _token_.transfer(dst, amt.quantity.amount); });
+   }
 
-   //    [[eosio::action]] void incapproval(name msg_sender, name dst, const
-   //    extended_asset& amt) {
-   //       proxy.setMsgSender(msg_sender);
-   //       proxy.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-   //          _token_.increaseApproval(dst, amt.quantity.amount);
-   //       });
-   //    }
-
-   //    [[eosio::action]] void decapproval(name msg_sender, name dst, const
-   //    extended_asset& amt) {
-   //       proxy.setMsgSender(msg_sender);
-   //       proxy.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-   //          _token_.decreaseApproval(dst, amt.quantity.amount);
-   //       });
-   //    }
    //    /////test interface /////
-   //    [[eosio::action]] void mint(name msg_sender, const extended_asset& amt) {
-   //       proxy.setMsgSender(msg_sender);
-   //       proxy.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-   //          _token_._mint(amt.quantity.amount);
-   //          proxy.get_transfer_mgmt().issue(msg_sender, amt,"");
-   //       });
-   //    }
+   [[eosio::action]] void mint(name msg_sender, const extended_asset& amt) {
+      proxy.setMsgSender(msg_sender);
+      proxy.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
+         _token_._mint(amt.quantity.amount);
+         proxy.get_transfer_mgmt().issue(msg_sender, amt, "");
+      });
+   }
 
    //    [[eosio::action]] void burn(name msg_sender, const extended_asset& amt) {
    //       proxy.setMsgSender(msg_sender);
@@ -196,7 +172,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
             auto           paras = transfer_mgmt::parse_string(action_event.param);
             name           pool_name;
             extended_asset balance;
-            uint256           denorm;
+            uint256        denorm;
             proxy.setMsgSender(action_event.msg_sender);
             // proxy.pool(pool_name, [&](auto& pool) { pool.bind(balance, denorm); });
          }
@@ -206,8 +182,9 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
       print_f("On notify 2 : % % % %", from, to, quantity, memo);
-      proxy.getZoo().get_transfer_mgmt().non_eosiotoken_transfer(from, to, quantity, memo, [&](const auto& action_event) {
+      proxy.getZoo().get_transfer_mgmt().non_eosiotoken_transfer(
+          from, to, quantity, memo, [&](const auto& action_event) {
 
-      });
+          });
    }
 };

@@ -5,12 +5,11 @@
 
 */
 
-#pragma once 
- #include <common/defines.hpp>
+#pragma once
+#include <common/defines.hpp>
 
 class Migrations {
  public:
-
    void restricted() {
       if (getMsgSender() == owner) {
       }

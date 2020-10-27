@@ -1,6 +1,5 @@
 
 #pragma once
-#pragma once
 #include <common/defines.hpp>
 #include <storage/LibTable.hpp>
 

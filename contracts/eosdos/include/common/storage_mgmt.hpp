@@ -72,7 +72,7 @@ class storage_mgmt {
       return d->second;
    }
 
-   DODOTokenStore& get_token_store(const extended_symbol& token) {
+   TokenStore& get_token_store(const extended_symbol& token) {
       namesym token_name = to_namesym(token);
       auto    t          = token_storage.tokens.find(token_name);
       bool    f          = (t != token_storage.tokens.end());
@@ -81,12 +81,12 @@ class storage_mgmt {
       return t->second;
    }
 
-   DODOTokenStore& get_lptoken_store(const extended_symbol& token) {
+   TokenStore& get_lptoken_store(const extended_symbol& token) {
       namesym token_name = to_namesym(token);
       auto    t          = token_storage.lptokens.find(token_name);
       bool    f          = (t != token_storage.lptokens.end());
 
-      require(f, "NO_TOKEN");
+      require(f, "NO_LPTOKEN");
       return t->second;
    }
 
@@ -98,29 +98,29 @@ class storage_mgmt {
       return t->second;
    }
 
-   DODOTokenStore& newLpTokenStore(const extended_symbol& token) {
+   TokenStore& newLpTokenStore(const extended_symbol& token) {
       extended_symbol esym       = extended_symbol(token.get_symbol(), LP_TOKEN_CONTRACT);
       namesym         token_name = to_namesym(esym);
       auto            p          = token_storage.lptokens.find(token_name);
       bool            f          = (p == token_storage.lptokens.end());
       require(f, "ALREADY_EXIST_LPTOKEN");
-      DODOTokenStore t;
+      TokenStore t;
       t.esymbol     = esym;
       t.originToken = token;
-      auto pb       = token_storage.lptokens.insert(std::map<namesym, DODOTokenStore>::value_type(token_name, t));
+      auto pb       = token_storage.lptokens.insert(std::map<namesym, TokenStore>::value_type(token_name, t));
       require(pb.second, "INSERT_LPTOKEN_FAIL");
 
       return pb.first->second;
    }
 
-   DODOTokenStore& newTokenStore(const extended_symbol& token) {
+   TokenStore& newTokenStore(const extended_symbol& token) {
       namesym token_name = to_namesym(token);
       auto    t          = token_storage.tokens.find(token_name);
       bool    f          = (t == token_storage.tokens.end());
       require(f, "ALREADY_EXIST_TOKEN");
 
       auto pb =
-          token_storage.tokens.insert(std::map<namesym, DODOTokenStore>::value_type(token_name, DODOTokenStore()));
+          token_storage.tokens.insert(std::map<namesym, TokenStore>::value_type(token_name, TokenStore()));
       require(pb.second, "INSERT_TOKEN_FAIL");
       return pb.first->second;
    }

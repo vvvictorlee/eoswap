@@ -18,6 +18,7 @@ using namespace std;
 
 using mvo      = fc::mutable_variant_object;
 using uint_eth = uint64_t;
+using uint256  = uint64_t;
 using namesym  = eosio::chain::uint128_t;
 class findx {
  public:
@@ -48,8 +49,8 @@ class eosdos_tester : public tester {
       nonadmin = N(alice);
       user1    = N(bob);
       user2    = N(carol);
-      set_code(N(eosdoseosdos), contracts::swap_wasm());
-      set_abi(N(eosdoseosdos), contracts::swap_abi().data());
+      set_code(N(eosdoseosdos), contracts::dos_wasm());
+      set_abi(N(eosdoseosdos), contracts::dos_abi().data());
       produce_blocks(2);
 
       set_code(N(eosio.token), contracts::token_wasm());
@@ -250,97 +251,95 @@ class eosdos_tester : public tester {
       return asset(result, sym);
    }
 
-   /////////////factory///////////
-   action_result setblabs(account_name msg_sender, account_name blabs) {
-      return push_action(msg_sender, N(setblabs), mvo()("msg_sender", msg_sender)("blabs", blabs));
+   /////////////zoo///////////
+   action_result adddodo(name msg_sender, address _dodo) {
+      return push_action(msg_sender, N(adddodo), mvo()("msg_sender", msg_sender)("_dodo", _dodo));
    }
 
-   action_result collect(account_name msg_sender, account_name pool_name) {
-      return push_action(msg_sender, N(collect), mvo()("msg_sender", msg_sender)("pool_name", pool_name));
+   action_result removedodo(name msg_sender, address _dodo) {
+      return push_action(msg_sender, N(removedodo), mvo()("msg_sender", msg_sender)("_dodo", _dodo));
    }
 
-   action_result newpool(account_name msg_sender, account_name pool_name) {
-      return push_action(msg_sender, N(newpool), mvo()("msg_sender", msg_sender)("pool_name", pool_name));
+   action_result breeddodo(
+       name msg_sender, address maintainer, const extended_symbol& baseToken, const extended_symbol& quoteToken,
+       const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
+      return push_action(
+          msg_sender, N(breeddodo),
+          mvo()("msg_sender", msg_sender)("maintainer", maintainer)("baseToken", baseToken)("quoteToken", quoteToken)(
+              "oracle",
+              oracle)("lpFeeRate", lpFeeRate)("mtFeeRate", mtFeeRate)("k", k)("gasPriceLimit", gasPriceLimit));
    }
 
-   ///////////////pool ////////////////////
+   ///////////////proxy ////////////////////
    // msg_sender, name dst, uint_eth amt
-   action_result setswapfee(account_name msg_sender, account_name pool_name, uint_eth swapFee) {
+   action_result sellethtoken(name msg_sender, const extended_asset& ethToken, const extended_asset& minReceiveToken) {
       return push_action(
-          msg_sender, N(setswapfee), mvo()("msg_sender", msg_sender)("pool_name", pool_name)("swapFee", swapFee));
-   }
-
-   action_result setcontroler(account_name msg_sender, account_name pool_name, name manager) {
-      return push_action(
-          msg_sender, N(setcontroler), mvo()("msg_sender", msg_sender)("pool_name", pool_name)("manager", manager));
-   }
-
-   action_result setpubswap(account_name msg_sender, account_name pool_name, bool public_) {
-      return push_action(
-          msg_sender, N(setpubswap), mvo()("msg_sender", msg_sender)("pool_name", pool_name)("public_", public_));
-   }
-
-   action_result finalize(account_name msg_sender, account_name pool_name) {
-      return push_action(msg_sender, N(finalize), mvo()("msg_sender", msg_sender)("pool_name", pool_name));
-   }
-
-   action_result bind(account_name msg_sender, account_name pool_name, const extended_asset& balance, uint_eth denorm) {
-      return push_action(
-          msg_sender, N(bind),
-          mvo()("msg_sender", msg_sender)("pool_name", pool_name)("balance", balance)("denorm", denorm));
+          msg_sender, N(sellethtoken),
+          mvo()("msg_sender", msg_sender)("ethToken", ethToken)("minReceiveToken", minReceiveToken));
    }
 
    action_result
-   rebind(account_name msg_sender, account_name pool_name, const extended_asset& balance, uint_eth denorm) {
+   buyeth1token(name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
       return push_action(
-          msg_sender, N(rebind),
-          mvo()("msg_sender", msg_sender)("pool_name", pool_name)("balance", balance)("denorm", denorm));
+          msg_sender, N(buyeth1token),
+          mvo()("msg_sender", msg_sender)("ethToken", ethToken)("maxPayTokenAmount", maxPayTokenAmount));
    }
 
-   action_result unbind(account_name msg_sender, account_name pool_name, const extended_symbol& token) {
+   action_result selltokeneth(name msg_sender, const extended_asset& baseToken, const extended_asset& minReceiveEth) {
       return push_action(
-          msg_sender, N(unbind), mvo()("msg_sender", msg_sender)("pool_name", pool_name)("token", token));
+          msg_sender, N(selltokeneth),
+          mvo()("msg_sender", msg_sender)("baseToken", baseToken)("minReceiveEth", minReceiveEth));
    }
 
-   action_result gulp(account_name msg_sender, account_name pool_name, const extended_symbol& token) {
-      return push_action(msg_sender, N(gulp), mvo()("msg_sender", msg_sender)("pool_name", pool_name)("token", token));
-   }
-
-   action_result joinpool(
-       account_name msg_sender, account_name pool_name, uint_eth poolAmountOut, std::vector<uint_eth> maxAmountsIn) {
+   action_result buytoken1eth(name msg_sender, const extended_asset& baseToken, const extended_asset& maxPayEthAmount) {
       return push_action(
-          msg_sender, N(joinpool),
-          mvo()("msg_sender", msg_sender)("pool_name", pool_name)("poolAmountOut", poolAmountOut)(
-              "maxAmountsIn", maxAmountsIn));
+          msg_sender, N(buytoken1eth),
+          mvo()("msg_sender", msg_sender)("baseToken", baseToken)("maxPayEthAmount", maxPayEthAmount));
    }
 
-   action_result exitpool(
-       account_name msg_sender, account_name pool_name, uint_eth poolAmountIn, std::vector<uint_eth> minAmountsOut) {
+   action_result
+   depositethab(name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
       return push_action(
-          msg_sender, N(exitpool),
-          mvo()("msg_sender", msg_sender)("pool_name", pool_name)("poolAmountIn", poolAmountIn)(
-              "minAmountsOut", minAmountsOut));
+          msg_sender, N(depositethab),
+          mvo()("msg_sender", msg_sender)("ethtokenamount", ethtokenamount)("quoteToken", quoteToken));
    }
 
-   action_result swapamtin(
-       name msg_sender, name pool_name, const extended_asset& tokenAmountIn, const extended_asset& minAmountOut,
-       uint maxPrice) {
+   action_result withdraweab(name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
       return push_action(
-          msg_sender, N(swapamtin),
-          mvo()("msg_sender", msg_sender)("pool_name", pool_name)("tokenAmountIn", tokenAmountIn)(
-              "minAmountOut", minAmountOut)("maxPrice", maxPrice));
+          msg_sender, N(withdraweab),
+          mvo()("msg_sender", msg_sender)("ethtokenamount", ethtokenamount)("quoteToken", quoteToken));
    }
 
-   action_result swapamtout(
-       name msg_sender, name pool_name, const extended_asset& maxAmountIn, const extended_asset& tokenAmountOut,
-       uint maxPrice) {
+   action_result withdrawaeab(name msg_sender, const extended_symbol& quoteToken) {
+      return push_action(msg_sender, N(withdrawaeab), mvo()("msg_sender", msg_sender)("quoteToken", quoteToken));
+   }
+
+   action_result depositethaq(name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
       return push_action(
-          msg_sender, N(swapamtout),
-          mvo()("msg_sender", msg_sender)("pool_name", pool_name)("maxAmountIn", maxAmountIn)(
-              "tokenAmountOut", tokenAmountOut)("maxPrice", maxPrice));
+          msg_sender, N(depositethaq),
+          mvo()("msg_sender", msg_sender)("ethtokenamount", ethtokenamount)("baseToken", baseToken));
    }
 
-   ////////////////TOKEN//////////////
+   action_result withdraweaq(name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
+      return push_action(
+          msg_sender, N(withdraweaq),
+          mvo()("msg_sender", msg_sender)("ethtokenamount", ethtokenamount)("baseToken", baseToken));
+   }
+
+   action_result withdrawaeaq(name msg_sender, const extended_symbol& baseToken) {
+      return push_action(msg_sender, N(withdrawaeaq), mvo()("msg_sender", msg_sender)("baseToken", baseToken));
+   }
+
+   //////////////////Oracle//////////////
+   action_result neworacle(name msg_sender, const extended_symbol& token) {
+      return push_action(from, N(neworacle), mvo()("msg_sender", msg_sender)("token", token));
+   }
+
+   action_result setprice(name msg_sender, const extended_asset& amt) {
+      return push_action(msg_sender, N(setprice), mvo()("msg_sender", msg_sender)("amt", amt));
+   }
+
+   //////////////////TOKEN//////////////
    action_result extransfer(name from, name to, const extended_asset& quantity, const std::string& memo = "") {
       return push_action(from, N(extransfer), mvo()("from", from)("to", to)("quantity", quantity)("memo", memo));
    }
@@ -349,61 +348,49 @@ class eosdos_tester : public tester {
       return push_action(msg_sender, N(newtoken), mvo()("msg_sender", msg_sender)("token", token));
    }
 
-   action_result approve(account_name msg_sender, account_name dst, const extended_asset& amt) {
-      return push_action(msg_sender, N(approve), mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
-   }
-
-   action_result transfer(account_name msg_sender, account_name dst, const extended_asset& amt) {
-      return push_action(msg_sender, N(transfer), mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
-   }
-
-   action_result transferfrom(account_name msg_sender, account_name src, account_name dst, const extended_asset& amt) {
-      return push_action(
-          msg_sender, N(transferfrom), mvo()("msg_sender", msg_sender)("src", src)("dst", dst)("amt", amt));
-   }
-
-   action_result incapproval(account_name msg_sender, account_name dst, const extended_asset& amt) {
-      return push_action(msg_sender, N(incapproval), mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
-   }
-
-   action_result decapproval(account_name msg_sender, account_name dst, const extended_asset& amt) {
-      return push_action(msg_sender, N(decapproval), mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
-   }
-
-   action_result mint(account_name msg_sender, const extended_asset& amt) {
-      return push_action(msg_sender, N(mint), mvo()("msg_sender", msg_sender)("amt", amt));
-   }
-
-   action_result burn(account_name msg_sender, const extended_asset& amt) {
-      return push_action(msg_sender, N(burn), mvo()("msg_sender", msg_sender)("amt", amt));
-   }
-
-   action_result move(account_name msg_sender, name dst, const extended_asset& amt) {
-      return push_action(msg_sender, N(move), mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
-   }
-
    ////////////////get table//////////////
-
-   fc::variant get_factory_store() {
-      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(factorystore), N(factorystore));
+   fc::variant get_zoo_store() {
+      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(zoo), N(zoo));
       if (data.empty())
          std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("BFactoryStorage", data, abi_serializer_max_time);
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("ZooStorage", data, abi_serializer_max_time);
    }
 
-   fc::variant get_pool_store() {
-      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(poolstore), N(poolstore));
+   fc::variant get_proxy_store() {
+      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(proxy), N(proxy));
       if (data.empty())
          std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("BPoolStorage", data, abi_serializer_max_time);
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("ProxyStorage", data, abi_serializer_max_time);
+   }
+
+   fc::variant get_dodo_store() {
+      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(dodo), N(dodo));
+      if (data.empty())
+         std::cout << "\nData is empty\n" << std::endl;
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("DODOStorage", data, abi_serializer_max_time);
    }
 
    fc::variant get_token_store() {
-      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(tokenstore), N(tokenstore));
+      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(token), N(token));
       if (data.empty())
          std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("BTokenStorage", data, abi_serializer_max_time);
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("TokenStorage", data, abi_serializer_max_time);
    }
+
+   fc::variant get_oracle_store() {
+      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(oracle), N(oracle));
+      if (data.empty())
+         std::cout << "\nData is empty\n" << std::endl;
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("OracleStorage", data, abi_serializer_max_time);
+   }
+
+   fc::variant get_helperstore() {
+      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(helper), N(helper));
+      if (data.empty())
+         std::cout << "\nData is empty\n" << std::endl;
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("HelperStorage", data, abi_serializer_max_time);
+   }
+
    ///////////////utils///////////////////////////
    void to_kv_helper(const fc::variant& v, std::function<void(const std::string&, const std::string&)>&& append) {
       if (v.is_object()) {
@@ -624,7 +611,7 @@ class eosdos_tester : public tester {
 };
 
 BOOST_AUTO_TEST_SUITE(eosdos_tests)
-////////////////factory////////////////////
+////////////////zoo////////////////////
 BOOST_FIXTURE_TEST_CASE(newpool_tests, eosdos_tester) try { newpool(admin, N(pool)); }
 FC_LOG_AND_RETHROW()
 
@@ -635,7 +622,7 @@ BOOST_FIXTURE_TEST_CASE(setblabs_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-////////////////pool////////////////////
+////////////////proxy////////////////////
 
 BOOST_FIXTURE_TEST_CASE(bind_tests, eosdos_tester) try {
 
@@ -646,62 +633,6 @@ BOOST_FIXTURE_TEST_CASE(bind_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(finalize_tests, eosdos_tester) try {
-
-   newpoolBefore();
-   mintBefore1();
-   bindBefore1();
-
-   finalize(admin, N(pool));
-   bool flag = pools(N(pool))["finalized"].as<bool>();
-   BOOST_REQUIRE_EQUAL(true, flag);
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(joinpool_tests, eosdos_tester) try {
-
-   newpoolBefore();
-   mintBefore1();
-   bindBefore1();
-   finalizeBefore();
-
-   std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
-   joinpool(nonadmin, N(pool), to_wei(10), v);
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(exitpool_tests, eosdos_tester) try {
-
-   newpoolBefore();
-   mintBefore1();
-   bindBefore1();
-   finalizeBefore();
-   joinpoolBefore1();
-   exitpool(nonadmin, N(pool), to_wei(10), std::vector<uint_eth>{0, 0});
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(collect_tests, eosdos_tester) try {
-
-   before1();
-   collect(admin, N(pool));
-   const auto ab = balanceOf(to_pool_sym(N(pool)), admin);
-   BOOST_REQUIRE_EQUAL(std::to_string(to_wei(100)), ab);
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eosdos_tester) try {
-
-   before();
-   swapamtin(user1, N(pool), to_asset("WETH", 2500000), to_wei_asset("DAI", 475), to_wei(200));
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(swapExactAmountOut_tests, eosdos_tester) try {
-   before();
-   swapamtout(user1, N(pool), to_wei_asset("WETH", 3), to_wei_asset("MKR", 1), to_wei(500));
-}
-FC_LOG_AND_RETHROW()
 
 ////////////////token////////////////////
 BOOST_FIXTURE_TEST_CASE(mint_tests, eosdos_tester) try {
@@ -716,37 +647,15 @@ BOOST_FIXTURE_TEST_CASE(mint_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(burn_tests, eosdos_tester) try {
-   newtoken(admin, to_maximum_supply("POOL"));
-   mint(admin, to_asset("POOL", 300));
-   burn(admin, to_asset("POOL", 300));
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(approve_tests, eosdos_tester) try {
-   newpool(admin, N(pool));
-   approve(N(alice), N(bob), to_pool_asset(N(pool), 300));
-   const auto b = allowance(to_pool_sym(N(pool)), N(alice), N(bob));
-   BOOST_REQUIRE_EQUAL("300", b);
-}
-FC_LOG_AND_RETHROW()
-
-BOOST_FIXTURE_TEST_CASE(transfer_tests, eosdos_tester) try {
-   newtoken(admin, to_maximum_supply("POOL"));
-   mint(N(alice), to_asset("POOL", 300));
-   transfer(N(alice), N(bob), to_asset("POOL", 300));
-}
-FC_LOG_AND_RETHROW()
-
 BOOST_FIXTURE_TEST_CASE(extransfer_tests, eosdos_tester) try {
-   const std::string token_name = "POOL";
-   const extended_asset& max_supply= to_asset(token_name, 1); 
+   const std::string     token_name = "POOL";
+   const extended_asset& max_supply = to_asset(token_name, 1);
    newtoken(admin, to_maximum_supply(token_name));
    mint(N(alice1111111), max_supply);
-   const symbol&  sym = max_supply.quantity.get_symbol();
+   const symbol& sym = max_supply.quantity.get_symbol();
    extransfer(N(alice1111111), user2, max_supply);
 
-   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 "+token_name), get_balancex(user2, sym));
+   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 " + token_name), get_balancex(user2, sym));
 }
 FC_LOG_AND_RETHROW()
 

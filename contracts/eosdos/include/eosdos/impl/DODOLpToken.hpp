@@ -20,11 +20,11 @@ using namespace SafeMath;
  */
 class DODOLpToken : public Ownable {
  private:
-   DODOTokenStore& stores;
-   DODOTokenStore& ostores;
+   TokenStore& stores;
+   TokenStore& ostores;
 
  public:
-   DODOLpToken(DODOTokenStore& _stores, DODOTokenStore& _ostores)
+   DODOLpToken(TokenStore& _stores, TokenStore& _ostores)
        : stores(_stores),ostores(_ostores)
        , Ownable(_stores.ownable) {}
 

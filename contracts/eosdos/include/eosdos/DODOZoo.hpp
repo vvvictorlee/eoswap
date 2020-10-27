@@ -148,8 +148,8 @@ class DODOZoo : public Ownable, public IStorage {
 
    template <typename T>
    void get_lptoken(const extended_symbol& lptoken, T func) {
-      DODOTokenStore& lptokenStore  = _storage_mgmt.get_lptoken_store(lptoken);
-      DODOTokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
+      TokenStore& lptokenStore  = _storage_mgmt.get_lptoken_store(lptoken);
+      TokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
       DODOLpToken     token(lptokenStore, olptokenStore);
       func(token);
    }

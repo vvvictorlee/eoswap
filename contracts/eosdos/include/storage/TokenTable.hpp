@@ -1,7 +1,5 @@
 
 #pragma once
-
-#pragma once
 #include <common/defines.hpp>
 
 // Info of each user.
@@ -69,7 +67,7 @@ struct Account2Amt {
    EOSLIB_SERIALIZE(Account2Amt, (dst2amt))
 };
 
-struct DODOTokenStore {
+struct TokenStore {
    //    string symbol = "DODO";
    //    string name   = "DODO bird";
 
@@ -85,11 +83,14 @@ struct DODOTokenStore {
    std::string                 names;
    std::string                 symbol;
    uint256                     decimals;
-   std::map<name, uint256>        balances;
+   std::map<name, uint256>     balances;
+   std::map<name, uint256>     balanceOf;
    std::map<name, Account2Amt> allowed;
+   std::map<name, Account2Amt> allowance;
    uint256                     totalSupply;
    EOSLIB_SERIALIZE(
-       DODOTokenStore, (ownable)(esymbol)(originToken)(names)(symbol)(decimals)(balances)(allowed)(totalSupply))
+       TokenStore,
+       (ownable)(esymbol)(originToken)(names)(symbol)(decimals)(balances)(allowed)(balanceOf)(allowance)(totalSupply))
 };
 
 struct LockedTokenVaultStore {
@@ -108,16 +109,19 @@ struct LockedTokenVaultStore {
 
    EOSLIB_SERIALIZE(
        LockedTokenVaultStore, (_TOKEN_)(originBalances)(claimedBalances)(_UNDISTRIBUTED_AMOUNT_)(_START_RELEASE_TIME_)(
-                             _RELEASE_DURATION_)(_CLIFF_RATE_)(_DISTRIBUTE_FINISHED_))
+                                  _RELEASE_DURATION_)(_CLIFF_RATE_)(_DISTRIBUTE_FINISHED_))
 };
 
-struct [[eosio::table("tokenstore"), eosio::contract("eosdos")]] TokenStorage {
-   DODOMineStore                     mine;
-   DODORewardVaultStore              rewardvault;
-   std::map<namesym, DODOTokenStore> tokens;
-   std::map<namesym, DODOTokenStore> lptokens;
-   LockedTokenVaultStore                  lockedtoken;
+struct [[eosio::table("token"), eosio::contract("eosdos")]] TokenStorage {
+   DODOMineStore                 mine;
+   DODORewardVaultStore          rewardvault;
+   std::map<namesym, TokenStore> tokens;
+   std::map<namesym, TokenStore> lptokens;
+   std::map<namesym, TokenStore> testerc20s;
+   std::map<namesym, TokenStore> uniswapv2erc20s;
+   std::map<namesym, TokenStore> weth9s;
+   LockedTokenVaultStore         lockedtoken;
    EOSLIB_SERIALIZE(TokenStorage, (tokens))
 };
 
-typedef eosio::singleton<"tokenstore"_n, TokenStorage> TokenStorageSingleton;
+typedef eosio::singleton<"token"_n, TokenStorage> TokenStorageSingleton;

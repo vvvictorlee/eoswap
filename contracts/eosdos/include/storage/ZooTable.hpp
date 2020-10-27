@@ -1,6 +1,5 @@
 
 #pragma once
-#pragma once
 #include <common/defines.hpp>
 #include <storage/LibTable.hpp>
 #include <storage/ImplTable.hpp>
@@ -18,7 +17,7 @@ struct QuoteToken2Dodo {
 
 struct DODOStore {
    DoStore                store;
-   DODOTokenStore     lpstore;
+   TokenStore     lpstore;
    OwnableStore         initownable;
    ReentrancyGuardStore guard;
    EOSLIB_SERIALIZE(DODOStore, (store)(lpstore)(initownable)(guard))
