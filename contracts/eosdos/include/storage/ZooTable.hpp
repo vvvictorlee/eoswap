@@ -15,14 +15,6 @@ struct QuoteToken2Dodo {
    EOSLIB_SERIALIZE(QuoteToken2Dodo, (q2d))
 };
 
-struct DODOStore {
-   DoStore                store;
-   TokenStore     lpstore;
-   OwnableStore         initownable;
-   ReentrancyGuardStore guard;
-   EOSLIB_SERIALIZE(DODOStore, (store)(lpstore)(initownable)(guard))
-};
-
 struct [[eosio::table("dodo"), eosio::contract("eosdos")]] DODOStorage {
    std::map<name, DODOStore>    dodos;
    EOSLIB_SERIALIZE(DODOStorage, (dodos))

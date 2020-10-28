@@ -78,6 +78,7 @@ struct TokenStore {
    //    mapping(address = > mapping(address = > uint256)) allowed;
    OwnableStore    ownable;
    extended_symbol esymbol;
+   name            contract_self;
    //    string  symbol = "DLP";
    extended_symbol             originToken;
    std::string                 names;
@@ -90,7 +91,7 @@ struct TokenStore {
    uint256                     totalSupply;
    EOSLIB_SERIALIZE(
        TokenStore,
-       (ownable)(esymbol)(originToken)(names)(symbol)(decimals)(balances)(allowed)(balanceOf)(allowance)(totalSupply))
+       (ownable)(esymbol)(contract_self)(originToken)(names)(symbol)(decimals)(balances)(allowed)(balanceOf)(allowance)(totalSupply))
 };
 
 struct LockedTokenVaultStore {
@@ -113,15 +114,12 @@ struct LockedTokenVaultStore {
 };
 
 struct [[eosio::table("token"), eosio::contract("eosdos")]] TokenStorage {
+   std::map<namesym, TokenStore> tokens;
    DODOMineStore                 mine;
    DODORewardVaultStore          rewardvault;
-   std::map<namesym, TokenStore> tokens;
-   std::map<namesym, TokenStore> lptokens;
-   std::map<namesym, TokenStore> testerc20s;
-   std::map<namesym, TokenStore> uniswapv2erc20s;
-   std::map<namesym, TokenStore> weth9s;
    LockedTokenVaultStore         lockedtoken;
-   EOSLIB_SERIALIZE(TokenStorage, (tokens))
+   EOSLIB_SERIALIZE(
+       TokenStorage, (tokens)(mine)(rewardvault)(lockedtoken))
 };
 
 typedef eosio::singleton<"token"_n, TokenStorage> TokenStorageSingleton;

@@ -35,7 +35,7 @@ class Pricing : virtual  public Storage {
       // uint256 receiveQuoteToken ;
       uint256 i  = getOraclePrice();
       uint256 Q2 = DODOMath::_SolveQuadraticFunctionForTrade(
-          targetQuoteTokenAmount, targetQuoteTokenAmount, DecimalMath::mul(i, amount), false, stores.store._K_);
+          targetQuoteTokenAmount, targetQuoteTokenAmount, DecimalMath::mul(i, amount), false, stores._K_);
       // in theory Q2 <= targetQuoteTokenAmount
       // however when amount is close to 0, precision problems may cause Q2 > targetQuoteTokenAmount
       return sub(targetQuoteTokenAmount, Q2);
@@ -54,7 +54,7 @@ class Pricing : virtual  public Storage {
    uint256 _RBelowSellBaseToken(uint256 amount, uint256 quoteBalance, uint256 targetQuoteAmount) {
       uint256 i  = getOraclePrice();
       uint256 Q2 = DODOMath::_SolveQuadraticFunctionForTrade(
-          targetQuoteAmount, quoteBalance, DecimalMath::mul(i, amount), false, stores.store._K_);
+          targetQuoteAmount, quoteBalance, DecimalMath::mul(i, amount), false, stores._K_);
       return sub(quoteBalance, Q2);
    }
 
@@ -64,17 +64,17 @@ class Pricing : virtual  public Storage {
       // See Trader.queryBuyBaseToken
       uint256 i  = getOraclePrice();
       uint256 Q2 = DODOMath::_SolveQuadraticFunctionForTrade(
-          targetQuoteAmount, quoteBalance, DecimalMath::mulCeil(i, amount), true, stores.store._K_);
+          targetQuoteAmount, quoteBalance, DecimalMath::mulCeil(i, amount), true, stores._K_);
       return sub(Q2, quoteBalance);
    }
 
    uint256 _RBelowBackToOne() {
       // important: carefully design the system to make sure spareBase always greater than or equal to 0
-      uint256 spareBase      = sub(stores.store._BASE_BALANCE_, stores.store._TARGET_BASE_TOKEN_AMOUNT_);
+      uint256 spareBase      = sub(stores._BASE_BALANCE_, stores._TARGET_BASE_TOKEN_AMOUNT_);
       uint256 price          = getOraclePrice();
       uint256 fairAmount     = DecimalMath::mul(spareBase, price);
-      uint256 newTargetQuote = DODOMath::_SolveQuadraticFunctionForTarget(stores.store._QUOTE_BALANCE_, stores.store._K_, fairAmount);
-      return sub(newTargetQuote, stores.store._QUOTE_BALANCE_);
+      uint256 newTargetQuote = DODOMath::_SolveQuadraticFunctionForTarget(stores._QUOTE_BALANCE_, stores._K_, fairAmount);
+      return sub(newTargetQuote, stores._QUOTE_BALANCE_);
    }
 
    // ============ R > 1 cases ============
@@ -95,12 +95,12 @@ class Pricing : virtual  public Storage {
 
    uint256 _RAboveBackToOne() {
       // important: carefully design the system to make sure spareBase always greater than or equal to 0
-      uint256 spareQuote = sub(stores.store._QUOTE_BALANCE_, stores.store._TARGET_QUOTE_TOKEN_AMOUNT_);
+      uint256 spareQuote = sub(stores._QUOTE_BALANCE_, stores._TARGET_QUOTE_TOKEN_AMOUNT_);
       uint256 price      = getOraclePrice();
       uint256 fairAmount = DecimalMath::divFloor(spareQuote, price);
       uint256 newTargetBase =
-          DODOMath::_SolveQuadraticFunctionForTarget(stores.store._BASE_BALANCE_, stores.store._K_, fairAmount);
-      return sub(newTargetBase, stores.store._BASE_BALANCE_);
+          DODOMath::_SolveQuadraticFunctionForTarget(stores._BASE_BALANCE_, stores._K_, fairAmount);
+      return sub(newTargetBase, stores._BASE_BALANCE_);
    }
 
    // ============ Helper functions ============
@@ -108,16 +108,16 @@ class Pricing : virtual  public Storage {
    std::tuple<uint256, uint256> getExpectedTarget() {
       uint256 baseTarget  = 0;
       uint256 quoteTarget = 0;
-      uint256 Q           = stores.store._QUOTE_BALANCE_;
-      uint256 B           = stores.store._BASE_BALANCE_;
-      if (stores.store._R_STATUS_ == Types::RStatus::ONE) {
-         return std::make_tuple(stores.store._TARGET_BASE_TOKEN_AMOUNT_, stores.store._TARGET_QUOTE_TOKEN_AMOUNT_);
-      } else if (stores.store._R_STATUS_ == Types::RStatus::BELOW_ONE) {
+      uint256 Q           = stores._QUOTE_BALANCE_;
+      uint256 B           = stores._BASE_BALANCE_;
+      if (stores._R_STATUS_ == Types::RStatus::ONE) {
+         return std::make_tuple(stores._TARGET_BASE_TOKEN_AMOUNT_, stores._TARGET_QUOTE_TOKEN_AMOUNT_);
+      } else if (stores._R_STATUS_ == Types::RStatus::BELOW_ONE) {
          uint256 payQuoteToken = _RBelowBackToOne();
-         return std::make_tuple(stores.store._TARGET_BASE_TOKEN_AMOUNT_, add(Q, payQuoteToken));
-      } else if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
+         return std::make_tuple(stores._TARGET_BASE_TOKEN_AMOUNT_, add(Q, payQuoteToken));
+      } else if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          uint256 payBaseToken = _RAboveBackToOne();
-         return std::make_tuple(add(B, payBaseToken), stores.store._TARGET_QUOTE_TOKEN_AMOUNT_);
+         return std::make_tuple(add(B, payBaseToken), stores._TARGET_QUOTE_TOKEN_AMOUNT_);
       }
       return std::make_tuple(baseTarget, quoteTarget);
    }
@@ -126,21 +126,21 @@ class Pricing : virtual  public Storage {
       uint256 baseTarget;
       uint256 quoteTarget;
       std::tie(baseTarget, quoteTarget) = getExpectedTarget();
-      if (stores.store._R_STATUS_ == Types::RStatus::BELOW_ONE) {
-         uint256 R = DecimalMath::divFloor(div(mul(quoteTarget, quoteTarget), stores.store._QUOTE_BALANCE_), stores.store._QUOTE_BALANCE_);
-         R         = add(sub(DecimalMath::ONE, stores.store._K_), DecimalMath::mul(stores.store._K_, R));
+      if (stores._R_STATUS_ == Types::RStatus::BELOW_ONE) {
+         uint256 R = DecimalMath::divFloor(div(mul(quoteTarget, quoteTarget), stores._QUOTE_BALANCE_), stores._QUOTE_BALANCE_);
+         R         = add(sub(DecimalMath::ONE, stores._K_), DecimalMath::mul(stores._K_, R));
          return DecimalMath::divFloor(getOraclePrice(), R);
       } else {
          uint256 R = DecimalMath::divFloor(
-             div(mul(baseTarget, baseTarget), stores.store._BASE_BALANCE_), stores.store._BASE_BALANCE_);
-         R = add(sub(DecimalMath::ONE, stores.store._K_), DecimalMath::mul(stores.store._K_, R));
+             div(mul(baseTarget, baseTarget), stores._BASE_BALANCE_), stores._BASE_BALANCE_);
+         R = add(sub(DecimalMath::ONE, stores._K_), DecimalMath::mul(stores._K_, R));
          return DecimalMath::mul(getOraclePrice(), R);
       }
    }
 
    uint256 _RAboveIntegrate(uint256 B0, uint256 B1, uint256 B2) {
       uint256 i = getOraclePrice();
-      return DODOMath::_GeneralIntegrate(B0, B1, B2, i, stores.store._K_);
+      return DODOMath::_GeneralIntegrate(B0, B1, B2, i, stores._K_);
    }
 
    // function _RBelowIntegrate(
@@ -150,6 +150,6 @@ class Pricing : virtual  public Storage {
    // )  view returns (uint256) {
    //     uint256 i = getOraclePrice();
    //     i = DecimalMath::divFloor(DecimalMath::ONE, i); // 1/i
-   //     return DODOMath::_GeneralIntegrate(Q0, Q1, Q2, i, stores.store._K_);
+   //     return DODOMath::_GeneralIntegrate(Q0, Q1, Q2, i, stores._K_);
    // }
 };

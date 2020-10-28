@@ -30,7 +30,7 @@ class DODOLpToken : public Ownable {
 
    // ============ Functions ============
 
-   //    DODOLpToken(const extended_symbol& _originToken) { stores.originToken = _originToken; }
+  void init(const extended_symbol& _originToken) { stores.originToken = _originToken; }
    const extended_symbol&  get_esymbol() { return stores.esymbol; }
    string name() {
       std::string lpTokenSuffix = "_DODO_LP_TOKEN_";

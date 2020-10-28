@@ -16,10 +16,11 @@ using namespace eosio::testing;
 using namespace fc;
 using namespace std;
 
-using mvo      = fc::mutable_variant_object;
-using uint_eth = uint64_t;
-using uint256  = uint64_t;
-using namesym  = eosio::chain::uint128_t;
+using mvo       = fc::mutable_variant_object;
+using uint_eth  = uint64_t;
+using uint256_x = uint64_t;
+using namesym   = eosio::chain::uint128_t;
+using address   = name;
 class findx {
  public:
    findx(const string str) { test = str; }
@@ -42,13 +43,17 @@ class eosdos_tester : public tester {
       create_accounts({N(eosio.token), N(eosio.ram), N(eosio.ramfee), N(eosio.stake), N(eosio.bpay), N(eosio.vpay),
                        N(eosio.saving), N(eosio.names), N(eosio.rex)});
 
-      create_accounts({N(alice), N(bob), N(carol), N(eosdoseosdos), N(pool)});
+      create_accounts({N(alice), N(bob), N(carol), N(eosdoseosdos), N(eosdosoracle)});
       create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(eosdosxtoken)});
       produce_blocks(2);
-      admin    = N(eosdoseosdos);
-      nonadmin = N(alice);
-      user1    = N(bob);
-      user2    = N(carol);
+      admin     = N(eosdoseosdos);
+      nonadmin  = N(alice);
+      user1     = N(bob);
+      user2     = N(carol);
+      lp        = N(alice);
+      trader    = N(bob);
+      dodo_name = N(mkrdai);
+
       set_code(N(eosdoseosdos), contracts::dos_wasm());
       set_abi(N(eosdoseosdos), contracts::dos_abi().data());
       produce_blocks(2);
@@ -252,6 +257,16 @@ class eosdos_tester : public tester {
    }
 
    /////////////zoo///////////
+   action_result newdodo(
+       name msg_sender, name dodo_name, address owner, address supervisor, address maintainer,
+       const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
+       uint256_x lpFeeRate, uint256_x mtFeeRate, uint256_x k, uint256_x gasPriceLimit) {
+      return push_action(
+          msg_sender, N(newdodo),
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("owner", owner)("supervisor", supervisor)(
+              "maintainer", maintainer)("baseToken", baseToken)("quoteToken", quoteToken)("oracle", oracle)(
+              "lpFeeRate", lpFeeRate)("mtFeeRate", mtFeeRate)("k", k)("gasPriceLimit", gasPriceLimit));
+   }
    action_result adddodo(name msg_sender, address _dodo) {
       return push_action(msg_sender, N(adddodo), mvo()("msg_sender", msg_sender)("_dodo", _dodo));
    }
@@ -261,17 +276,23 @@ class eosdos_tester : public tester {
    }
 
    action_result breeddodo(
-       name msg_sender, address maintainer, const extended_symbol& baseToken, const extended_symbol& quoteToken,
-       const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
+       name msg_sender, name dodo_name, address maintainer, const extended_symbol& baseToken,
+       const extended_symbol& quoteToken, const extended_symbol& oracle, uint256_x lpFeeRate, uint256_x mtFeeRate,
+       uint256_x k, uint256_x gasPriceLimit) {
       return push_action(
           msg_sender, N(breeddodo),
-          mvo()("msg_sender", msg_sender)("maintainer", maintainer)("baseToken", baseToken)("quoteToken", quoteToken)(
-              "oracle",
-              oracle)("lpFeeRate", lpFeeRate)("mtFeeRate", mtFeeRate)("k", k)("gasPriceLimit", gasPriceLimit));
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("maintainer", maintainer)("baseToken", baseToken)(
+              "quoteToken", quoteToken)("oracle", oracle)("lpFeeRate", lpFeeRate)("mtFeeRate", mtFeeRate)("k", k)(
+              "gasPriceLimit", gasPriceLimit));
    }
 
    ///////////////proxy ////////////////////
    // msg_sender, name dst, uint_eth amt
+
+   action_result init(name msg_sender, address dodoZoo, const extended_symbol& weth) {
+      return push_action(msg_sender, N(init), mvo()("msg_sender", msg_sender)("dodoZoo", dodoZoo)("weth", weth));
+   }
+
    action_result sellethtoken(name msg_sender, const extended_asset& ethToken, const extended_asset& minReceiveToken) {
       return push_action(
           msg_sender, N(sellethtoken),
@@ -330,9 +351,28 @@ class eosdos_tester : public tester {
       return push_action(msg_sender, N(withdrawaeaq), mvo()("msg_sender", msg_sender)("baseToken", baseToken));
    }
 
+   //////////////////admin dodo//////////////
+   action_result enablequodep(name msg_sender, name dodo_name) {
+      return push_action(msg_sender, N(enablequodep), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
+   }
+
+   action_result enablebasdep(name msg_sender, name dodo_name) {
+      return push_action(msg_sender, N(enablebasdep), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
+   }
+
+   action_result enabletradin(name msg_sender, name dodo_name) {
+      return push_action(msg_sender, N(enabletradin), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
+   }
+
+   //////////////////LiquidityProvider dodo//////////////
+   action_result depositquote(name msg_sender, name dodo_name, const extended_asset& amt) {
+      return push_action(
+          msg_sender, N(depositquote), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amt", amt));
+   }
+
    //////////////////Oracle//////////////
    action_result neworacle(name msg_sender, const extended_symbol& token) {
-      return push_action(from, N(neworacle), mvo()("msg_sender", msg_sender)("token", token));
+      return push_action(msg_sender, N(neworacle), mvo()("msg_sender", msg_sender)("token", token));
    }
 
    action_result setprice(name msg_sender, const extended_asset& amt) {
@@ -346,6 +386,14 @@ class eosdos_tester : public tester {
 
    action_result newtoken(account_name msg_sender, const extended_asset& token) {
       return push_action(msg_sender, N(newtoken), mvo()("msg_sender", msg_sender)("token", token));
+   }
+
+   action_result newethtoken(account_name msg_sender, const extended_asset& token) {
+      return push_action(msg_sender, N(newethtoken), mvo()("msg_sender", msg_sender)("token", token));
+   }
+
+   action_result mint(account_name msg_sender, const extended_asset& amt) {
+      return push_action(msg_sender, N(mint), mvo()("msg_sender", msg_sender)("amt", amt));
    }
 
    ////////////////get table//////////////
@@ -441,10 +489,10 @@ class eosdos_tester : public tester {
       return fc::variant();
    }
 
-   bool isBPool(name pool_name) {
-      const auto f = get_factory_store();
-      const auto p = find_variant(f["isBPool"], pool_name.to_string());
-      return p.as<bool>();
+   fc::variant dodos(name dodo_name) {
+      const auto f = get_dodo_store();
+      const auto p = find_variant(f["dodos"], dodo_name.to_string());
+      return p;
    }
 
    std::string balanceOf(const extended_symbol& token, name account) {
@@ -462,16 +510,16 @@ class eosdos_tester : public tester {
       return amt;
    }
 
-   fc::variant records(name pool_name, const extended_symbol& token) {
-      const auto ps = get_pool_store();
-      const auto p  = find_variant(ps["pools"], pool_name.to_string());
-      const auto r  = find_value(p["records"], ns_to_string(to_namesym(token)));
-      return r;
+   std::string getPrice(const extended_symbol& oracle) {
+      const auto ps  = get_oracle_store();
+      const auto p   = find_variant(ps["oracles"], ns_to_string(to_namesym(oracle)));
+      const auto amt = p["tokenPrice"]["quantity"];
+      return amt.as_string();
    }
 
-   fc::variant pools(name pool_name) {
-      const auto ps = get_pool_store();
-      const auto p  = find_variant(ps["pools"], pool_name.to_string());
+   fc::variant oracles(const extended_symbol& oracle) {
+      const auto ps = get_oracle_store();
+      const auto p  = find_variant(ps["oracles"], ns_to_string(to_namesym(oracle)));
       return p;
    }
 
@@ -515,90 +563,59 @@ class eosdos_tester : public tester {
       return s;
    }
 
-   void newpoolBefore() { newpool(admin, N(pool)); }
-
-   void setswapfeeBefore() {
-      // await pool.setSwapFee(toWei('0.003'));
-      setswapfee(admin, N(pool), 3000);
+   void newOracleBefore() {
+      neworacle(admin, to_sym("WETH"));
+      neworacle(admin, to_sym("DAI"));
+      neworacle(admin, to_sym("MKR"));
    }
 
-   void mintBefore() {
+   void setPriceBefore() {
+      // await pool.setSwapFee(toWei('0.003'));
+      setprice(admin, to_asset("WETH", 100));
+   }
+
+   void buysellBefore() {
+
       newtoken(admin, to_maximum_supply("WETH"));
       newtoken(admin, to_maximum_supply("MKR"));
-      newtoken(admin, to_maximum_supply("DAI"));
-      newtoken(admin, to_maximum_supply("XXX"));
+      //   newtoken(admin, to_maximum_supply("DAI"));
+      //   newtoken(admin, to_maximum_supply("XXX"));
 
-      mint(admin, to_wei_asset("WETH", 50));
-      mint(admin, to_wei_asset("MKR", 20));
-      mint(admin, to_wei_asset("DAI", 10000));
-      mint(admin, to_wei_asset("XXX", 10));
+      mint(lp, to_wei_asset("MKR", 1000));
+      mint(trader, to_wei_asset("MKR", 1000));
+      name dodo_name = N(mkrdai);
 
-      mint(user1, to_wei_asset("WETH", 25));
-      mint(user1, to_wei_asset("MKR", 4));
-      mint(user1, to_wei_asset("DAI", 40000));
-      mint(user1, to_wei_asset("XXX", 10));
-
-      mint(user2, to_asset("WETH", 12222200));
-      mint(user2, to_asset("MKR", 1015333));
-      mint(user2, to_asset("DAI", 1));
-      mint(user2, to_wei_asset("XXX", 51));
-
-      mint(nonadmin, to_wei_asset("WETH", 1));
-      mint(nonadmin, to_wei_asset("DAI", 200));
+      depositquote(lp, dodo_name, to_wei_asset("MKR", 1000));
    }
 
-   void bindBefore() {
-      bind(admin, N(pool), to_wei_asset("WETH", 50), to_wei(5));
-      bind(admin, N(pool), to_wei_asset("MKR", 20), to_wei(5));
-      bind(admin, N(pool), to_wei_asset("DAI", 10000), to_wei(5));
-   }
+   void beforeEach() { depositethab(lp, to_wei_asset("WETH", 10), to_sym("MKR")); }
 
-   void finalizeBefore() { finalize(admin, N(pool)); }
+   void breedBefore() {
+      name dodo_name = N(mkrdai);
 
-   void joinpoolBefore() {
-      std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1), uint_eth(-1)};
-      joinpool(user1, N(pool), to_wei(5), v);
+      //   newtoken(admin, to_maximum_supply("MKR"));
+      //   newtoken(admin, to_maximum_supply("DAI"));
+      name                   msg_sender    = admin;
+      address                maintainer    = nonadmin;
+      const extended_symbol& baseToken     = to_sym("MKR");
+      const extended_symbol& quoteToken    = to_sym("DAI");
+      const extended_symbol& oracle        = to_sym("WETH");
+      uint256_x              lpFeeRate     = 0;
+      uint256_x              mtFeeRate     = 0;
+      uint256_x              k             = 1;
+      uint256_x              gasPriceLimit = 0;
+      //   lpFeeRate: decimalStr("0.002"),
+      //   mtFeeRate: decimalStr("0.001"),
+      //   k: decimalStr("0.1"),
+      //   gasPriceLimit: gweiStr("100"),
+      breeddodo(
+          msg_sender, dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
    }
 
    void before() {
-      newpoolBefore();
-      setswapfeeBefore();
-      mintBefore();
-      bindBefore();
-      finalizeBefore();
-      joinpoolBefore();
-   }
-
-   void mintBefore1() {
-
-      newtoken(admin, to_maximum_supply("WETH"));
-      newtoken(admin, to_maximum_supply("DAI"));
-
-      mint(admin, to_wei_asset("WETH", 5));
-      mint(admin, to_wei_asset("DAI", 200));
-
-      mint(nonadmin, to_wei_asset("WETH", 1));
-      mint(nonadmin, to_wei_asset("DAI", 200));
-   }
-
-   void bindBefore1() {
-      bind(admin, N(pool), to_wei_asset("WETH", 5), to_wei(5));
-      bind(admin, N(pool), to_wei_asset("DAI", 200), to_wei(5));
-   }
-
-   void joinpoolBefore1() {
-      std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
-      joinpool(nonadmin, N(pool), to_wei(10), v);
-   }
-
-   void exitpoolBefore1() { exitpool(nonadmin, N(pool), to_wei(10), std::vector<uint_eth>{0, 0}); }
-   void before1() {
-      newpoolBefore();
-      mintBefore1();
-      bindBefore1();
-      finalizeBefore();
-      joinpoolBefore1();
-      exitpoolBefore1();
+      buysellBefore();
+      beforeEach();
+      breedBefore();
    }
 
    bool is_auth_token;
@@ -607,36 +624,315 @@ class eosdos_tester : public tester {
    name           nonadmin;
    name           user1;
    name           user2;
+   name           lp;
+   name           trader;
+   name           dodo_name;
    abi_serializer abi_ser;
 };
 
 BOOST_AUTO_TEST_SUITE(eosdos_tests)
 ////////////////zoo////////////////////
-BOOST_FIXTURE_TEST_CASE(newpool_tests, eosdos_tester) try { newpool(admin, N(pool)); }
-FC_LOG_AND_RETHROW()
+BOOST_FIXTURE_TEST_CASE(breeddodo_tests, eosdos_tester) try {
+   newtoken(admin, to_maximum_supply("MKR"));
+   newtoken(admin, to_maximum_supply("DAI"));
+   name                   msg_sender    = admin;
+   name                   dodo_name     = N(mkrdai);
+   address                maintainer    = nonadmin;
+   const extended_symbol& baseToken     = to_sym("MKR");
+   const extended_symbol& quoteToken    = to_sym("DAI");
+   const extended_symbol& oracle        = to_sym("WETH");
+   uint256_x              lpFeeRate     = 0;
+   uint256_x              mtFeeRate     = 0;
+   uint256_x              k             = 1;
+   uint256_x              gasPriceLimit = 0;
+   breeddodo(msg_sender, dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
 
-BOOST_FIXTURE_TEST_CASE(setblabs_tests, eosdos_tester) try {
-   setblabs(N(eosdoseosdos), N(alice));
-   std::string b = get_factory_store()["blabs"].as_string();
-   BOOST_REQUIRE_EQUAL("alice", b);
+   //    auto dodo_store = get_dodo_store();
+   //    BOOST_TEST_CHECK(nullptr == dodo_store);
+   //    auto zoo_store = get_zoo_store();
+   //    BOOST_TEST_CHECK(nullptr == zoo_store);
+   //    auto proxy_store = get_proxy_store();
+   //    BOOST_REQUIRE_EQUAL(nullptr, proxy_store);
+   auto store = dodos(dodo_name);
+   //    BOOST_REQUIRE_EQUAL(nullptr, store);
+   BOOST_REQUIRE_EQUAL("4,MKR", store["_BASE_TOKEN_"]["sym"].as_string());
+   BOOST_REQUIRE_EQUAL("4,DAI", store["_QUOTE_TOKEN_"]["sym"].as_string());
 }
 FC_LOG_AND_RETHROW()
 
 ////////////////proxy////////////////////
+BOOST_FIXTURE_TEST_CASE(buyeth1token_tests, eosdos_tester) try {
+   init(admin, admin, to_sym("WETH"));
+   newtoken(admin, to_maximum_supply("WETH"));
+   newtoken(admin, to_maximum_supply("MKR"));
+   //   newtoken(admin, to_maximum_supply("DAI"));
+   //   newtoken(admin, to_maximum_supply("XXX"));
 
-BOOST_FIXTURE_TEST_CASE(bind_tests, eosdos_tester) try {
+   mint(lp, to_wei_asset("MKR", 1000));
+   mint(trader, to_wei_asset("MKR", 1000));
 
-   newpoolBefore();
-   mintBefore1();
-   bind(admin, N(pool), to_wei_asset("WETH", 5), to_wei(5));
-   bind(admin, N(pool), to_wei_asset("DAI", 200), to_wei(5));
+   name                   msg_sender    = admin;
+   address                maintainer    = nonadmin;
+   const extended_symbol& baseToken     = to_sym("WETH");
+   const extended_symbol& quoteToken    = to_sym("MKR");
+   const extended_symbol& oracle        = to_sym("WETH");
+   uint256_x              lpFeeRate     = 2000;
+   uint256_x              mtFeeRate     = 1000;
+   uint256_x              k             = 100000;
+   uint256_x              gasPriceLimit = 0; // gweiStr("100")
+   //   lpFeeRate: decimalStr("0.002"),
+   //   mtFeeRate: decimalStr("0.001"),
+   //   k: decimalStr("0.1"),
+   //   gasPriceLimit: gweiStr("100"),
+   breeddodo(msg_sender, dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
+
+   BOOST_TEST_CHECK("11" == "ddd");
+   enabletradin(admin, dodo_name);
+   BOOST_TEST_CHECK("11" == "ddd");
+   enablequodep(admin, dodo_name);
+   BOOST_TEST_CHECK("11" == "ddd");
+   enablebasdep(admin, dodo_name);
+   BOOST_TEST_CHECK("11" == "ddd");
+   depositquote(lp, dodo_name, to_wei_asset("MKR", 1000));
+   BOOST_TEST_CHECK("11" == "ddd");
+   depositethab(lp, to_wei_asset("WETH", 10), to_sym("MKR"));
+
+   //    const buyAmount = "1";
+   buyeth1token(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 200));
+
+   auto store = dodos(dodo_name);
+   //    BOOST_REQUIRE_EQUAL(nullptr, store);
+   BOOST_REQUIRE_EQUAL("8.999 WETH", store["_BASE_BALANCE_"].as_string());
+   BOOST_REQUIRE_EQUAL("898581839502056240973 MKR", balanceOf(quoteToken, trader));
 }
 FC_LOG_AND_RETHROW()
 
+BOOST_FIXTURE_TEST_CASE(sellethtoken_tests, eosdos_tester) try {
+   const extended_symbol& baseToken  = to_sym("MKR");
+   const extended_symbol& quoteToken = to_sym("DAI");
+
+   auto store = dodos(dodo_name);
+
+   sellethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 50));
+
+   BOOST_REQUIRE_EQUAL("11 WETH", store["_BASE_BALANCE_"].as_string());
+   BOOST_REQUIRE_EQUAL("1098617454226610630663 MKR", balanceOf(quoteToken, trader));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(depositethab_tests, eosdos_tester) try {
+   //  const withdrawAmount = decimalStr("5");
+   //       const baseLpTokenAddress = await ctx.DODO.methods
+   //         ._BASE_CAPITAL_TOKEN_()
+   //         .call();
+   //       const baseLpToken = contracts.getContractWithAddress(
+   //         contracts.TEST_ERC20_CONTRACT_NAME,
+   //         baseLpTokenAddress
+   //       );
+   //       await baseLpToken.methods
+   //         .approve(DODOEthProxy.options.address, MAX_UINT256)
+   //         .send(ctx.sendParam(lp));
+   //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
+   //       const txReceipt: TransactionReceipt = await DODOEthProxy.methods
+   //         .withdrawEthAsBase(withdrawAmount, ctx.QUOTE.options.address)
+   //         .send(ctx.sendParam(lp));
+
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods.getLpBaseBalance(lp).call(),
+   //         withdrawAmount
+   //       );
+   //       const tx = await ctx.Web3.eth.getTransaction(txReceipt.transactionHash);
+   //       const ethSpentOnGas = new BigNumber(tx.gasPrice).times(txReceipt.gasUsed);
+   //       const lpEthBalanceAfter = await ctx.Web3.eth.getBalance(lp);
+   //       assert.ok(
+   //         new BigNumber(lpEthBalanceBefore)
+   //           .plus(withdrawAmount)
+   //           .minus(ethSpentOnGas)
+   //           .eq(lpEthBalanceAfter)
+   //       );
+
+   //  const withdrawAmount = decimalStr("10");
+   //       const baseLpTokenAddress = await ctx.DODO.methods
+   //         ._BASE_CAPITAL_TOKEN_()
+   //         .call();
+   //       const baseLpToken = contracts.getContractWithAddress(
+   //         contracts.TEST_ERC20_CONTRACT_NAME,
+   //         baseLpTokenAddress
+   //       );
+   //       await baseLpToken.methods
+   //         .approve(DODOEthProxy.options.address, MAX_UINT256)
+   //         .send(ctx.sendParam(lp));
+   //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
+   //       const txReceipt: TransactionReceipt = await DODOEthProxy.methods
+   //         .withdrawAllEthAsBase(ctx.QUOTE.options.address)
+   //         .send(ctx.sendParam(lp));
+
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods.getLpBaseBalance(lp).call(),
+   //         "0"
+   //       );
+   //       const tx = await ctx.Web3.eth.getTransaction(txReceipt.transactionHash);
+   //       const ethSpentOnGas = new BigNumber(tx.gasPrice).times(txReceipt.gasUsed);
+   //       const lpEthBalanceAfter = await ctx.Web3.eth.getBalance(lp);
+   //       assert.ok(
+   //         new BigNumber(lpEthBalanceBefore)
+   //           .plus(withdrawAmount)
+   //           .minus(ethSpentOnGas)
+   //           .eq(lpEthBalanceAfter)
+   //       );
+   //     });
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(withdraweab_tests, eosdos_tester) try {
+   //  const withdrawAmount = decimalStr("5");
+   //       const baseLpTokenAddress = await ctx.DODO.methods
+   //         ._BASE_CAPITAL_TOKEN_()
+   //         .call();
+   //       const baseLpToken = contracts.getContractWithAddress(
+   //         contracts.TEST_ERC20_CONTRACT_NAME,
+   //         baseLpTokenAddress
+   //       );
+   //       await baseLpToken.methods
+   //         .approve(DODOEthProxy.options.address, MAX_UINT256)
+   //         .send(ctx.sendParam(lp));
+   //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
+   //       const txReceipt: TransactionReceipt = await DODOEthProxy.methods
+   //         .withdrawEthAsBase(withdrawAmount, ctx.QUOTE.options.address)
+   //         .send(ctx.sendParam(lp));
+
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods.getLpBaseBalance(lp).call(),
+   //         withdrawAmount
+   //       );
+   //       const tx = await ctx.Web3.eth.getTransaction(txReceipt.transactionHash);
+   //       const ethSpentOnGas = new BigNumber(tx.gasPrice).times(txReceipt.gasUsed);
+   //       const lpEthBalanceAfter = await ctx.Web3.eth.getBalance(lp);
+   //       assert.ok(
+   //         new BigNumber(lpEthBalanceBefore)
+   //           .plus(withdrawAmount)
+   //           .minus(ethSpentOnGas)
+   //           .eq(lpEthBalanceAfter)
+   //       );
+
+   //  const withdrawAmount = decimalStr("10");
+   //       const baseLpTokenAddress = await ctx.DODO.methods
+   //         ._BASE_CAPITAL_TOKEN_()
+   //         .call();
+   //       const baseLpToken = contracts.getContractWithAddress(
+   //         contracts.TEST_ERC20_CONTRACT_NAME,
+   //         baseLpTokenAddress
+   //       );
+   //       await baseLpToken.methods
+   //         .approve(DODOEthProxy.options.address, MAX_UINT256)
+   //         .send(ctx.sendParam(lp));
+   //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
+   //       const txReceipt: TransactionReceipt = await DODOEthProxy.methods
+   //         .withdrawAllEthAsBase(ctx.QUOTE.options.address)
+   //         .send(ctx.sendParam(lp));
+
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods.getLpBaseBalance(lp).call(),
+   //         "0"
+   //       );
+   //       const tx = await ctx.Web3.eth.getTransaction(txReceipt.transactionHash);
+   //       const ethSpentOnGas = new BigNumber(tx.gasPrice).times(txReceipt.gasUsed);
+   //       const lpEthBalanceAfter = await ctx.Web3.eth.getBalance(lp);
+   //       assert.ok(
+   //         new BigNumber(lpEthBalanceBefore)
+   //           .plus(withdrawAmount)
+   //           .minus(ethSpentOnGas)
+   //           .eq(lpEthBalanceAfter)
+   //       );
+   //     });
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(withdrawaeab_tests, eosdos_tester) try {
+   //  const withdrawAmount = decimalStr("5");
+   //       const baseLpTokenAddress = await ctx.DODO.methods
+   //         ._BASE_CAPITAL_TOKEN_()
+   //         .call();
+   //       const baseLpToken = contracts.getContractWithAddress(
+   //         contracts.TEST_ERC20_CONTRACT_NAME,
+   //         baseLpTokenAddress
+   //       );
+   //       await baseLpToken.methods
+   //         .approve(DODOEthProxy.options.address, MAX_UINT256)
+   //         .send(ctx.sendParam(lp));
+   //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
+   //       const txReceipt: TransactionReceipt = await DODOEthProxy.methods
+   //         .withdrawEthAsBase(withdrawAmount, ctx.QUOTE.options.address)
+   //         .send(ctx.sendParam(lp));
+
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods.getLpBaseBalance(lp).call(),
+   //         withdrawAmount
+   //       );
+   //       const tx = await ctx.Web3.eth.getTransaction(txReceipt.transactionHash);
+   //       const ethSpentOnGas = new BigNumber(tx.gasPrice).times(txReceipt.gasUsed);
+   //       const lpEthBalanceAfter = await ctx.Web3.eth.getBalance(lp);
+   //       assert.ok(
+   //         new BigNumber(lpEthBalanceBefore)
+   //           .plus(withdrawAmount)
+   //           .minus(ethSpentOnGas)
+   //           .eq(lpEthBalanceAfter)
+   //       );
+
+   //  const withdrawAmount = decimalStr("10");
+   //       const baseLpTokenAddress = await ctx.DODO.methods
+   //         ._BASE_CAPITAL_TOKEN_()
+   //         .call();
+   //       const baseLpToken = contracts.getContractWithAddress(
+   //         contracts.TEST_ERC20_CONTRACT_NAME,
+   //         baseLpTokenAddress
+   //       );
+   //       await baseLpToken.methods
+   //         .approve(DODOEthProxy.options.address, MAX_UINT256)
+   //         .send(ctx.sendParam(lp));
+   //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
+   //       const txReceipt: TransactionReceipt = await DODOEthProxy.methods
+   //         .withdrawAllEthAsBase(ctx.QUOTE.options.address)
+   //         .send(ctx.sendParam(lp));
+
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods.getLpBaseBalance(lp).call(),
+   //         "0"
+   //       );
+   //       const tx = await ctx.Web3.eth.getTransaction(txReceipt.transactionHash);
+   //       const ethSpentOnGas = new BigNumber(tx.gasPrice).times(txReceipt.gasUsed);
+   //       const lpEthBalanceAfter = await ctx.Web3.eth.getBalance(lp);
+   //       assert.ok(
+   //         new BigNumber(lpEthBalanceBefore)
+   //           .plus(withdrawAmount)
+   //           .minus(ethSpentOnGas)
+   //           .eq(lpEthBalanceAfter)
+   //       );
+   //     });
+}
+FC_LOG_AND_RETHROW()
+////////////////oracle////////////////////
+BOOST_FIXTURE_TEST_CASE(neworacle_tests, eosdos_tester) try {
+   neworacle(admin, to_sym("WETH"));
+   neworacle(admin, to_sym("DAI"));
+   neworacle(admin, to_sym("MKR"));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(setprice_tests, eosdos_tester) try {
+   newOracleBefore();
+   extended_asset ea = to_wei_asset("WETH", 5);
+   setprice(admin, ea);
+   setprice(admin, to_wei_asset("DAI", 10));
+   setprice(admin, to_wei_asset("MKR", 20));
+   auto b = getPrice(to_sym("WETH"));
+   BOOST_REQUIRE_EQUAL("500.0000 WETH", b);
+}
+FC_LOG_AND_RETHROW()
 
 ////////////////token////////////////////
 BOOST_FIXTURE_TEST_CASE(mint_tests, eosdos_tester) try {
-   newpool(admin, N(pool));
+   //    newpool(admin, N(pool));
    newtoken(admin, to_maximum_supply("WETH"));
    newtoken(admin, to_maximum_supply("DAI"));
    mint(N(alice), to_wei_asset("WETH", 5));

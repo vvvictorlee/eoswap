@@ -34,13 +34,13 @@ class Trader : virtual public Storage, public Pricing, public Settlement {
        , Settlement(_stores, _storage) {}
    // ============ Events ============
 
-   void tradeAllowed() { require(stores.store._TRADE_ALLOWED_, "TRADE_NOT_ALLOWED"); }
+   void tradeAllowed() { require(stores._TRADE_ALLOWED_, "TRADE_NOT_ALLOWED"); }
 
-   void buyingAllowed() { require(stores.store._BUYING_ALLOWED_, "BUYING_NOT_ALLOWED"); }
+   void buyingAllowed() { require(stores._BUYING_ALLOWED_, "BUYING_NOT_ALLOWED"); }
 
-   void sellingAllowed() { require(stores.store._SELLING_ALLOWED_, "SELLING_NOT_ALLOWED"); }
+   void sellingAllowed() { require(stores._SELLING_ALLOWED_, "SELLING_NOT_ALLOWED"); }
 
-   void gasPriceLimit() { require(tx_gasprice <= stores.store._GAS_PRICE_LIMIT_, "GAS_PRICE_EXCEED"); }
+   void gasPriceLimit() { require(tx_gasprice <= stores._GAS_PRICE_LIMIT_, "GAS_PRICE_EXCEED"); }
 
    // ============ Trade Functions ============
 
@@ -61,24 +61,24 @@ class Trader : virtual public Storage, public Pricing, public Settlement {
       require(receiveQuote >= minReceiveQuote, "SELL_BASE_RECEIVE_NOT_ENOUGH");
 
       // settle assets
-      _quoteTokenTransferOut(getMsgSender(), extended_asset(receiveQuote, stores.store._QUOTE_TOKEN_));
+      _quoteTokenTransferOut(getMsgSender(), extended_asset(receiveQuote, stores._QUOTE_TOKEN_));
       if (data.size() > 0) {
          //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
       }
-      _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores.store._BASE_TOKEN_));
+      _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
       if (mtFeeQuote != 0) {
-         _quoteTokenTransferOut(stores.store._MAINTAINER_, extended_asset(mtFeeQuote, stores.store._QUOTE_TOKEN_));
+         _quoteTokenTransferOut(stores._MAINTAINER_, extended_asset(mtFeeQuote, stores._QUOTE_TOKEN_));
       }
 
       // update TARGET
-      if (stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
-         stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
+      if (stores._TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
+         stores._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
       }
-      if (stores.store._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
-         stores.store._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
+      if (stores._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
+         stores._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
       }
-      if (stores.store._R_STATUS_ != newRStatus) {
-         stores.store._R_STATUS_ = newRStatus;
+      if (stores._R_STATUS_ != newRStatus) {
+         stores._R_STATUS_ = newRStatus;
       }
 
       _donateQuoteToken(lpFeeQuote);
@@ -102,24 +102,24 @@ class Trader : virtual public Storage, public Pricing, public Settlement {
       require(payQuote <= maxPayQuote, "BUY_BASE_COST_TOO_MUCH");
 
       // settle assets
-      _baseTokenTransferOut(getMsgSender(), extended_asset(amount, stores.store._BASE_TOKEN_));
+      _baseTokenTransferOut(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
       if (data.size() > 0) {
          //  IDODOCallee(getMsgSender()).dodoCall(true, amount, payQuote, data);
       }
-      _quoteTokenTransferIn(getMsgSender(), extended_asset(payQuote, stores.store._QUOTE_TOKEN_));
+      _quoteTokenTransferIn(getMsgSender(), extended_asset(payQuote, stores._QUOTE_TOKEN_));
       if (mtFeeBase != 0) {
-         _baseTokenTransferOut(stores.store._MAINTAINER_, extended_asset(mtFeeBase, stores.store._BASE_TOKEN_));
+         _baseTokenTransferOut(stores._MAINTAINER_, extended_asset(mtFeeBase, stores._BASE_TOKEN_));
       }
 
       // update TARGET
-      if (stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
-         stores.store._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
+      if (stores._TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
+         stores._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
       }
-      if (stores.store._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
-         stores.store._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
+      if (stores._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
+         stores._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
       }
-      if (stores.store._R_STATUS_ != newRStatus) {
-         stores.store._R_STATUS_ = newRStatus;
+      if (stores._R_STATUS_ != newRStatus) {
+         stores._R_STATUS_ = newRStatus;
       }
 
       _donateBaseToken(lpFeeBase);
@@ -155,19 +155,19 @@ class Trader : virtual public Storage, public Pricing, public Settlement {
 
       uint256 sellBaseAmount = amount;
 
-      if (stores.store._R_STATUS_ == Types::RStatus::ONE) {
+      if (stores._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
          // R falls below one
          receiveQuote = _ROneSellBaseToken(sellBaseAmount, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
-      } else if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
-         uint256 backToOnePayBase      = sub(newBaseTarget, stores.store._BASE_BALANCE_);
-         uint256 backToOneReceiveQuote = sub(stores.store._QUOTE_BALANCE_, newQuoteTarget);
+      } else if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
+         uint256 backToOnePayBase      = sub(newBaseTarget, stores._BASE_BALANCE_);
+         uint256 backToOneReceiveQuote = sub(stores._QUOTE_BALANCE_, newQuoteTarget);
          // case 2: R>1
          // complex case, R status depends on trading amount
          if (sellBaseAmount < backToOnePayBase) {
             // case 2.1: R status do not change
-            receiveQuote = _RAboveSellBaseToken(sellBaseAmount, stores.store._BASE_BALANCE_, newBaseTarget);
+            receiveQuote = _RAboveSellBaseToken(sellBaseAmount, stores._BASE_BALANCE_, newBaseTarget);
             newRStatus   = Types::RStatus::ABOVE_ONE;
             if (receiveQuote > backToOneReceiveQuote) {
                // [Important corner case!] may enter this branch when some precision problem happens. And consequently
@@ -188,13 +188,13 @@ class Trader : virtual public Storage, public Pricing, public Settlement {
       } else {
          // _R_STATUS_ == Types::RStatus::BELOW_ONE
          // case 3: R<1
-         receiveQuote = _RBelowSellBaseToken(sellBaseAmount, stores.store._QUOTE_BALANCE_, newQuoteTarget);
+         receiveQuote = _RBelowSellBaseToken(sellBaseAmount, stores._QUOTE_BALANCE_, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
       }
 
       // count fees
-      lpFeeQuote   = DecimalMath::mul(receiveQuote, stores.store._LP_FEE_RATE_);
-      mtFeeQuote   = DecimalMath::mul(receiveQuote, stores.store._MT_FEE_RATE_);
+      lpFeeQuote   = DecimalMath::mul(receiveQuote, stores._LP_FEE_RATE_);
+      mtFeeQuote   = DecimalMath::mul(receiveQuote, stores._MT_FEE_RATE_);
       receiveQuote = sub(sub(receiveQuote, lpFeeQuote), mtFeeQuote);
 
       return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
@@ -213,27 +213,27 @@ class Trader : virtual public Storage, public Pricing, public Settlement {
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
       // charge fee from user receive amount
-      lpFeeBase             = DecimalMath::mul(amount, stores.store._LP_FEE_RATE_);
-      mtFeeBase             = DecimalMath::mul(amount, stores.store._MT_FEE_RATE_);
+      lpFeeBase             = DecimalMath::mul(amount, stores._LP_FEE_RATE_);
+      mtFeeBase             = DecimalMath::mul(amount, stores._MT_FEE_RATE_);
       uint256 buyBaseAmount = add(add(amount, lpFeeBase), mtFeeBase);
 
-      if (stores.store._R_STATUS_ == Types::RStatus::ONE) {
+      if (stores._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
          payQuote   = _ROneBuyBaseToken(buyBaseAmount, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
-      } else if (stores.store._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
+      } else if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          // case 2: R>1
-         payQuote   = _RAboveBuyBaseToken(buyBaseAmount, stores.store._BASE_BALANCE_, newBaseTarget);
+         payQuote   = _RAboveBuyBaseToken(buyBaseAmount, stores._BASE_BALANCE_, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
-      } else if (stores.store._R_STATUS_ == Types::RStatus::BELOW_ONE) {
-         uint256 backToOnePayQuote    = sub(newQuoteTarget, stores.store._QUOTE_BALANCE_);
-         uint256 backToOneReceiveBase = sub(stores.store._BASE_BALANCE_, newBaseTarget);
+      } else if (stores._R_STATUS_ == Types::RStatus::BELOW_ONE) {
+         uint256 backToOnePayQuote    = sub(newQuoteTarget, stores._QUOTE_BALANCE_);
+         uint256 backToOneReceiveBase = sub(stores._BASE_BALANCE_, newBaseTarget);
          // case 3: R<1
          // complex case, R status may change
          if (buyBaseAmount < backToOneReceiveBase) {
             // case 3.1: R status do not change
             // no need to check payQuote because spare base token must be greater than zero
-            payQuote   = _RBelowBuyBaseToken(buyBaseAmount, stores.store._QUOTE_BALANCE_, newQuoteTarget);
+            payQuote   = _RBelowBuyBaseToken(buyBaseAmount, stores._QUOTE_BALANCE_, newQuoteTarget);
             newRStatus = Types::RStatus::BELOW_ONE;
          } else if (buyBaseAmount == backToOneReceiveBase) {
             // case 3.2: R status changes to ONE

@@ -81,15 +81,6 @@ class storage_mgmt {
       return t->second;
    }
 
-   TokenStore& get_lptoken_store(const extended_symbol& token) {
-      namesym token_name = to_namesym(token);
-      auto    t          = token_storage.lptokens.find(token_name);
-      bool    f          = (t != token_storage.lptokens.end());
-
-      require(f, "NO_LPTOKEN");
-      return t->second;
-   }
-
    OracleStore& get_oracle_store(const extended_symbol& oracle) {
       namesym oracle_name = to_namesym(oracle);
       auto    t           = oracle_storage.oracles.find(oracle_name);
@@ -98,29 +89,14 @@ class storage_mgmt {
       return t->second;
    }
 
-   TokenStore& newLpTokenStore(const extended_symbol& token) {
-      extended_symbol esym       = extended_symbol(token.get_symbol(), LP_TOKEN_CONTRACT);
-      namesym         token_name = to_namesym(esym);
-      auto            p          = token_storage.lptokens.find(token_name);
-      bool            f          = (p == token_storage.lptokens.end());
-      require(f, "ALREADY_EXIST_LPTOKEN");
-      TokenStore t;
-      t.esymbol     = esym;
-      t.originToken = token;
-      auto pb       = token_storage.lptokens.insert(std::map<namesym, TokenStore>::value_type(token_name, t));
-      require(pb.second, "INSERT_LPTOKEN_FAIL");
-
-      return pb.first->second;
-   }
-
-   TokenStore& newTokenStore(const extended_symbol& token) {
+    TokenStore& newTokenStore(const extended_symbol& token) {
+      token.print();
       namesym token_name = to_namesym(token);
       auto    t          = token_storage.tokens.find(token_name);
       bool    f          = (t == token_storage.tokens.end());
       require(f, "ALREADY_EXIST_TOKEN");
 
-      auto pb =
-          token_storage.tokens.insert(std::map<namesym, TokenStore>::value_type(token_name, TokenStore()));
+      auto pb = token_storage.tokens.insert(std::map<namesym, TokenStore>::value_type(token_name, TokenStore()));
       require(pb.second, "INSERT_TOKEN_FAIL");
       return pb.first->second;
    }
@@ -136,14 +112,12 @@ class storage_mgmt {
       return pb.first->second;
    }
 
-   name newDodoStore(name& dodo_name) {
-      dodo_name.value++;
-      auto t             = dodo_storage.dodos.find(dodo_name);
-      bool f             = (t == dodo_storage.dodos.end());
+   DODOStore& newDodoStore(name dodo_name) {
+      auto t = dodo_storage.dodos.find(dodo_name);
+      bool f = (t == dodo_storage.dodos.end());
       require(f, "ALREADY_EXIST_DODO");
-
-      auto pb = dodo_storage.dodos.insert(std::map<name, DODOStore>::value_type(dodo_name, DODOStore()));
+      auto pb       = dodo_storage.dodos.insert(std::map<name, DODOStore>::value_type(dodo_name, DODOStore()));
       require(pb.second, "INSERT_DODO_FAIL");
-      return dodo_name;
+      return pb.first->second;
    }
 };

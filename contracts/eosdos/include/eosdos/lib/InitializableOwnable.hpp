@@ -5,8 +5,8 @@
 
 */
 
-#pragma once 
- #include <common/defines.hpp>
+#pragma once
+#include <common/defines.hpp>
 
 /**
  * @title Ownable
@@ -21,11 +21,15 @@ class InitializableOwnable {
 
  public:
    InitializableOwnable(OwnableStore& _ownable_store)
-       : ownable_store(_ownable_store){}
+       : ownable_store(_ownable_store) {
+   }
 
    // ============ Modifiers ============
    name getMsgSender() { return msg_sender; }
-   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
+   void setMsgSender(name _msg_sender) {
+      require_auth(_msg_sender);
+      msg_sender = _msg_sender;
+   }
    void onlyOwner() { require(getMsgSender() == ownable_store._OWNER_, "NOT_OWNER"); }
 
    // ============ Functions ============

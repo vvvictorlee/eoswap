@@ -16,9 +16,10 @@ class IStorage {
  public:
    IStorage(IStorage& _subStorage)
        : subStorage(_subStorage) {}
-   virtual name           get_self()          = 0;
-   virtual storage_mgmt&  get_storage_mgmt()  = 0;
-   virtual transfer_mgmt& get_transfer_mgmt() = 0;
+   virtual name                   get_self()                               = 0;
+   virtual storage_mgmt&          get_storage_mgmt()                       = 0;
+   virtual transfer_mgmt&         get_transfer_mgmt()                      = 0;
+   virtual  extended_symbol newLpToken(const extended_symbol& tokenx) = 0;
 
    template <typename T>
    void get_dodo(name dodo_name, T func) {

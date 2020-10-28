@@ -1,1 +1,1 @@
-./build.sh -e /Users/lisheng/eosio/2.0 -c /Users/lisheng/opt/eosio.cdt
+./build.sh -e /Users/lisheng/eosio/2.0 -c /Users/lisheng/opt/eosio.cdt -t
