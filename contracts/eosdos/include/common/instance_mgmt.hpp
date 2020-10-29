@@ -41,7 +41,6 @@ class instance_mgmt : public IFactory {
 
    template <typename T>
    void get_dodo(name dodo_name, T func) {
-      print("=========get_dodo=========");
 
       DODOStore& dodoStore = _storage_mgmt.get_dodo_store(dodo_name);
       DODO       dodo(dodoStore, *this);
@@ -62,14 +61,6 @@ class instance_mgmt : public IFactory {
    void get_token(const extended_symbol& _token, T func) {
       TokenStore& tokenStore = _storage_mgmt.get_token_store(_token);
       TT          token(tokenStore);
-      token.setMsgSender(getMsgSender());
-      func(token);
-   }
-
-   template <typename T>
-   void get_ethtoken(const extended_symbol& _token, T func) {
-      TokenStore& tokenStore = _storage_mgmt.get_token_store(_token);
-      WETH9       token(tokenStore);
       token.setMsgSender(getMsgSender());
       func(token);
    }
@@ -111,22 +102,15 @@ class instance_mgmt : public IFactory {
    extended_symbol      newLpToken(const extended_symbol& tokenx) override {
       const symbol& sym = tokenx.get_symbol();
 
-      //   extended_symbol exsym =
-      //       extended_symbol(symbol(sym.code().to_string() + "LP", sym.precision()), tokenx.get_contract());
       extended_symbol exsym =
           extended_symbol(symbol(sym.code().to_string() + "LP", sym.precision()), tokenx.get_contract());
-   print("===============lptoken exsm=============");
-tokenx.print();
-      print("===============lptoken exsm=============");
-      exsym.print();
-      print("===============lptoken exsm=============");
 
       TokenStore& tokenStore    = _storage_mgmt.newTokenStore(exsym);
       TokenStore& olptokenStore = _storage_mgmt.get_token_store(tokenx);
       DODOLpToken token(tokenStore, olptokenStore);
       token.setMsgSender(getMsgSender());
       token.init(exsym, tokenx);
-      _transfer_mgmt.create(msg_sender, extended_asset{MAX_TOTAL_SUPPLY, exsym});
+     _transfer_mgmt.create(msg_sender, extended_asset{MAX_TOTAL_SUPPLY, exsym});
 
       return exsym;
    }

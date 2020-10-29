@@ -82,8 +82,6 @@ class storage_mgmt {
    }
 
    OracleStore& get_oracle_store(const extended_symbol& oracle) {
-      print("=========get_oracle_store=======");
-      oracle.print();
       namesym oracle_name = to_namesym(oracle);
       auto    t           = oracle_storage.oracles.find(oracle_name);
       bool    f           = (t != oracle_storage.oracles.end());
@@ -92,9 +90,6 @@ class storage_mgmt {
    }
 
    TokenStore& newTokenStore(const extended_symbol& token) {
-print("/n=============newTokenStore================");
-token.print();
-print("/n==============newTokenStore===============");
       namesym token_name = to_namesym(token);
       auto    t          = token_storage.tokens.find(token_name);
       bool    f          = (t == token_storage.tokens.end());

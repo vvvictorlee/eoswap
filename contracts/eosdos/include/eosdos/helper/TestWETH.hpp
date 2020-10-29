@@ -15,26 +15,30 @@ class WETH9 {
 
  public:
    WETH9(TokenStore& _stores)
-       :stores(_stores) {}
+       : stores(_stores) {}
 
    void init(name contract_self, const extended_symbol& esymbol) {
       stores.contract_self = contract_self;
       stores.esymbol       = esymbol;
-stores.originToken = esymbol;
+      // stores.originToken = esymbol;
    }
 
    name getMsgSender() { return msg_sender; }
    void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
-//    void fallback() { deposit(); }
+   //    void fallback() { deposit(); }
 
-//    void receive() { deposit(); }
+   //    void receive() { deposit(); }
+
+   uint256 balanceOf(address owner) { return stores.balanceOf[owner]; }
+
+   uint256 allowance(address owner, address spender) { return stores.allowance[owner].dst2amt[spender]; }
 
    void deposit(uint256 msg_value) { stores.balanceOf[getMsgSender()] += msg_value; }
 
    void withdraw(uint256 wad) {
-      require(stores.balanceOf[getMsgSender()] >= wad,"withdraw amount couldn't be more than  the balance");
+      require(stores.balanceOf[getMsgSender()] >= wad, "withdraw amount couldn't be more than  the balance");
       stores.balanceOf[getMsgSender()] -= wad;
-      transferFrom(stores.contract_self,getMsgSender(),wad);
+      transferFrom(stores.contract_self, getMsgSender(), wad);
    }
 
    uint256 totalSupply() { return stores.balanceOf[stores.contract_self]; }
@@ -45,13 +49,27 @@ stores.originToken = esymbol;
       return true;
    }
 
-   bool transfer(address dst, uint256 wad) { return transferFrom(getMsgSender(), dst, wad); }
+   bool transfer(address dst, uint256 wad) {
+      print("\n================transfer");
+      dst.print();
+      return transferFrom(getMsgSender(), dst, wad);
+   }
 
    bool transferFrom(address src, address dst, uint256 wad) {
-      require(stores.balanceOf[src] >= wad,"The balance is less than the amount to be transfered");
+      print("\n================transferFrom====");
+      src.print();
+      print("\n================transferFrom====");
+      getMsgSender().print();
+      print("\n================transferFrom====");
+      dst.print();
+      print("\n================transferFrom====");
+
+      require(stores.balanceOf[src] >= wad, "The balance is less than the amount to be transfered");
 
       if (src != getMsgSender() && stores.allowance[src].dst2amt[getMsgSender()] != uint256(-1)) {
-         require(stores.allowance[src].dst2amt[getMsgSender()] >= wad,"if (src != getMsgSender() && stores.allowance[src].dst2amt[getMsgSender()] != uint256(-1))");
+         require(
+             stores.allowance[src].dst2amt[getMsgSender()] >= wad,
+             "if (src != getMsgSender() && stores.allowance[src].dst2amt[getMsgSender()] != uint256(-1))");
          stores.allowance[src].dst2amt[getMsgSender()] -= wad;
       }
 
@@ -63,7 +81,5 @@ stores.originToken = esymbol;
       return true;
    }
 
-   void mint(address account, uint256 amount) { stores.balanceOf[account] = add(stores.balanceOf[account],amount); }
-
-
+   void mint(address account, uint256 amount) { stores.balanceOf[account] = add(stores.balanceOf[account], amount); }
 };

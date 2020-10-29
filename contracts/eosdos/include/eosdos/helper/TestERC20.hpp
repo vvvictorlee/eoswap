@@ -19,10 +19,10 @@ class TestERC20 {
    TestERC20(TokenStore& _stores)
        : stores(_stores) {}
    void init(string _name, uint8 _decimals, const extended_symbol& esymbol) {
-      stores.names       = _name;
-      stores.decimals    = _decimals;
-      stores.esymbol     = esymbol;
-      stores.originToken = esymbol;
+      stores.names    = _name;
+      stores.decimals = _decimals;
+      stores.esymbol  = esymbol;
+      //   stores.originToken = esymbol;
    }
 
    name getMsgSender() { return msg_sender; }
@@ -35,13 +35,22 @@ class TestERC20 {
       require(amount <= stores.balances[getMsgSender()], "BALANCE_NOT_ENOUGH");
       stores.balances[getMsgSender()] = sub(stores.balances[getMsgSender()], amount);
       stores.balances[to]             = add(stores.balances[to], amount);
-
       return true;
    }
 
    uint256 balanceOf(address owner) { return stores.balances[owner]; }
 
    bool transferFrom(address from, address to, uint256 amount) {
+      print("\n====testerc20============transferFrom====");
+      from.print();
+      print("\n=======testerc20=========transferFrom====");
+      getMsgSender().print();
+      print("\n=======testerc20=========transferFrom====");
+      to.print();
+      print("\n========testerc20========transferFrom====");
+stores.esymbol.print();
+ print("\n========testerc20========transferFrom====");
+ print(amount,"\n========testerc20========transferFrom====",stores.allowed[from].dst2amt[getMsgSender()]);
       require(to != address(0), "TO_ADDRESS_IS_EMPTY");
       require(amount <= stores.balances[from], "BALANCE_NOT_ENOUGH");
       require(amount <= stores.allowed[from].dst2amt[getMsgSender()], "ALLOWANCE_NOT_ENOUGH");

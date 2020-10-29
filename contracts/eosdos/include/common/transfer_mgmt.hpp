@@ -75,8 +75,6 @@ class transfer_mgmt {
    }
 
    static asset get_balance(const name& owner, const extended_symbol& exsym) {
-      print("======get_balance========");
-      exsym.print();
       return eosio::token::get_balance(exsym.get_contract(), owner, exsym.get_symbol().code());
    }
 
@@ -100,12 +98,6 @@ class transfer_mgmt {
    }
 
    void inner_transfer(name from, name to, extended_asset quantity, std::string memo, bool is_deferred = false) {
-      from.print();
-      print("======inner_transfer========");
-
-      quantity.print();
-      print("======inner_transfer========");
-
       check(from != to, "cannot transfer to self");
       //  require_auth( from );
       check(is_account(to), "to account does not exist");
@@ -134,10 +126,6 @@ class transfer_mgmt {
    }
 
    void create(name issuer, const extended_asset& maximum_supply) {
-      print("======inner_transfer========");
-      maximum_supply.print();
-      print("======inner_transfer========");
-
       require_auth(issuer);
       check(is_account(issuer), "issuer account does not exist");
 
@@ -150,10 +138,6 @@ class transfer_mgmt {
    }
 
    void issue(name to, const extended_asset& quantity, const string& memo) {
-      print("======inner_transfer========");
-      quantity.print();
-      print("======inner_transfer========");
-
       check(is_account(to), "to account does not exist");
       check(quantity.quantity.is_valid(), "invalid quantity");
       check(quantity.quantity.amount > 0, "must transfer positive quantity");

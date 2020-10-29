@@ -52,7 +52,8 @@ struct DODOMineStore {
    // The block number when DODO mining starts.
    uint256 startBlock;
    EOSLIB_SERIALIZE(
-       DODOMineStore, (dodoRewardVault)(dodoPerBlock)(poolInfos)(lpTokenRegistry)(userInfo)(realizedReward)(totalAllocPoint)(startBlock))
+       DODOMineStore, (dodoRewardVault)(dodoPerBlock)(poolInfos)(lpTokenRegistry)(userInfo)(realizedReward)(
+                          totalAllocPoint)(startBlock))
 };
 
 struct DODORewardVaultStore {
@@ -66,7 +67,6 @@ struct Account2Amt {
    EOSLIB_SERIALIZE(Account2Amt, (dst2amt))
 };
 
-struct TokenStore {
    //    string symbol = "DODO";
    //    string name   = "DODO bird";
 
@@ -75,13 +75,15 @@ struct TokenStore {
 
    //    mapping(address = > uint256) balances;
    //    mapping(address = > mapping(address = > uint256)) allowed;
-   OwnableStore    ownable;
-   extended_symbol esymbol;
-   name            contract_self;
    //    string  symbol = "DLP";
-   extended_symbol             originToken;
+
+struct TokenStore {
+   extended_symbol originToken;
+   extended_symbol esymbol;
+   OwnableStore    ownable;
+   name            contract_self;
    std::string                 names;
-   std::string                 symbol;
+   std::string                 symbols;
    uint256                     decimals;
    std::map<name, uint256>     balances;
    std::map<name, uint256>     balanceOf;
@@ -89,8 +91,8 @@ struct TokenStore {
    std::map<name, Account2Amt> allowance;
    uint256                     totalSupply;
    EOSLIB_SERIALIZE(
-       TokenStore,
-       (ownable)(esymbol)(contract_self)(originToken)(names)(symbol)(decimals)(balances)(allowed)(balanceOf)(allowance)(totalSupply))
+       TokenStore, (esymbol)(originToken)(ownable)(contract_self)(names)(symbols)(decimals)(balances)(allowed)(
+                       balanceOf)(allowance)(totalSupply))
 };
 
 struct LockedTokenVaultStore {
@@ -114,18 +116,16 @@ struct LockedTokenVaultStore {
 
 struct [[eosio::table("token"), eosio::contract("eosdos")]] TokenStorage {
    std::map<namesym, TokenStore> tokens;
-   EOSLIB_SERIALIZE(
-       TokenStorage, (tokens))
+   EOSLIB_SERIALIZE(TokenStorage, (tokens))
 };
 
 typedef eosio::singleton<"token"_n, TokenStorage> TokenStorageSingleton;
 
 struct [[eosio::table("mining"), eosio::contract("eosdos")]] MiningStorage {
-   DODOMineStore                 mine;
-   DODORewardVaultStore          rewardvault;
-   LockedTokenVaultStore         lockedtoken;
-   EOSLIB_SERIALIZE(
-       MiningStorage, (mine)(rewardvault)(lockedtoken))
+   DODOMineStore         mine;
+   DODORewardVaultStore  rewardvault;
+   LockedTokenVaultStore lockedtoken;
+   EOSLIB_SERIALIZE(MiningStorage, (mine)(rewardvault)(lockedtoken))
 };
 
 typedef eosio::singleton<"mining"_n, MiningStorage> MiningStorageSingleton;

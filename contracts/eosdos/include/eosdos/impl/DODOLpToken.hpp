@@ -42,7 +42,7 @@ class DODOLpToken : public Ownable {
       return ostores.names + lpTokenSuffix;
    }
 
-   std::string            symbol() { return stores.symbol; };
+   std::string            symbol() { return stores.symbols; };
    const extended_symbol& originToken() { return stores.originToken; };
 
    uint8   decimals() { return ostores.decimals; }
@@ -76,6 +76,15 @@ class DODOLpToken : public Ownable {
     * @param amount uint256 the amount of tokens to be transferred
     */
    bool transferFrom(address from, address to, uint256 amount) {
+   print("\n====lp============transferFrom====");
+      from.print();
+      print("\n=======lp=========transferFrom====");
+      getMsgSender().print();
+      print("\n=======lp=========transferFrom====");
+      to.print();
+      print("\n========lp========transferFrom====");
+stores.esymbol.print();
+
       require(amount <= stores.balances[from], "BALANCE_NOT_ENOUGH");
       require(amount <= stores.allowed[from].dst2amt[getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
 
