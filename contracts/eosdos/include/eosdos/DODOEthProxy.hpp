@@ -15,6 +15,7 @@
 #include <eosdos/lib/ReentrancyGuard.hpp>
 #include <eosdos/lib/SafeERC20.hpp>
 #include <eosdos/lib/SafeMath.hpp>
+
 class IDODOZoo {
  public:
    virtual address getDODO(address baseToken, address quoteToken) = 0;
@@ -28,22 +29,21 @@ class IDODOZoo {
  */
 class DODOEthProxy : public ReentrancyGuard {
  private:
-   name          msg_sender;
-   name          self;
-   DODOZoo       zoo;
-   ProxyStorage& stores;
+   name           self;
+   name           msg_sender;
+   instance_mgmt& _instance_mgmt;
+   DODOZoo&       zoo;
+   ProxyStorage&  stores;
 
  public:
-   DODOEthProxy(name _self)
+   DODOEthProxy(name _self, instance_mgmt& __instance_mgmt, DODOZoo& _zoo)
        : self(_self)
-       , zoo(_self)
-       , stores(zoo.get_storage_mgmt().get_proxy_store())
-       , ReentrancyGuard(zoo.get_storage_mgmt().get_proxy_store().guard) {
-      zoo.init(_self, _self, _self);
-   }
-   DODOZoo& getZoo() { return zoo; }
-   name     getMsgSender() { return msg_sender; }
-   void     setMsgSender(name _msg_sender) {
+       , _instance_mgmt(__instance_mgmt)
+       , zoo(_zoo)
+       , stores(__instance_mgmt.get_storage_mgmt().get_proxy_store())
+       , ReentrancyGuard(__instance_mgmt.get_storage_mgmt().get_proxy_store().guard) {}
+   name getMsgSender() { return msg_sender; }
+   void setMsgSender(name _msg_sender) {
       msg_sender = _msg_sender;
       zoo.setMsgSender(_msg_sender);
    }
@@ -68,11 +68,11 @@ class DODOEthProxy : public ReentrancyGuard {
       //   require(msg_value == ethAmount, "ETH_AMOUNT_NOT_MATCH");
       address _dodo = zoo.getDODO(to_namesym(stores.proxy._WETH_), quoteTokenAddress);
       require(_dodo != address(0), "DODO_NOT_EXIST");
-      zoo.get_transfer_mgmt().transfer(getMsgSender(), self, ethToken, "");
+      _instance_mgmt.get_transfer_mgmt().transfer(getMsgSender(), self, ethToken, "");
       //   IWETH(stores.proxy._WETH_).deposit();//self,ethAmount
       //   IWETH(stores.proxy._WETH_).approve(_dodo, ethAmount);
       uint256 receiveTokenAmount = 0;
-      zoo.get_dodo(
+      _instance_mgmt.get_dodo(
           _dodo, [&](auto& dodo) { receiveTokenAmount = dodo.sellBaseToken(ethAmount, minReceiveTokenAmount, {}); });
 
       _transferOut(getMsgSender(), extended_asset(receiveTokenAmount, minReceiveToken.get_extended_symbol()));
@@ -90,14 +90,14 @@ class DODOEthProxy : public ReentrancyGuard {
       address _dodo = zoo.getDODO(to_namesym(stores.proxy._WETH_), quoteTokenAddress);
       require(_dodo != address(0), "DODO_NOT_EXIST");
       uint256 payTokenAmount = 0;
-      zoo.get_dodo(_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
          payTokenAmount = dodo.queryBuyBaseToken(ethAmount);
          _transferIn(getMsgSender(), extended_asset(payTokenAmount, maxPayToken.get_extended_symbol()));
          //  IERC20(quoteTokenAddress).safeApprove(_dodo, payTokenAmount);
          dodo.buyBaseToken(ethAmount, maxPayTokenAmount, {});
       });
 
-      zoo.get_transfer_mgmt().transfer(self, getMsgSender(), ethToken, "");
+      _instance_mgmt.get_transfer_mgmt().transfer(self, getMsgSender(), ethToken, "");
 
       //   IWETH(stores.proxy._WETH_).withdraw(ethAmount);
       //   getMsgSender().transfer(ethAmount);
@@ -117,12 +117,12 @@ class DODOEthProxy : public ReentrancyGuard {
       //   IERC20(baseTokenAddress).safeApprove(_dodo, tokenAmount);
       _transferIn(getMsgSender(), baseToken);
       uint256 receiveEthAmount = 0;
-      zoo.get_dodo(
+      _instance_mgmt.get_dodo(
           _dodo, [&](auto& dodo) { receiveEthAmount = dodo.sellBaseToken(tokenAmount, minReceiveEthAmount, {}); });
 
       //   IWETH(stores.proxy._WETH_).withdraw(receiveEthAmount);
       //   getMsgSender().transfer(receiveEthAmount);
-      zoo.get_transfer_mgmt().transfer(
+      _instance_mgmt.get_transfer_mgmt().transfer(
           self, getMsgSender(), extended_asset(receiveEthAmount, minReceiveEth.get_extended_symbol()), "");
 
       return receiveEthAmount;
@@ -140,21 +140,21 @@ class DODOEthProxy : public ReentrancyGuard {
       require(_dodo != address(0), "DODO_NOT_EXIST");
 
       uint256 payEthAmount = 0;
-      zoo.get_dodo(_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
          payEthAmount = dodo.queryBuyBaseToken(tokenAmount);
          dodo.buyBaseToken(tokenAmount, maxPayEthAmount, {});
       });
 
       //   IWETH(stores.proxy._WETH_).deposit{value : payEthAmount}();
       //   IWETH(stores.proxy._WETH_).approve(_dodo, payEthAmount);
-      zoo.get_transfer_mgmt().transfer(
+      _instance_mgmt.get_transfer_mgmt().transfer(
           getMsgSender(), self, extended_asset(payEthAmount, maxPayEth.get_extended_symbol()), "");
 
       _transferOut(getMsgSender(), baseToken);
       uint256 refund = sub(maxPayEthAmount, payEthAmount);
       if (refund > 0) {
          //  getMsgSender().transfer(refund);
-         zoo.get_transfer_mgmt().transfer(
+         _instance_mgmt.get_transfer_mgmt().transfer(
              self, getMsgSender(), extended_asset(refund, maxPayEth.get_extended_symbol()), "");
       }
 
@@ -162,6 +162,7 @@ class DODOEthProxy : public ReentrancyGuard {
    }
 
    void depositEthAsBase(const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
+
       // uint256 ethAmount, address quoteTokenAddress
       namesym quoteTokenAddress = to_namesym(quoteToken);
       namesym ethTokenAddress   = to_namesym(ethtokenamount.get_extended_symbol());
@@ -172,9 +173,9 @@ class DODOEthProxy : public ReentrancyGuard {
       require(_dodo != address(0), "DODO_NOT_EXIST");
       //   IWETH(stores.proxy._WETH_).deposit{value : ethAmount}();
       //   IWETH(stores.proxy._WETH_).approve(_dodo, ethAmount);
-      zoo.get_transfer_mgmt().transfer(getMsgSender(), self, ethtokenamount, "");
+      _instance_mgmt.get_transfer_mgmt().transfer(getMsgSender(), self, ethtokenamount, "");
 
-      zoo.get_dodo(_dodo, [&](auto& dodo) { dodo.depositBaseTo(getMsgSender(), ethAmount); });
+      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) { dodo.depositBaseTo(getMsgSender(), ethAmount); });
    }
 
    uint256 withdrawEthAsBase(const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
@@ -185,14 +186,14 @@ class DODOEthProxy : public ReentrancyGuard {
 
       address _dodo = zoo.getDODO(ethTokenAddress, quoteTokenAddress);
       require(_dodo != address(0), "DODO_NOT_EXIST");
-      zoo.get_dodo(_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
          const extended_symbol& ethLpToken = dodo._BASE_CAPITAL_TOKEN_();
 
          // transfer all pool shares to proxy
          //   uint256 lpBalance = IERC20(ethLpToken).balanceOf(getMsgSender());
          //   IERC20(ethLpToken).transferFrom(getMsgSender(), address(this), lpBalance);
          asset lpbalance = transfer_mgmt::get_balance(getMsgSender(), ethLpToken);
-         zoo.get_transfer_mgmt().transfer(
+         _instance_mgmt.get_transfer_mgmt().transfer(
              getMsgSender(), self, extended_asset(lpbalance, ethLpToken.get_contract()), "");
 
          dodo.withdrawBase(ethAmount);
@@ -200,7 +201,7 @@ class DODOEthProxy : public ReentrancyGuard {
          //   lpBalance = IERC20(ethLpToken).balanceOf(address(this));
          //   IERC20(ethLpToken).transfer(getMsgSender(), lpBalance);
          lpbalance = transfer_mgmt::get_balance(self, ethLpToken);
-         zoo.get_transfer_mgmt().transfer(
+         _instance_mgmt.get_transfer_mgmt().transfer(
              self, getMsgSender(), extended_asset(lpbalance, ethLpToken.get_contract()), "");
       });
 
@@ -210,7 +211,7 @@ class DODOEthProxy : public ReentrancyGuard {
       //   IWETH(stores.proxy._WETH_).withdraw(wethAmount);
       //   getMsgSender().transfer(wethAmount);
       asset wethAmount = transfer_mgmt::get_balance(self, stores.proxy._WETH_);
-      zoo.get_transfer_mgmt().transfer(
+      _instance_mgmt.get_transfer_mgmt().transfer(
           self, getMsgSender(), extended_asset(wethAmount, stores.proxy._WETH_.get_contract()), "");
 
       return wethAmount.amount;
@@ -221,14 +222,14 @@ class DODOEthProxy : public ReentrancyGuard {
       namesym quoteTokenAddress = to_namesym(quoteToken);
       address _dodo             = zoo.getDODO(to_namesym(stores.proxy._WETH_), quoteTokenAddress);
       require(_dodo != address(0), "DODO_NOT_EXIST");
-      zoo.get_dodo(_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
          const extended_symbol& ethLpToken = dodo._BASE_CAPITAL_TOKEN_();
 
          // transfer all pool shares to proxy
          //  uint256 lpBalance = IERC20(ethLpToken).balanceOf(getMsgSender());
          //  IERC20(ethLpToken).transferFrom(getMsgSender(), address(this), lpBalance);
          asset lpbalance = transfer_mgmt::get_balance(getMsgSender(), ethLpToken);
-         zoo.get_transfer_mgmt().transfer(
+         _instance_mgmt.get_transfer_mgmt().transfer(
              getMsgSender(), self, extended_asset(lpbalance, ethLpToken.get_contract()), "");
 
          dodo.withdrawAllBase();
@@ -239,7 +240,7 @@ class DODOEthProxy : public ReentrancyGuard {
       //   IWETH(stores.proxy._WETH_).withdraw(wethAmount);
       //   getMsgSender().transfer(wethAmount);
       asset wethAmount = transfer_mgmt::get_balance(self, stores.proxy._WETH_);
-      zoo.get_transfer_mgmt().transfer(
+      _instance_mgmt.get_transfer_mgmt().transfer(
           self, getMsgSender(), extended_asset(wethAmount, stores.proxy._WETH_.get_contract()), "");
 
       return wethAmount.amount;
@@ -256,9 +257,9 @@ class DODOEthProxy : public ReentrancyGuard {
       require(_dodo != address(0), "DODO_NOT_EXIST");
       //   IWETH(stores.proxy._WETH_).deposit{value : ethAmount}();
       //   IWETH(stores.proxy._WETH_).approve(_dodo, ethAmount);
-      zoo.get_transfer_mgmt().transfer(getMsgSender(), self, ethtokenamount, "");
+      _instance_mgmt.get_transfer_mgmt().transfer(getMsgSender(), self, ethtokenamount, "");
 
-      zoo.get_dodo(_dodo, [&](auto& dodo) { dodo.depositQuoteTo(getMsgSender(), ethAmount); });
+      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) { dodo.depositQuoteTo(getMsgSender(), ethAmount); });
    }
 
    uint256 withdrawEthAsQuote(const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
@@ -269,14 +270,14 @@ class DODOEthProxy : public ReentrancyGuard {
 
       address _dodo = zoo.getDODO(baseTokenAddress, to_namesym(stores.proxy._WETH_));
       require(_dodo != address(0), "DODO_NOT_EXIST");
-      zoo.get_dodo(_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
          const extended_symbol& ethLpToken = dodo._QUOTE_CAPITAL_TOKEN_();
 
          // transfer all pool shares to proxy
          //  uint256 lpBalance = IERC20(ethLpToken).balanceOf(getMsgSender());
          //  IERC20(ethLpToken).transferFrom(getMsgSender(), address(this), lpBalance);
          asset lpbalance = transfer_mgmt::get_balance(getMsgSender(), ethLpToken);
-         zoo.get_transfer_mgmt().transfer(
+         _instance_mgmt.get_transfer_mgmt().transfer(
              getMsgSender(), self, extended_asset(lpbalance, ethLpToken.get_contract()), "");
 
          dodo.withdrawQuote(ethAmount);
@@ -284,7 +285,7 @@ class DODOEthProxy : public ReentrancyGuard {
          //   lpBalance = IERC20(ethLpToken).balanceOf(address(this));
          //   IERC20(ethLpToken).transfer(getMsgSender(), lpBalance);
          lpbalance = transfer_mgmt::get_balance(self, ethLpToken);
-         zoo.get_transfer_mgmt().transfer(
+         _instance_mgmt.get_transfer_mgmt().transfer(
              self, getMsgSender(), extended_asset(lpbalance, ethLpToken.get_contract()), "");
       });
 
@@ -294,7 +295,7 @@ class DODOEthProxy : public ReentrancyGuard {
       //   IWETH(stores.proxy._WETH_).withdraw(wethAmount);
       //   getMsgSender().transfer(wethAmount);
       asset wethAmount = transfer_mgmt::get_balance(self, stores.proxy._WETH_);
-      zoo.get_transfer_mgmt().transfer(
+      _instance_mgmt.get_transfer_mgmt().transfer(
           self, getMsgSender(), extended_asset(wethAmount, stores.proxy._WETH_.get_contract()), "");
 
       return wethAmount.amount;
@@ -306,14 +307,14 @@ class DODOEthProxy : public ReentrancyGuard {
 
       address _dodo = zoo.getDODO(baseTokenAddress, to_namesym(stores.proxy._WETH_));
       require(_dodo != address(0), "DODO_NOT_EXIST");
-      zoo.get_dodo(_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
          const extended_symbol& ethLpToken = dodo._QUOTE_CAPITAL_TOKEN_();
 
          // transfer all pool shares to proxy
          //  uint256 lpBalance = IERC20(ethLpToken).balanceOf(getMsgSender());
          //  IERC20(ethLpToken).transferFrom(getMsgSender(), address(this), lpBalance);
          asset lpbalance = transfer_mgmt::get_balance(getMsgSender(), ethLpToken);
-         zoo.get_transfer_mgmt().transfer(
+         _instance_mgmt.get_transfer_mgmt().transfer(
              getMsgSender(), self, extended_asset(lpbalance, ethLpToken.get_contract()), "");
 
          dodo.withdrawAllQuote();
@@ -325,7 +326,7 @@ class DODOEthProxy : public ReentrancyGuard {
       //   IWETH(stores.proxy._WETH_).withdraw(wethAmount);
       //   getMsgSender().transfer(wethAmount);
       asset wethAmount = transfer_mgmt::get_balance(self, stores.proxy._WETH_);
-      zoo.get_transfer_mgmt().transfer(
+      _instance_mgmt.get_transfer_mgmt().transfer(
           self, getMsgSender(), extended_asset(wethAmount, stores.proxy._WETH_.get_contract()), "");
 
       return wethAmount.amount;
@@ -336,12 +337,12 @@ class DODOEthProxy : public ReentrancyGuard {
    void _transferIn(address from, const extended_asset& amount) {
       // address tokenAddress, address from, uint256 amoun
       //   IERC20(tokenAddress).safeTransferFrom(from, address(this), amount);
-      zoo.get_transfer_mgmt().transfer(from, self, amount, "");
+      _instance_mgmt.get_transfer_mgmt().transfer(from, self, amount, "");
    }
 
    void _transferOut(address to, const extended_asset& amount) {
       // address tokenAddress, address to, uint256 amount
       //   IERC20(tokenAddress).safeTransfer(to, amount);
-      zoo.get_transfer_mgmt().transfer(self, to, amount, "");
+      _instance_mgmt.get_transfer_mgmt().transfer(self, to, amount, "");
    }
 };

@@ -10,7 +10,6 @@
 #include <cmath>
 #include <common/defines.hpp>
 #include <eosdos/DODOEthProxy.hpp>
-
 using eosio::action;
 using eosio::asset;
 using eosio::name;
@@ -18,7 +17,9 @@ using eosio::permission_level;
 
 class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
  private:
-   DODOEthProxy proxy;
+   instance_mgmt _instance_mgmt;
+   DODOZoo       zoo;
+   DODOEthProxy  proxy;
 
  public:
    static constexpr eosio::name     oracle_account{"eosdoseosdos"_n};
@@ -26,7 +27,11 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    eosdos(name s, name code, eosio::datastream<const char*> ds)
        : contract(s, code, ds)
-       , proxy(s) {}
+       ,_instance_mgmt(s)
+       , zoo(s, _instance_mgmt)
+       , proxy(s, _instance_mgmt,zoo) {
+      zoo.init(_self, _self, _self);
+   }
 
    //////////////////zoo////////////////////////
    [[eosio::action]] void newdodo(
@@ -34,19 +39,19 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
        uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().newDODO(
+      _instance_mgmt.newDODO(
           dodo_name, owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
           gasPriceLimit);
    }
 
    [[eosio::action]] void adddodo(name msg_sender, address _dodo) {
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().addDODO(_dodo);
+      zoo.addDODO(_dodo);
    }
 
    [[eosio::action]] void removedodo(name msg_sender, address _dodo) {
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().removeDODO(_dodo);
+      zoo.removeDODO(_dodo);
    }
 
    [[eosio::action]] void breeddodo(
@@ -54,7 +59,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
        uint256 k, uint256 gasPriceLimit) {
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().breedDODO(
+      zoo.breedDODO(
           dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
    }
 
@@ -131,67 +136,69 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::action]] void enabletradin(name msg_sender, name dodo_name) {
       check(_self == msg_sender, "no  admin");
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().get_dodo(dodo_name, [&](auto& dodo) { dodo.enableTrading(); });
+      _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) { dodo.enableTrading(); });
    }
 
    [[eosio::action]] void enablequodep(name msg_sender, name dodo_name) {
       check(_self == msg_sender, "no  admin");
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().get_dodo(dodo_name, [&](auto& dodo) { dodo.enableQuoteDeposit(); });
+      _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) { dodo.enableQuoteDeposit(); });
    }
 
    [[eosio::action]] void enablebasdep(name msg_sender, name dodo_name) {
       check(_self == msg_sender, "no  admin");
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().get_dodo(dodo_name, [&](auto& dodo) { dodo.enableBaseDeposit(); });
+      _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) { dodo.enableBaseDeposit(); });
    }
 
    ////////////////////  LiquidityProvider dodo////////////////////////
    [[eosio::action]] void depositquote(name msg_sender, name dodo_name, const extended_asset& amt) {
-      print("==depositquote======");
-      proxy.setMsgSender(msg_sender);
-      proxy.getZoo().get_dodo(dodo_name, [&](auto& dodo) {
-         print("==depositquote======");
-        //  uint256 s = dodo.depositQuote(amt.quantity.amount);
-      });
+      _instance_mgmt.setMsgSender(msg_sender);
+    //   DODOStore& dodoStore = _instance_mgmt.get_storage_mgmt().get_dodo_store(dodo_name);
+    //   DODO       dodo(dodoStore, zoo);
+    //   dodo.setMsgSender(msg_sender);
+    //   dodo.depositQuote(amt.quantity.amount);
+        _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) {
+           (void)dodo.depositQuote(amt.quantity.amount);
+        });
    }
 
    ////////////////////   Oracle////////////////////////
    [[eosio::action]] void neworacle(name msg_sender, const extended_symbol& token) {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().get_storage_mgmt().newOracleStore(token);
+      _instance_mgmt.get_storage_mgmt().newOracleStore(token);
    }
 
    [[eosio::action]] void setprice(name msg_sender, const extended_asset& amt) {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().get_oracle(amt.get_extended_symbol(), [&](auto& oracle) { oracle.setPrice(amt); });
+      _instance_mgmt.get_oracle(amt.get_extended_symbol(), [&](auto& oracle) { oracle.setPrice(amt); });
    }
 
    ////////////////////  TOKEN////////////////////////
    [[eosio::action]] void extransfer(name from, name to, extended_asset quantity, std::string memo) {
-      proxy.getZoo().get_transfer_mgmt().transfer(from, to, quantity, memo);
+      _instance_mgmt.get_transfer_mgmt().transfer(from, to, quantity, memo);
    }
 
    [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().newToken(token);
-      proxy.getZoo().get_transfer_mgmt().create(msg_sender, token);
+      _instance_mgmt.newToken(token);
+      _instance_mgmt.get_transfer_mgmt().create(msg_sender, token);
    }
 
    [[eosio::action]] void newethtoken(name msg_sender, const extended_asset& token) {
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().newEthToken(token);
-      proxy.getZoo().get_transfer_mgmt().create(msg_sender, token);
+      _instance_mgmt.newEthToken(token);
+      _instance_mgmt.get_transfer_mgmt().create(msg_sender, token);
    }
 
    //    /////test interface /////
    [[eosio::action]] void mint(name msg_sender, const extended_asset& amt) {
       proxy.setMsgSender(msg_sender);
-      proxy.getZoo().get_token<TestERC20>(amt.get_extended_symbol(), [&](auto& _token_) {
+      _instance_mgmt.get_token<TestERC20>(amt.get_extended_symbol(), [&](auto& _token_) {
          _token_.mint(msg_sender, amt.quantity.amount);
-         proxy.getZoo().get_transfer_mgmt().issue(msg_sender, amt, "");
+         _instance_mgmt.get_transfer_mgmt().issue(msg_sender, amt, "");
       });
    }
 
@@ -216,7 +223,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() == "eosio.token"_n, "should be eosio.token");
       print_f("On notify : % % % %", from, to, quantity, memo);
-      proxy.getZoo().get_transfer_mgmt().eosiotoken_transfer(from, to, quantity, memo, [&](const auto& action_event) {
+      _instance_mgmt.get_transfer_mgmt().eosiotoken_transfer(from, to, quantity, memo, [&](const auto& action_event) {
          if (action_event.action.empty()) {
             return;
          }
@@ -235,7 +242,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
       print_f("On notify 2 : % % % %", from, to, quantity, memo);
-      proxy.getZoo().get_transfer_mgmt().non_eosiotoken_transfer(
+      _instance_mgmt.get_transfer_mgmt().non_eosiotoken_transfer(
           from, to, quantity, memo, [&](const auto& action_event) {
 
           });

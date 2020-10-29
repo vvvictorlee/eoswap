@@ -90,7 +90,6 @@ class storage_mgmt {
    }
 
     TokenStore& newTokenStore(const extended_symbol& token) {
-      token.print();
       namesym token_name = to_namesym(token);
       auto    t          = token_storage.tokens.find(token_name);
       bool    f          = (t == token_storage.tokens.end());
@@ -120,4 +119,7 @@ class storage_mgmt {
       require(pb.second, "INSERT_DODO_FAIL");
       return pb.first->second;
    }
+
+
+
 };

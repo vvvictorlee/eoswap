@@ -22,18 +22,18 @@
  *
  * @notice Functions for liquidity provider operations
  */
-class LiquidityProvider : virtual public Storage, public Pricing, public Settlement {
+class LiquidityProvider : virtual public Storage, virtual public Pricing, virtual public Settlement {
  private:
    DODOStore& stores;
-   IStorage&  storage;
+   IFactory&  factory;
+
  public:
-   LiquidityProvider(DODOStore& _stores, IStorage& _storage)
+   LiquidityProvider(DODOStore& _stores, IFactory& _storage)
        : stores(_stores)
-       , storage(_storage)
+       , factory(_storage)
        , Storage(_stores, _storage)
        , Pricing(_stores, _storage)
        , Settlement(_stores, _storage) {
-      print("=======LiquidityProvider======");
    }
    // ============ Events ============
 
@@ -61,14 +61,17 @@ class LiquidityProvider : virtual public Storage, public Pricing, public Settlem
 
    // ============ Deposit Functions ============
 
-  virtual  uint256 depositQuoteTo(address to, uint256 amount) {
-
+   virtual uint256 depositQuoteTo(address to, uint256 amount) {
       preventReentrant();
+
       depositQuoteAllowed();
+
       uint256 quoteTarget                = 0;
       std::tie(std::ignore, quoteTarget) = getExpectedTarget();
-      uint256 totalQuoteCapital          = getTotalQuoteCapital();
-      uint256 capital                    = amount;
+
+      uint256 totalQuoteCapital = getTotalQuoteCapital();
+
+      uint256 capital = amount;
       if (totalQuoteCapital == 0) {
          // give remaining quote token to lp as a gift
          capital = add(amount, quoteTarget);
@@ -78,9 +81,11 @@ class LiquidityProvider : virtual public Storage, public Pricing, public Settlem
 
       // settlement
       _quoteTokenTransferIn(getMsgSender(), extended_asset(amount, stores._QUOTE_TOKEN_));
+
       _mintQuoteCapital(to, capital);
+
       stores._TARGET_QUOTE_TOKEN_AMOUNT_ = add(stores._TARGET_QUOTE_TOKEN_AMOUNT_, amount);
-    
+
       return capital;
    }
 
@@ -200,19 +205,20 @@ class LiquidityProvider : virtual public Storage, public Pricing, public Settlem
 
    // ============ Helper Functions ============
    void _mintBaseCapital(address user, uint256 amount) {
-      storage.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _mintQuoteCapital(address user, uint256 amount) {
-      storage.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
+      auto lptoken = stores._QUOTE_CAPITAL_TOKEN_;
+        factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _burnBaseCapital(address user, uint256 amount) {
-      storage.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    void _burnQuoteCapital(address user, uint256 amount) {
-      storage.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
+      factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    // ============ Getter Functions ============

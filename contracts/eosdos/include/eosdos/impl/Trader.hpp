@@ -22,12 +22,12 @@
  * @notice Functions for trader operations
  */
 static const uint256 tx_gasprice = 0;
-class Trader : virtual public Storage, public Pricing, public Settlement {
+class Trader : virtual public Storage, virtual public Pricing,virtual public Settlement {
  private:
    DODOStore& stores;
 
  public:
-   Trader(DODOStore& _stores, IStorage& _storage)
+   Trader(DODOStore& _stores, IFactory& _storage)
        : stores(_stores)
        , Storage(_stores, _storage)
        , Pricing(_stores, _storage)

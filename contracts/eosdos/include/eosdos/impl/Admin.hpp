@@ -20,7 +20,7 @@ class Admin : virtual  public Storage {
  private:
    DODOStore& stores;
  public:
-   Admin(DODOStore& _stores, IStorage& _storage)
+   Admin(DODOStore& _stores, IFactory& _storage)
        : stores(_stores)
        , Storage(_stores,_storage){}
        // ============ Params Setting Functions ============

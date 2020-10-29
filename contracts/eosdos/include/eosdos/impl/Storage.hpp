@@ -9,8 +9,8 @@
 #include <common/defines.hpp>
 
 #include <eosdos/intf/IDODOLpToken.hpp>
+#include <eosdos/intf/IFactory.hpp>
 #include <eosdos/intf/IOracle.hpp>
-#include <eosdos/intf/IStorage.hpp>
 #include <eosdos/lib/DecimalMath.hpp>
 #include <eosdos/lib/InitializableOwnable.hpp>
 #include <eosdos/lib/ReentrancyGuard.hpp>
@@ -27,12 +27,12 @@ using namespace SafeMath;
 class Storage : public InitializableOwnable, public ReentrancyGuard {
  private:
    DODOStore& stores;
-   IStorage&  storage;
+   IFactory&  factory;
 
  public:
-   Storage(DODOStore& _stores, IStorage& _storage)
+   Storage(DODOStore& _stores, IFactory& _storage)
        : stores(_stores)
-       , storage(_storage)
+       , factory(_storage)
        , InitializableOwnable(_stores.initownable)
        , ReentrancyGuard(_stores.guard) {}
 
@@ -55,22 +55,21 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
 
    uint256 getOraclePrice() {
       uint256 price = 0;
-      storage.get_oracle(stores._ORACLE_, [&](auto& oracle) { price = oracle.getPrice(); });
+      factory.get_oracle(stores._ORACLE_, [&](auto& oracle) { price = oracle.getPrice(); });
       return price;
       // return IOracle(_ORACLE_).getPrice();
    }
 
    uint256 getBaseCapitalBalanceOf(address _lp) {
       uint256 balance = 0;
-      storage.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
       return balance;
       // return IDODOLpToken(stores._BASE_CAPITAL_TOKEN_).balanceOf(lp);
    }
 
    uint256 getTotalBaseCapital() {
       uint256 totalSupply = 0;
-      storage.get_lptoken(
-          stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
       return totalSupply;
 
       // return IDODOLpToken(stores._BASE_CAPITAL_TOKEN_).totalSupply();
@@ -78,15 +77,15 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
 
    uint256 getQuoteCapitalBalanceOf(address _lp) {
       uint256 balance = 0;
-      storage.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
+      factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
       return balance;
       //   return IDODOLpToken(stores._QUOTE_CAPITAL_TOKEN_).balanceOf(lp);
    }
 
    uint256 getTotalQuoteCapital() {
       uint256 totalSupply = 0;
-      storage.get_lptoken(
-          stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
+      factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
+
       return totalSupply;
       // return IDODOLpToken(stores._QUOTE_CAPITAL_TOKEN_).totalSupply();
    }

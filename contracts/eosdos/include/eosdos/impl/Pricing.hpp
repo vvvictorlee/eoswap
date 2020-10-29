@@ -25,7 +25,7 @@ class Pricing : virtual  public Storage {
    DODOStore& stores;
 
  public:
-   Pricing(DODOStore& _stores, IStorage& _storage)
+   Pricing(DODOStore& _stores, IFactory& _storage)
        : stores(_stores)
        , Storage(_stores, _storage) {}
 

@@ -692,11 +692,10 @@ BOOST_FIXTURE_TEST_CASE(buyeth1token_tests, eosdos_tester) try {
    enablequodep(admin, dodo_name);
    BOOST_TEST_CHECK("11" == "ddd");
    enablebasdep(admin, dodo_name);
-   BOOST_TEST_CHECK("11" == "ddd");
-   depositquote(lp, dodo_name, to_wei_asset("MKR", 1000));
-   BOOST_TEST_CHECK("11" == "ddd");
-   depositethab(lp, to_wei_asset("WETH", 10), to_sym("MKR"));
-
+   BOOST_TEST_CHECK("11" == "ddddddddddd");
+   { depositquote(lp, dodo_name, to_wei_asset("MKR", 1000)); }
+   BOOST_TEST_CHECK("111111111" == "ddd");
+   { depositethab(lp, to_wei_asset("WETH", 10), to_sym("MKR")); }
    //    const buyAmount = "1";
    buyeth1token(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 200));
 

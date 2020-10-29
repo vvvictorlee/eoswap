@@ -78,8 +78,8 @@ class DODOMine : public Ownable {
 
    uint256 getPendingReward(address _lpToken, address _user) {
       uint256  pid                     = getPid(_lpToken);
-      PoolInfo storage pool            = poolInfos[pid];
-      UserInfo storage user            = userInfo[pid][_user];
+      PoolInfo  pool            = poolInfos[pid];
+      UserInfo  user            = userInfo[pid][_user];
       uint256          accDODOPerShare = pool.accDODOPerShare;
       uint256          lpSupply        = IERC20(pool.lpToken).balanceOf(address(this));
       if (block.number > pool.lastRewardBlock && lpSupply != 0) {
@@ -97,8 +97,8 @@ class DODOMine : public Ownable {
          if (userInfo[pid][_user].amount == 0 || poolInfos[pid].allocPoint == 0) {
             continue; // save gas
          }
-         PoolInfo storage pool            = poolInfos[pid];
-         UserInfo storage user            = userInfo[pid][_user];
+         PoolInfo  pool            = poolInfos[pid];
+         UserInfo  user            = userInfo[pid][_user];
          uint256          accDODOPerShare = pool.accDODOPerShare;
          uint256          lpSupply        = IERC20(pool.lpToken).balanceOf(address(this));
          if (block.number > pool.lastRewardBlock && lpSupply != 0) {
@@ -115,7 +115,7 @@ class DODOMine : public Ownable {
 
    uint256 getDlpMiningSpeed(address _lpToken) {
       uint256  pid          = getPid(_lpToken);
-      PoolInfo storage pool = poolInfos[pid];
+      PoolInfo  pool = poolInfos[pid];
       return dodoPerBlock.mul(pool.allocPoint).div(totalAllocPoint);
    }
 
@@ -131,7 +131,7 @@ class DODOMine : public Ownable {
 
    // Update reward variables of the given pool to be up-to-date.
    void updatePool(uint256 _pid) {
-      PoolInfo storage pool = poolInfos[_pid];
+      PoolInfo  pool = poolInfos[_pid];
       if (block.number <= pool.lastRewardBlock) {
          return;
       }
@@ -151,8 +151,8 @@ class DODOMine : public Ownable {
 
    void deposit(address _lpToken, uint256 _amount) {
       uint256  pid          = getPid(_lpToken);
-      PoolInfo storage pool = poolInfos[pid];
-      UserInfo storage user = userInfo[pid][getMsgSender()];
+      PoolInfo  pool = poolInfos[pid];
+      UserInfo  user = userInfo[pid][getMsgSender()];
       updatePool(pid);
       if (user.amount > 0) {
          uint256 pending = DecimalMath.mul(user.amount, pool.accDODOPerShare).sub(user.rewardDebt);
@@ -165,8 +165,8 @@ class DODOMine : public Ownable {
 
    void withdraw(address _lpToken, uint256 _amount) {
       uint256  pid          = getPid(_lpToken);
-      PoolInfo storage pool = poolInfos[pid];
-      UserInfo storage user = userInfo[pid][getMsgSender()];
+      PoolInfo  pool = poolInfos[pid];
+      UserInfo  user = userInfo[pid][getMsgSender()];
       require(user.amount >= _amount, "withdraw too much");
       updatePool(pid);
       uint256 pending = DecimalMath.mul(user.amount, pool.accDODOPerShare).sub(user.rewardDebt);
@@ -184,8 +184,8 @@ class DODOMine : public Ownable {
    // Withdraw without caring about rewards. EMERGENCY ONLY.
    void emergencyWithdraw(address _lpToken) {
       uint256  pid          = getPid(_lpToken);
-      PoolInfo storage pool = poolInfos[pid];
-      UserInfo storage user = userInfo[pid][getMsgSender()];
+      PoolInfo  pool = poolInfos[pid];
+      UserInfo  user = userInfo[pid][getMsgSender()];
       IERC20(pool.lpToken).safeTransfer(address(getMsgSender()), user.amount);
       user.amount     = 0;
       user.rewardDebt = 0;
@@ -196,8 +196,8 @@ class DODOMine : public Ownable {
       if (userInfo[pid][getMsgSender()].amount == 0 || poolInfos[pid].allocPoint == 0) {
          return; // save gas
       }
-      PoolInfo storage pool = poolInfos[pid];
-      UserInfo storage user = userInfo[pid][getMsgSender()];
+      PoolInfo  pool = poolInfos[pid];
+      UserInfo  user = userInfo[pid][getMsgSender()];
       updatePool(pid);
       uint256 pending = DecimalMath.mul(user.amount, pool.accDODOPerShare).sub(user.rewardDebt);
       user.rewardDebt = DecimalMath.mul(user.amount, pool.accDODOPerShare);
@@ -211,8 +211,8 @@ class DODOMine : public Ownable {
          if (userInfo[pid][getMsgSender()].amount == 0 || poolInfos[pid].allocPoint == 0) {
             continue; // save gas
          }
-         PoolInfo storage pool = poolInfos[pid];
-         UserInfo storage user = userInfo[pid][getMsgSender()];
+         PoolInfo  pool = poolInfos[pid];
+         UserInfo  user = userInfo[pid][getMsgSender()];
          updatePool(pid);
          pending         = pending.add(DecimalMath.mul(user.amount, pool.accDODOPerShare).sub(user.rewardDebt));
          user.rewardDebt = DecimalMath.mul(user.amount, pool.accDODOPerShare);

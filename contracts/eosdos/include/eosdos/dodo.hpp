@@ -29,16 +29,19 @@ static const uint256 MAX_INT = 0xffffffffffffffff;
 class DODO : public Admin, public Trader, virtual public LiquidityProvider {
  private:
    DODOStore& stores;
-   IStorage&  storage;
+   IFactory&  factory;
 
  public:
-   DODO(DODOStore& _stores, IStorage& _storage)
+   DODO(DODOStore& _stores, IFactory& _storage)
        : stores(_stores)
-       , storage(_storage)
+       , factory(_storage)
        , Admin(_stores, _storage)
        , Trader(_stores, _storage)
        , LiquidityProvider(_stores, _storage)
-       , Storage(_stores, _storage) {}
+       , Storage(_stores, _storage)
+       , Pricing(_stores, _storage)
+       , Settlement(_stores, _storage) {
+}
    void init(
        address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
@@ -69,8 +72,8 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
       stores._MT_FEE_RATE_         = mtFeeRate;
       stores._K_                   = k;
       stores._R_STATUS_            = Types::RStatus::ONE;
-      stores._BASE_CAPITAL_TOKEN_  = storage.newLpToken(stores._BASE_TOKEN_);
-      stores._QUOTE_CAPITAL_TOKEN_ = storage.newLpToken(stores._QUOTE_TOKEN_);
+      stores._BASE_CAPITAL_TOKEN_  = factory.newLpToken(stores._BASE_TOKEN_);
+      stores._QUOTE_CAPITAL_TOKEN_ = factory.newLpToken(stores._QUOTE_TOKEN_);
 
       _checkDODOParameters();
    }
@@ -81,6 +84,4 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
 
    const extended_symbol& _BASE_CAPITAL_TOKEN_() { return stores._BASE_CAPITAL_TOKEN_; }
    const extended_symbol& _QUOTE_CAPITAL_TOKEN_() { return stores._QUOTE_CAPITAL_TOKEN_; }
-
-  
 };
