@@ -742,7 +742,7 @@ BOOST_FIXTURE_TEST_CASE(buyeth1token_tests, eosdos_tester) try {
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(sellethtoken_tests, eosdos_tester) try {
-init(admin, admin, to_sym("WETH"));
+   init(admin, admin, to_sym("WETH"));
 
    newethtoken(admin, to_maximum_supply("WETH"));
    newtoken(admin, to_maximum_supply("MKR"));
@@ -787,8 +787,9 @@ init(admin, admin, to_sym("WETH"));
 
    sellethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 50));
 
+   auto store = dodos(dodo_name);
    BOOST_REQUIRE_EQUAL("11 WETH", store["_BASE_BALANCE_"].as_string());
-//    BOOST_REQUIRE_EQUAL("1098617454226610630663", balanceOf(quoteToken, trader));
+   //    BOOST_REQUIRE_EQUAL("1098617454226610630663", balanceOf(quoteToken, trader));
 }
 FC_LOG_AND_RETHROW()
 
