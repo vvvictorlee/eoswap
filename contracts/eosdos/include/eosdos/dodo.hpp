@@ -32,15 +32,15 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
    IFactory&  factory;
 
  public:
-   DODO(DODOStore& _stores, IFactory& _storage)
+   DODO(DODOStore& _stores, IFactory& _factory)
        : stores(_stores)
-       , factory(_storage)
-       , Admin(_stores, _storage)
-       , Trader(_stores, _storage)
-       , LiquidityProvider(_stores, _storage)
-       , Storage(_stores, _storage)
-       , Pricing(_stores, _storage)
-       , Settlement(_stores, _storage) {
+       , factory(_factory)
+       , Admin(_stores, _factory)
+       , Trader(_stores, _factory)
+       , LiquidityProvider(_stores, _factory)
+       , Storage(_stores, _factory)
+       , Pricing(_stores, _factory)
+       , Settlement(_stores, _factory) {
 }
    void init(
        address owner, address supervisor, address maintainer, const extended_symbol& baseToken,

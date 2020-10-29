@@ -18,25 +18,24 @@
  *
  * @notice Functions for fixed point number with 18 decimals
  */
-using namespace SafeMath;
+
 namespace DecimalMath {
     
-
     uint256  ONE = my_pow(10,6);//18;
 
     uint256  mul(uint256 target, uint256 d) {
-        return mul(target,d) / ONE;
+        return SafeMath::mul(target,d) / ONE;
     }
 
     uint256  mulCeil(uint256 target, uint256 d) {
-        return divCeil(mul(target,d),ONE);
+        return SafeMath::divCeil(SafeMath::mul(target,d),ONE);
     }
 
     uint256  divFloor(uint256 target, uint256 d) {
-        return SafeMath::div(mul(target,ONE),d);
+        return SafeMath::div(SafeMath::mul(target,ONE),d);
     }
 
     uint256  divCeil(uint256 target, uint256 d) {
-        return divCeil(mul(target,ONE),d);
+        return SafeMath::divCeil(SafeMath::mul(target,ONE),d);
     }
 }

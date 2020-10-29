@@ -30,17 +30,19 @@ class instance_mgmt : public IFactory {
    instance_mgmt(name _self)
        : self(_self)
        , _storage_mgmt(_self)
-       , _transfer_mgmt(_self)
-       , IFactory(*this) {}
+       , _transfer_mgmt(_self) {}
    ~instance_mgmt() {}
    name           get_self() override { return self; }
    storage_mgmt&  get_storage_mgmt() override { return _storage_mgmt; }
    transfer_mgmt& get_transfer_mgmt() override { return _transfer_mgmt; }
+   instance_mgmt& get_instance_mgmt() override { return *this; }
    name           getMsgSender() { return msg_sender; }
    void           setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
 
    template <typename T>
    void get_dodo(name dodo_name, T func) {
+      print("=========get_dodo=========");
+
       DODOStore& dodoStore = _storage_mgmt.get_dodo_store(dodo_name);
       DODO       dodo(dodoStore, *this);
       dodo.setMsgSender(getMsgSender());
@@ -90,6 +92,13 @@ class instance_mgmt : public IFactory {
       dodo.init(owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
    }
 
+   void newOracle(const extended_symbol& tokenx) {
+      OracleStore&  oracleStore = _storage_mgmt.newOracleStore(tokenx);
+      MinimumOracle minioracle(oracleStore);
+      minioracle.setMsgSender(getMsgSender());
+      minioracle.init();
+   }
+
    void newToken(const extended_asset& tokenx) {
       const extended_symbol& exsym      = tokenx.get_extended_symbol();
       const symbol&          sym        = exsym.get_symbol();
@@ -98,14 +107,27 @@ class instance_mgmt : public IFactory {
       otoken.setMsgSender(getMsgSender());
       otoken.init(sym.code().to_string(), sym.precision(), exsym);
    }
+   static const uint256 MAX_TOTAL_SUPPLY = 1000000000000000;
+   extended_symbol      newLpToken(const extended_symbol& tokenx) override {
+      const symbol& sym = tokenx.get_symbol();
 
-   extended_symbol newLpToken(const extended_symbol& tokenx) override {
-      extended_symbol exsym         = extended_symbol(tokenx.get_symbol(), LP_TOKEN_CONTRACT);
-      TokenStore&     tokenStore    = _storage_mgmt.newTokenStore(exsym);
-      TokenStore&     olptokenStore = _storage_mgmt.get_token_store(exsym);
-      DODOLpToken     token(tokenStore, olptokenStore);
+      //   extended_symbol exsym =
+      //       extended_symbol(symbol(sym.code().to_string() + "LP", sym.precision()), tokenx.get_contract());
+      extended_symbol exsym =
+          extended_symbol(symbol(sym.code().to_string() + "LP", sym.precision()), tokenx.get_contract());
+   print("===============lptoken exsm=============");
+tokenx.print();
+      print("===============lptoken exsm=============");
+      exsym.print();
+      print("===============lptoken exsm=============");
+
+      TokenStore& tokenStore    = _storage_mgmt.newTokenStore(exsym);
+      TokenStore& olptokenStore = _storage_mgmt.get_token_store(tokenx);
+      DODOLpToken token(tokenStore, olptokenStore);
       token.setMsgSender(getMsgSender());
-      token.init(tokenx);
+      token.init(exsym, tokenx);
+      _transfer_mgmt.create(msg_sender, extended_asset{MAX_TOTAL_SUPPLY, exsym});
+
       return exsym;
    }
 
@@ -117,3 +139,13 @@ class instance_mgmt : public IFactory {
       otoken.init(getMsgSender(), exsym);
    }
 };
+
+template <typename T>
+void IFactory::get_lptoken(const extended_symbol& lptoken, T func) {
+   get_instance_mgmt().get_lptoken(lptoken, func);
+}
+
+template <typename T>
+void IFactory::get_oracle(const extended_symbol& oracle, T func) {
+   get_instance_mgmt().get_oracle(oracle, func);
+}

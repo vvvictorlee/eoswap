@@ -27,9 +27,9 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    eosdos(name s, name code, eosio::datastream<const char*> ds)
        : contract(s, code, ds)
-       ,_instance_mgmt(s)
+       , _instance_mgmt(s)
        , zoo(s, _instance_mgmt)
-       , proxy(s, _instance_mgmt,zoo) {
+       , proxy(s, _instance_mgmt, zoo) {
       zoo.init(_self, _self, _self);
    }
 
@@ -59,8 +59,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
        uint256 k, uint256 gasPriceLimit) {
       proxy.setMsgSender(msg_sender);
-      zoo.breedDODO(
-          dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
+      zoo.breedDODO(dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
    }
 
    //////////////////proxy////////////////////////
@@ -99,7 +98,6 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void depositethab(
        name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
-
       proxy.setMsgSender(msg_sender);
       proxy.depositEthAsBase(ethtokenamount, quoteToken);
    }
@@ -153,21 +151,19 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    ////////////////////  LiquidityProvider dodo////////////////////////
    [[eosio::action]] void depositquote(name msg_sender, name dodo_name, const extended_asset& amt) {
-      _instance_mgmt.setMsgSender(msg_sender);
-    //   DODOStore& dodoStore = _instance_mgmt.get_storage_mgmt().get_dodo_store(dodo_name);
-    //   DODO       dodo(dodoStore, zoo);
-    //   dodo.setMsgSender(msg_sender);
-    //   dodo.depositQuote(amt.quantity.amount);
-        _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) {
-           (void)dodo.depositQuote(amt.quantity.amount);
-        });
+      proxy.setMsgSender(msg_sender);
+      //   DODOStore& dodoStore = _instance_mgmt.get_storage_mgmt().get_dodo_store(dodo_name);
+      //   DODO       dodo(dodoStore, zoo);
+      //   dodo.setMsgSender(msg_sender);
+      //   dodo.depositQuote(amt.quantity.amount);
+      _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) { (void)dodo.depositQuote(amt.quantity.amount); });
    }
 
    ////////////////////   Oracle////////////////////////
    [[eosio::action]] void neworacle(name msg_sender, const extended_symbol& token) {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_storage_mgmt().newOracleStore(token);
+      _instance_mgmt.newOracle(token);
    }
 
    [[eosio::action]] void setprice(name msg_sender, const extended_asset& amt) {
@@ -197,6 +193,14 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::action]] void mint(name msg_sender, const extended_asset& amt) {
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_token<TestERC20>(amt.get_extended_symbol(), [&](auto& _token_) {
+         _token_.mint(msg_sender, amt.quantity.amount);
+         _instance_mgmt.get_transfer_mgmt().issue(msg_sender, amt, "");
+      });
+   }
+
+   [[eosio::action]] void mintweth(name msg_sender, const extended_asset& amt) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_token<WETH9>(amt.get_extended_symbol(), [&](auto& _token_) {
          _token_.mint(msg_sender, amt.quantity.amount);
          _instance_mgmt.get_transfer_mgmt().issue(msg_sender, amt, "");
       });

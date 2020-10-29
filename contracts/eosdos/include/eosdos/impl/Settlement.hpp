@@ -28,10 +28,10 @@ class Settlement : virtual  public Storage {
    IFactory&  factory;
 
  public:
-   Settlement(DODOStore& _stores, IFactory& _storage)
+   Settlement(DODOStore& _stores, IFactory& _factory)
        : stores(_stores)
-       , factory(_storage)
-       , Storage(_stores, _storage) {}
+       , factory(_factory)
+       , Storage(_stores, _factory) {}
    // ============ Events ============
 
    // ============ Assets IN/OUT Functions ============

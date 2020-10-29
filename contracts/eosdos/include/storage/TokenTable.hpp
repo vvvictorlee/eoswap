@@ -48,12 +48,11 @@ struct DODOMineStore {
    std::map<address, uint256>   realizedReward;
 
    // Total allocation points. Must be the sum of all allocation points in all pools.
-   uint256 totalAllocPoint = 0;
+   uint256 totalAllocPoint;
    // The block number when DODO mining starts.
    uint256 startBlock;
    EOSLIB_SERIALIZE(
-       DODOMineStore, (dodoRewardVault)(dodoPerBlock)(poolInfos)(lpTokenRegistry)(userInfo)(realizedReward)(
-                          totalAllocPoint)(startBlock))
+       DODOMineStore, (dodoRewardVault)(dodoPerBlock)(poolInfos)(lpTokenRegistry)(userInfo)(realizedReward)(totalAllocPoint)(startBlock))
 };
 
 struct DODORewardVaultStore {
@@ -115,11 +114,18 @@ struct LockedTokenVaultStore {
 
 struct [[eosio::table("token"), eosio::contract("eosdos")]] TokenStorage {
    std::map<namesym, TokenStore> tokens;
+   EOSLIB_SERIALIZE(
+       TokenStorage, (tokens))
+};
+
+typedef eosio::singleton<"token"_n, TokenStorage> TokenStorageSingleton;
+
+struct [[eosio::table("mining"), eosio::contract("eosdos")]] MiningStorage {
    DODOMineStore                 mine;
    DODORewardVaultStore          rewardvault;
    LockedTokenVaultStore         lockedtoken;
    EOSLIB_SERIALIZE(
-       TokenStorage, (tokens)(mine)(rewardvault)(lockedtoken))
+       MiningStorage, (mine)(rewardvault)(lockedtoken))
 };
 
-typedef eosio::singleton<"token"_n, TokenStorage> TokenStorageSingleton;
+typedef eosio::singleton<"mining"_n, MiningStorage> MiningStorageSingleton;

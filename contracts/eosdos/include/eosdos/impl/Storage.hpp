@@ -30,9 +30,9 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
    IFactory&  factory;
 
  public:
-   Storage(DODOStore& _stores, IFactory& _storage)
+   Storage(DODOStore& _stores, IFactory& _factory)
        : stores(_stores)
-       , factory(_storage)
+       , factory(_factory)
        , InitializableOwnable(_stores.initownable)
        , ReentrancyGuard(_stores.guard) {}
 
@@ -54,6 +54,8 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
    }
 
    uint256 getOraclePrice() {
+print("stores._ORACLE=======");
+stores._ORACLE_.print();
       uint256 price = 0;
       factory.get_oracle(stores._ORACLE_, [&](auto& oracle) { price = oracle.getPrice(); });
       return price;

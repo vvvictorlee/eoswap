@@ -22,16 +22,16 @@
  * @notice Functions for trader operations
  */
 static const uint256 tx_gasprice = 0;
-class Trader : virtual public Storage, virtual public Pricing,virtual public Settlement {
+class Trader : virtual public Storage, virtual public Pricing, virtual public Settlement {
  private:
    DODOStore& stores;
 
  public:
-   Trader(DODOStore& _stores, IFactory& _storage)
+   Trader(DODOStore& _stores, IFactory& _factory)
        : stores(_stores)
-       , Storage(_stores, _storage)
-       , Pricing(_stores, _storage)
-       , Settlement(_stores, _storage) {}
+       , Storage(_stores, _factory)
+       , Pricing(_stores, _factory)
+       , Settlement(_stores, _factory) {}
    // ============ Events ============
 
    void tradeAllowed() { require(stores._TRADE_ALLOWED_, "TRADE_NOT_ALLOWED"); }
@@ -138,7 +138,7 @@ class Trader : virtual public Storage, virtual public Pricing,virtual public Set
    }
 
    uint256 queryBuyBaseToken(uint256 amount) {
-      uint256 payQuote = 0 ;                                                        
+      uint256 payQuote                                                                    = 0;
       std::tie(payQuote, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = _queryBuyBaseToken(amount);
       return payQuote;
    }
@@ -150,7 +150,6 @@ class Trader : virtual public Storage, virtual public Pricing,virtual public Set
       uint8   newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
-
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
       uint256 sellBaseAmount = amount;
@@ -209,7 +208,6 @@ class Trader : virtual public Storage, virtual public Pricing,virtual public Set
       uint8   newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
-
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
       // charge fee from user receive amount
@@ -245,6 +243,7 @@ class Trader : virtual public Storage, virtual public Pricing,virtual public Set
                 add(backToOnePayQuote, _ROneBuyBaseToken(sub(buyBaseAmount, backToOneReceiveBase), newBaseTarget));
             newRStatus = Types::RStatus::ABOVE_ONE;
          }
+
       }
 
       return std::make_tuple(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget);

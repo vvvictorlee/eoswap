@@ -20,9 +20,9 @@ class Admin : virtual  public Storage {
  private:
    DODOStore& stores;
  public:
-   Admin(DODOStore& _stores, IFactory& _storage)
+   Admin(DODOStore& _stores, IFactory& _factory)
        : stores(_stores)
-       , Storage(_stores,_storage){}
+       , Storage(_stores,_factory){}
        // ============ Params Setting Functions ============
 
        void setOracle(const extended_symbol&  newOracle) {

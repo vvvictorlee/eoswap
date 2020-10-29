@@ -45,6 +45,7 @@ class DODOEthProxy : public ReentrancyGuard {
    name getMsgSender() { return msg_sender; }
    void setMsgSender(name _msg_sender) {
       msg_sender = _msg_sender;
+      _instance_mgmt.setMsgSender(_msg_sender);
       zoo.setMsgSender(_msg_sender);
    }
 
@@ -92,9 +93,11 @@ class DODOEthProxy : public ReentrancyGuard {
       uint256 payTokenAmount = 0;
       _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
          payTokenAmount = dodo.queryBuyBaseToken(ethAmount);
-         _transferIn(getMsgSender(), extended_asset(payTokenAmount, maxPayToken.get_extended_symbol()));
+     print("===payTokenAmount=====",payTokenAmount,"=======");
+            _transferIn(getMsgSender(), extended_asset(payTokenAmount, maxPayToken.get_extended_symbol()));
+         
          //  IERC20(quoteTokenAddress).safeApprove(_dodo, payTokenAmount);
-         dodo.buyBaseToken(ethAmount, maxPayTokenAmount, {});
+          dodo.buyBaseToken(ethAmount, maxPayTokenAmount, {});
       });
 
       _instance_mgmt.get_transfer_mgmt().transfer(self, getMsgSender(), ethToken, "");
@@ -173,9 +176,13 @@ class DODOEthProxy : public ReentrancyGuard {
       require(_dodo != address(0), "DODO_NOT_EXIST");
       //   IWETH(stores.proxy._WETH_).deposit{value : ethAmount}();
       //   IWETH(stores.proxy._WETH_).approve(_dodo, ethAmount);
+      print("===depositEthAsBase===");
+      ethtokenamount.print();
       _instance_mgmt.get_transfer_mgmt().transfer(getMsgSender(), self, ethtokenamount, "");
+      print("===depositEthAsBase===");
 
       _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) { dodo.depositBaseTo(getMsgSender(), ethAmount); });
+      print("===depositEthAsBase===");
    }
 
    uint256 withdrawEthAsBase(const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {

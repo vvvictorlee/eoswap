@@ -396,6 +396,10 @@ class eosdos_tester : public tester {
       return push_action(msg_sender, N(mint), mvo()("msg_sender", msg_sender)("amt", amt));
    }
 
+   action_result mintweth(account_name msg_sender, const extended_asset& amt) {
+      return push_action(msg_sender, N(mintweth), mvo()("msg_sender", msg_sender)("amt", amt));
+   }
+
    ////////////////get table//////////////
    fc::variant get_zoo_store() {
       vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(zoo), N(zoo));
@@ -498,7 +502,14 @@ class eosdos_tester : public tester {
    std::string balanceOf(const extended_symbol& token, name account) {
       const auto s = get_token_store();
       const auto t = find_variant(s["tokens"], ns_to_string(to_namesym(token)));
-      const auto b = find_value(t["balance"], account.to_string());
+      const auto b = find_value(t["balanceOf"], account.to_string());
+      return b;
+   }
+
+   std::string balances(const extended_symbol& token, name account) {
+      const auto s = get_token_store();
+      const auto t = find_variant(s["tokens"], ns_to_string(to_namesym(token)));
+      const auto b = find_value(t["balances"], account.to_string());
       return b;
    }
 
@@ -576,7 +587,7 @@ class eosdos_tester : public tester {
 
    void buysellBefore() {
 
-      newtoken(admin, to_maximum_supply("WETH"));
+      newethtoken(admin, to_maximum_supply("WETH"));
       newtoken(admin, to_maximum_supply("MKR"));
       //   newtoken(admin, to_maximum_supply("DAI"));
       //   newtoken(admin, to_maximum_supply("XXX"));
@@ -663,10 +674,20 @@ FC_LOG_AND_RETHROW()
 ////////////////proxy////////////////////
 BOOST_FIXTURE_TEST_CASE(buyeth1token_tests, eosdos_tester) try {
    init(admin, admin, to_sym("WETH"));
-   newtoken(admin, to_maximum_supply("WETH"));
+{
+ auto token_store = get_token_store();
+      BOOST_TEST_CHECK(nullptr == token_store);
+}
+   newethtoken(admin, to_maximum_supply("WETH"));
    newtoken(admin, to_maximum_supply("MKR"));
    //   newtoken(admin, to_maximum_supply("DAI"));
    //   newtoken(admin, to_maximum_supply("XXX"));
+{
+ auto token_store = get_token_store();
+      BOOST_TEST_CHECK(nullptr == token_store);
+}
+   mintweth(lp, to_wei_asset("WETH", 1000));
+   mintweth(trader, to_wei_asset("WETH", 1000));
 
    mint(lp, to_wei_asset("MKR", 1000));
    mint(trader, to_wei_asset("MKR", 1000));
@@ -680,12 +701,23 @@ BOOST_FIXTURE_TEST_CASE(buyeth1token_tests, eosdos_tester) try {
    uint256_x              mtFeeRate     = 1000;
    uint256_x              k             = 100000;
    uint256_x              gasPriceLimit = 0; // gweiStr("100")
+   neworacle(admin, oracle);
+   setprice(admin, to_wei_asset("WETH", 100));
+      auto oracle_store = get_oracle_store();
+      BOOST_TEST_CHECK(nullptr == oracle_store);
    //   lpFeeRate: decimalStr("0.002"),
    //   mtFeeRate: decimalStr("0.001"),
    //   k: decimalStr("0.1"),
    //   gasPriceLimit: gweiStr("100"),
+{
+ auto token_store = get_token_store();
+      BOOST_TEST_CHECK(nullptr == token_store);
+}
    breeddodo(msg_sender, dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
-
+{
+ auto token_store = get_token_store();
+      BOOST_TEST_CHECK(nullptr == token_store);
+}
    BOOST_TEST_CHECK("11" == "ddd");
    enabletradin(admin, dodo_name);
    BOOST_TEST_CHECK("11" == "ddd");
@@ -696,13 +728,18 @@ BOOST_FIXTURE_TEST_CASE(buyeth1token_tests, eosdos_tester) try {
    { depositquote(lp, dodo_name, to_wei_asset("MKR", 1000)); }
    BOOST_TEST_CHECK("111111111" == "ddd");
    { depositethab(lp, to_wei_asset("WETH", 10), to_sym("MKR")); }
+   BOOST_TEST_CHECK("buyeth1token" == "ddd");
+
    //    const buyAmount = "1";
    buyeth1token(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 200));
 
    auto store = dodos(dodo_name);
    //    BOOST_REQUIRE_EQUAL(nullptr, store);
-   BOOST_REQUIRE_EQUAL("8.999 WETH", store["_BASE_BALANCE_"].as_string());
-   BOOST_REQUIRE_EQUAL("898581839502056240973 MKR", balanceOf(quoteToken, trader));
+   BOOST_REQUIRE_EQUAL("8999000", store["_BASE_BALANCE_"].as_string());
+
+ auto token_store = get_token_store();
+      BOOST_TEST_CHECK(nullptr == token_store);
+   BOOST_REQUIRE_EQUAL("898581839502056240973", balanceOf(quoteToken, trader));
 }
 FC_LOG_AND_RETHROW()
 
@@ -715,7 +752,7 @@ BOOST_FIXTURE_TEST_CASE(sellethtoken_tests, eosdos_tester) try {
    sellethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 50));
 
    BOOST_REQUIRE_EQUAL("11 WETH", store["_BASE_BALANCE_"].as_string());
-   BOOST_REQUIRE_EQUAL("1098617454226610630663 MKR", balanceOf(quoteToken, trader));
+   BOOST_REQUIRE_EQUAL("1098617454226610630663", balanceOf(quoteToken, trader));
 }
 FC_LOG_AND_RETHROW()
 

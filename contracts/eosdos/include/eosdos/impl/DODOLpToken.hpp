@@ -25,20 +25,28 @@ class DODOLpToken : public Ownable {
 
  public:
    DODOLpToken(TokenStore& _stores, TokenStore& _ostores)
-       : stores(_stores),ostores(_ostores)
+       : stores(_stores)
+       , ostores(_ostores)
        , Ownable(_stores.ownable) {}
 
    // ============ Functions ============
 
-  void init(const extended_symbol& _originToken) { stores.originToken = _originToken; }
-   const extended_symbol&  get_esymbol() { return stores.esymbol; }
-   string name() {
+   void init(const extended_symbol& esymbol, const extended_symbol& _originToken) {
+      stores.esymbol     = esymbol;
+      stores.originToken = _originToken;
+   }
+   const extended_symbol& get_esymbol() { return stores.esymbol; }
+   string                 name() {
       std::string lpTokenSuffix = "_DODO_LP_TOKEN_";
       //   return string(abi.encodePacked(IERC20(originToken).name(), lpTokenSuffix));
       return ostores.names + lpTokenSuffix;
    }
 
-   uint8 decimals() { return ostores.decimals; }
+   std::string            symbol() { return stores.symbol; };
+   const extended_symbol& originToken() { return stores.originToken; };
+
+   uint8   decimals() { return ostores.decimals; }
+   uint256 totalSupply() { return stores.totalSupply; };
 
    /**
     * @dev transfer token for a specified address
@@ -48,8 +56,8 @@ class DODOLpToken : public Ownable {
    bool transfer(address to, uint256 amount) {
       require(amount <= stores.balances[getMsgSender()], "BALANCE_NOT_ENOUGH");
 
-      stores.balances[getMsgSender()] = sub(stores.balances[getMsgSender()],amount);
-      stores.balances[to]             =  add(stores.balances[to],amount);
+      stores.balances[getMsgSender()] = sub(stores.balances[getMsgSender()], amount);
+      stores.balances[to]             = add(stores.balances[to], amount);
 
       return true;
    }
@@ -71,9 +79,9 @@ class DODOLpToken : public Ownable {
       require(amount <= stores.balances[from], "BALANCE_NOT_ENOUGH");
       require(amount <= stores.allowed[from].dst2amt[getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
 
-      stores.balances[from]                = sub(stores.balances[from],amount);
-      stores.balances[to]                  = sub(stores.balances[to],amount);
-      stores.allowed[from].dst2amt[getMsgSender()] = sub(stores.allowed[from].dst2amt[getMsgSender()],amount);
+      stores.balances[from]                        = sub(stores.balances[from], amount);
+      stores.balances[to]                          = sub(stores.balances[to], amount);
+      stores.allowed[from].dst2amt[getMsgSender()] = sub(stores.allowed[from].dst2amt[getMsgSender()], amount);
 
       return true;
    }
@@ -98,12 +106,12 @@ class DODOLpToken : public Ownable {
    uint256 allowance(address owner, address spender) { return stores.allowed[owner].dst2amt[spender]; }
 
    void mint(address user, uint256 value) {
-      stores.balances[user] = add(stores.balances[user],value);
-      stores.totalSupply    = add(stores.totalSupply,value);
+      stores.balances[user] = add(stores.balances[user], value);
+      stores.totalSupply    = add(stores.totalSupply, value);
    }
 
    void burn(address user, uint256 value) {
-      stores.balances[user] = sub(stores.balances[user],value);
-      stores.totalSupply    = sub(stores.totalSupply,value);
+      stores.balances[user] = sub(stores.balances[user], value);
+      stores.totalSupply    = sub(stores.totalSupply, value);
    }
 };

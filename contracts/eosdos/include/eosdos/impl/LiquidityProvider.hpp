@@ -28,12 +28,12 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    IFactory&  factory;
 
  public:
-   LiquidityProvider(DODOStore& _stores, IFactory& _storage)
+   LiquidityProvider(DODOStore& _stores, IFactory& _factory)
        : stores(_stores)
-       , factory(_storage)
-       , Storage(_stores, _storage)
-       , Pricing(_stores, _storage)
-       , Settlement(_stores, _storage) {
+       , factory(_factory)
+       , Storage(_stores, _factory)
+       , Pricing(_stores, _factory)
+       , Settlement(_stores, _factory) {
    }
    // ============ Events ============
 
@@ -209,7 +209,6 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    }
 
    void _mintQuoteCapital(address user, uint256 amount) {
-      auto lptoken = stores._QUOTE_CAPITAL_TOKEN_;
         factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 

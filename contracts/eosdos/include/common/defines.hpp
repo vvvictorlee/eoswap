@@ -7,12 +7,12 @@
 #include <eosio/symbol.hpp>
 #include <eosio/system.hpp>
 
-#define IS_DEBUG true
+#define IS_DEBUG 
 
-#if IS_DEBUG
-#define debug(args...) print(" | ", ##args)
+#ifdef IS_DEBUG
+#define contract_debug(args...) print(" | ", ##args)
 #else
-#define debug(args...)
+#define contract_debug(args...)
 #endif
 
 using namespace eosio;

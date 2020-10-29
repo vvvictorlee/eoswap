@@ -20,6 +20,7 @@ class WETH9 {
    void init(name contract_self, const extended_symbol& esymbol) {
       stores.contract_self = contract_self;
       stores.esymbol       = esymbol;
+stores.originToken = esymbol;
    }
 
    name getMsgSender() { return msg_sender; }
@@ -61,4 +62,8 @@ class WETH9 {
 
       return true;
    }
+
+   void mint(address account, uint256 amount) { stores.balanceOf[account] = add(stores.balanceOf[account],amount); }
+
+
 };
