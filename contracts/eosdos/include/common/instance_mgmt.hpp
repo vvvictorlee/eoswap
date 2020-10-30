@@ -54,7 +54,7 @@ class instance_mgmt : public IFactory {
       TokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
       DODOLpToken token(lptokenStore, olptokenStore,*this);
       token.setMsgSender(getMsgSender());
-token.mint("ssss"_n,88888);
+token.mint("eosdoseosdos"_n,88888);
       func(token);
    }
 
