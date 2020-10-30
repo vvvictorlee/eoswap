@@ -310,14 +310,26 @@ def stepInstallSystemContracts():
 def stepInstallSwapContracts():
     sleep(3)
     run(args.cleos + 'set contract eoswapeoswap ' + args.contracts_dir + '/eoswap/')
+def stepInstallDosContracts():
+    sleep(3)
+    run(args.cleos + 'set contract eosdoseosdos ' + args.contracts_dir + '/eosdos/')
 def stepInstallSwapTokenContracts():
     run(args.cleos + 'set contract eoswapxtoken ' + args.contracts_dir + '/eosio.token/')
+def stepInstallDosTokenContracts():
+    run(args.cleos + 'set contract eosdosxtoken ' + args.contracts_dir + '/eosio.token/')
 def stepCreateSwapTokens():
     for s in testSymbols:
         run(args.cleos + 'push action eoswapxtoken create \'["eoswapeoswap", "10000000000.0000 %s"]\' -p eoswapxtoken' % (s))
         run(args.cleos + 'push action eoswapxtoken issue \'["eoswapeoswap", "10000000000.0000 %s", "memo"]\' -p eoswapeoswap' % (s))
         for a in testAccounts:
             run(args.cleos + 'push action eoswapxtoken transfer \'["eoswapeoswap", "%s","10000000.0000 %s", "memo"]\' -p eoswapeoswap' % (a,s))
+    sleep(1)
+def stepCreateDosTokens():
+    for s in testSymbols:
+        run(args.cleos + 'push action eosdosxtoken create \'["eosdoseosdos", "10000000000.0000 %s"]\' -p eosdosxtoken' % (s))
+        run(args.cleos + 'push action eosdosxtoken issue \'["eosdoseosdos", "10000000000.0000 %s", "memo"]\' -p eosdosxtoken' % (s))
+        for a in testAccounts:
+            run(args.cleos + 'push action eosdosxtoken transfer \'["eosdoseosdos", "%s","10000000.0000 %s", "memo"]\' -p eosdoseosdos' % (a,s))
     sleep(1)
 def stepCreateTokens():
     run(args.cleos + 'push action eosio.token create \'["eosio", "10000000000.0000 %s"]\' -p eosio.token' % (args.symbol))
@@ -424,6 +436,9 @@ commands = [
     ('e', 'swap-token-contract',stepInstallSwapTokenContracts,True,  "Install swap token contracts (eoswapxtoken)"),
     ('o', 'swap-tokens',        stepCreateSwapTokens,       False,    "Create swap tokens"),
     ('C', 'swap-contract',      stepInstallSwapContracts,   True,    "Install swap contracts (eoswap)"),
+    ('d', 'dos-token-contract', stepInstallDosTokenContracts,True,  "Install dos token contracts (eosdosxtoken)"),
+    ('do', 'dos-tokens',        stepCreateDosTokens,       False,    "Create dos tokens"),
+    ('dos', 'dos-contract',     stepInstallDosContracts,   True,    "Install dos contracts (eosdos)"),
     ('m', 'msg-replace',        msigReplaceSystem,          False,   "Replace system contract using msig"),
     ('X', 'xfer',               stepTransfer,               False,   "Random transfer tokens (infinite loop)"),
     ('l', 'log',                stepLog,                    True,    "Show tail of node's log"),
