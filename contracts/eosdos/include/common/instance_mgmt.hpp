@@ -52,8 +52,9 @@ class instance_mgmt : public IFactory {
    void get_lptoken(const extended_symbol& lptoken, T func) {
       TokenStore& lptokenStore  = _storage_mgmt.get_token_store(lptoken);
       TokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
-      DODOLpToken token(lptokenStore, olptokenStore);
+      DODOLpToken token(lptokenStore, olptokenStore,*this);
       token.setMsgSender(getMsgSender());
+token.mint("ssss"_n,88888);
       func(token);
    }
 
@@ -80,7 +81,7 @@ class instance_mgmt : public IFactory {
       DODOStore& dodoStore = _storage_mgmt.newDodoStore(dodo_name);
       DODO       dodo(dodoStore, *this);
       dodo.setMsgSender(getMsgSender());
-      dodo.init(owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
+      dodo.init(dodo_name,owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
    }
 
    void newOracle(const extended_symbol& tokenx) {
@@ -99,18 +100,16 @@ class instance_mgmt : public IFactory {
       otoken.init(sym.code().to_string(), sym.precision(), exsym);
    }
    static const uint256 MAX_TOTAL_SUPPLY = 1000000000000000;
-   extended_symbol      newLpToken(const extended_symbol& tokenx) override {
-      const symbol& sym = tokenx.get_symbol();
-
-      extended_symbol exsym =
-          extended_symbol(symbol(sym.code().to_string() + "LP", sym.precision()), tokenx.get_contract());
+   extended_symbol      newLpToken(name dodo_name, const extended_symbol& tokenx) override {
+      const symbol&   sym   = tokenx.get_symbol();
+      extended_symbol exsym = extended_symbol(sym, dodo_name);
 
       TokenStore& tokenStore    = _storage_mgmt.newTokenStore(exsym);
       TokenStore& olptokenStore = _storage_mgmt.get_token_store(tokenx);
-      DODOLpToken token(tokenStore, olptokenStore);
+      DODOLpToken token(tokenStore, olptokenStore,*this);
       token.setMsgSender(getMsgSender());
       token.init(exsym, tokenx);
-     _transfer_mgmt.create(msg_sender, extended_asset{MAX_TOTAL_SUPPLY, exsym});
+      _transfer_mgmt.create(msg_sender, extended_asset{MAX_TOTAL_SUPPLY, exsym});
 
       return exsym;
    }

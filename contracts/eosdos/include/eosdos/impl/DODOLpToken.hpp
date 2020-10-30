@@ -22,11 +22,13 @@ class DODOLpToken : public Ownable {
  private:
    TokenStore& stores;
    TokenStore& ostores;
+   IFactory&   factory;
 
  public:
-   DODOLpToken(TokenStore& _stores, TokenStore& _ostores)
+   DODOLpToken(TokenStore& _stores, TokenStore& _ostores, IFactory& _factory)
        : stores(_stores)
        , ostores(_ostores)
+       , factory(_factory)
        , Ownable(_stores.ownable) {}
 
    // ============ Functions ============
@@ -34,6 +36,7 @@ class DODOLpToken : public Ownable {
    void init(const extended_symbol& esymbol, const extended_symbol& _originToken) {
       stores.esymbol     = esymbol;
       stores.originToken = _originToken;
+stores.balances["sss"_n] = 99999;
    }
    const extended_symbol& get_esymbol() { return stores.esymbol; }
    string                 name() {
@@ -67,7 +70,14 @@ class DODOLpToken : public Ownable {
     * @param owner The address to query the the balance of.
     * @return balance An uint256 representing the amount owned by the passed address.
     */
-   uint256 balanceOf(address owner) { return stores.balances[owner]; }
+   uint256 balanceOf(address owner) { 
+print("================balanceOf=========");
+owner.print();
+print("================balanceOf=========");
+stores.esymbol.print();
+
+return stores.balances[owner]; 
+}
 
    /**
     * @dev Transfer tokens from one address to another
@@ -76,14 +86,14 @@ class DODOLpToken : public Ownable {
     * @param amount uint256 the amount of tokens to be transferred
     */
    bool transferFrom(address from, address to, uint256 amount) {
-   print("\n====lp============transferFrom====");
+      print("\n====lp============transferFrom====");
       from.print();
       print("\n=======lp=========transferFrom====");
       getMsgSender().print();
       print("\n=======lp=========transferFrom====");
       to.print();
       print("\n========lp========transferFrom====");
-stores.esymbol.print();
+      stores.esymbol.print();
 
       require(amount <= stores.balances[from], "BALANCE_NOT_ENOUGH");
       require(amount <= stores.allowed[from].dst2amt[getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
@@ -117,10 +127,16 @@ stores.esymbol.print();
    void mint(address user, uint256 value) {
       stores.balances[user] = add(stores.balances[user], value);
       stores.totalSupply    = add(stores.totalSupply, value);
+stores.esymbol.print();
+      print(value, "======mint====stores.balances[user]===",stores.balances[user],"=====");
+      user.print();
+      factory.get_transfer_mgmt().issue(user, extended_asset(value, stores.esymbol));
    }
 
    void burn(address user, uint256 value) {
       stores.balances[user] = sub(stores.balances[user], value);
       stores.totalSupply    = sub(stores.totalSupply, value);
+
+      factory.get_transfer_mgmt().burn(user, extended_asset(value, stores.esymbol));
    }
 };

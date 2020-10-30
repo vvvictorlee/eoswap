@@ -62,7 +62,10 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
 
    uint256 getBaseCapitalBalanceOf(address _lp) {
       uint256 balance = 0;
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
+stores._BASE_CAPITAL_TOKEN_.print();
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp);
+print("===============",balance);
+ });
       return balance;
       // return IDODOLpToken(stores._BASE_CAPITAL_TOKEN_).balanceOf(lp);
    }

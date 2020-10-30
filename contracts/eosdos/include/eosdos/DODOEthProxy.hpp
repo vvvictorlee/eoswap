@@ -423,15 +423,11 @@ class DODOEthProxy : public ReentrancyGuard {
       uint256 amount = tokenamount.quantity.amount;
       _instance_mgmt.get_token<TestERC20>(tokenamount.get_extended_symbol(), [&](auto& token) {
          //   IERC20(tokenAddress).safeTransferFrom(from, address(this), amount);
-        if(getMsgSender()==from)
-{
-         token.transfer(self, amount);
-}
-else
-{
-             token.transferFrom(from, self, amount);
-}
-
+         if (getMsgSender() == from) {
+            token.transfer(self, amount);
+         } else {
+            token.transferFrom(from, self, amount);
+         }
       });
       _instance_mgmt.get_transfer_mgmt().transfer(from, self, tokenamount, "");
    }
@@ -440,8 +436,8 @@ else
       // address tokenAddress, address to, uint256 amount
       uint256 amount = tokenamount.quantity.amount;
       _instance_mgmt.get_token<TestERC20>(tokenamount.get_extended_symbol(), [&](auto& token) {
-      //   IERC20(tokenAddress).safeTransfer(to, amount);
-         token.transferFrom(self,to, amount);
+         //   IERC20(tokenAddress).safeTransfer(to, amount);
+         token.transferFrom(self, to, amount);
       });
       _instance_mgmt.get_transfer_mgmt().transfer(self, to, tokenamount, "");
    }

@@ -42,7 +42,7 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
        , Pricing(_stores, _factory)
        , Settlement(_stores, _factory) {
 }
-   void init(
+   void init(name dodo_name,
        address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
        uint256 k, uint256 gasPriceLimit) {
@@ -72,8 +72,8 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
       stores._MT_FEE_RATE_         = mtFeeRate;
       stores._K_                   = k;
       stores._R_STATUS_            = Types::RStatus::ONE;
-      stores._BASE_CAPITAL_TOKEN_  = factory.newLpToken(stores._BASE_TOKEN_);
-      stores._QUOTE_CAPITAL_TOKEN_ = factory.newLpToken(stores._QUOTE_TOKEN_);
+      stores._BASE_CAPITAL_TOKEN_  = factory.newLpToken(dodo_name,stores._BASE_TOKEN_);
+      stores._QUOTE_CAPITAL_TOKEN_ = factory.newLpToken(dodo_name,stores._QUOTE_TOKEN_);
 
       _checkDODOParameters();
    }

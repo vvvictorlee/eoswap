@@ -12,7 +12,7 @@
 class IDODO { 
  public:
 
-    virtual void init(
+    virtual void init(name dodo_name,
         address owner,
         address supervisor,
         address maintainer,

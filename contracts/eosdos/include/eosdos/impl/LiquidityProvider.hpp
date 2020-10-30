@@ -33,8 +33,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
        , factory(_factory)
        , Storage(_stores, _factory)
        , Pricing(_stores, _factory)
-       , Settlement(_stores, _factory) {
-   }
+       , Settlement(_stores, _factory) {}
    // ============ Events ============
 
    void depositQuoteAllowed() { require(stores._DEPOSIT_QUOTE_ALLOWED_, "DEPOSIT_QUOTE_NOT_ALLOWED"); }
@@ -51,9 +50,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
 
    uint256 withdrawQuote(uint256 amount) { return withdrawQuoteTo(getMsgSender(), amount); }
 
-   virtual uint256 depositQuote(uint256 amount) {
-      return depositQuoteTo(getMsgSender(), amount);
-   }
+   virtual uint256 depositQuote(uint256 amount) { return depositQuoteTo(getMsgSender(), amount); }
 
    uint256 withdrawAllBase() { return withdrawAllBaseTo(getMsgSender()); }
 
@@ -122,7 +119,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       uint256 totalQuoteCapital          = getTotalQuoteCapital();
       require(totalQuoteCapital > 0, "NO_QUOTE_LP");
 
-      uint256 requireQuoteCapital = DecimalMath::divCeil(mul(amount, totalQuoteCapital), quoteTarget);
+      uint256 requireQuoteCapital = divCeil(mul(amount, totalQuoteCapital), quoteTarget);
       require(requireQuoteCapital <= getQuoteCapitalBalanceOf(getMsgSender()), "LP_QUOTE_CAPITAL_BALANCE_NOT_ENOUGH");
 
       // handle penalty, penalty may exceed amount
@@ -146,9 +143,22 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       std::tie(baseTarget, std::ignore) = getExpectedTarget();
       uint256 totalBaseCapital          = getTotalBaseCapital();
       require(totalBaseCapital > 0, "NO_BASE_LP");
-
-      uint256 requireBaseCapital = DecimalMath::divCeil(mul(amount, totalBaseCapital), baseTarget);
+      print("==========withdrawBaseTo==============");
+      uint256 requireBaseCapital = divCeil(mul(amount, totalBaseCapital), baseTarget);
+      print("==========withdrawBaseTo====end==========");
+      getMsgSender().print();
+  uint256 balance = 0;
+stores._BASE_CAPITAL_TOKEN_.print();
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf("sss"_n);
+print("========getMsgSender() balance=======",balance);
+ });
+stores._BASE_CAPITAL_TOKEN_.print();
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf("ssss"_n);
+print("========getMsgSender() balance=======",balance);
+ });
       require(requireBaseCapital <= getBaseCapitalBalanceOf(getMsgSender()), "LP_BASE_CAPITAL_BALANCE_NOT_ENOUGH");
+
+  
 
       // handle penalty, penalty may exceed amount
       uint256 penalty = getWithdrawBasePenalty(amount);
@@ -205,11 +215,24 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
 
    // ============ Helper Functions ============
    void _mintBaseCapital(address user, uint256 amount) {
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
+
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) {
+print(amount,"========_mintBaseCapital===========");
+user.print();
+ lptoken.mint(user, amount); 
+});
+
+  uint256 balance = 0;
+
+stores._BASE_CAPITAL_TOKEN_.print();
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(user);
+print("====ssss====_mintBaseCapital() balance=======",balance);
+ });
+
    }
 
    void _mintQuoteCapital(address user, uint256 amount) {
-        factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
+      factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _burnBaseCapital(address user, uint256 amount) {

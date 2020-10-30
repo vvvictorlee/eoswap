@@ -90,14 +90,14 @@ class transfer_mgmt {
     * @param quantity
     * @param memo
     */
-   void transfer(name from, name to, extended_asset quantity, std::string memo) {
+   void transfer(name from, name to, extended_asset quantity, std::string memo="") {
       if (from == to) {
          return;
       }
       inner_transfer(from, to, quantity, memo);
    }
 
-   void inner_transfer(name from, name to, extended_asset quantity, std::string memo, bool is_deferred = false) {
+   void inner_transfer(name from, name to, extended_asset quantity, std::string memo="", bool is_deferred = false) {
       check(from != to, "cannot transfer to self");
       //  require_auth( from );
       check(is_account(to), "to account does not exist");
@@ -132,12 +132,12 @@ class transfer_mgmt {
       check(maximum_supply.quantity.is_valid(), "invalid quantity");
       check(maximum_supply.quantity.amount > 0, "must transfer positive quantity");
       action(
-          permission_level{"eosdosxtoken"_n, "active"_n}, maximum_supply.contract, "create"_n,
+          permission_level{maximum_supply.contract, "active"_n}, maximum_supply.contract, "create"_n,
           std::make_tuple(issuer, maximum_supply.quantity))
           .send();
    }
 
-   void issue(name to, const extended_asset& quantity, const string& memo) {
+   void issue(name to, const extended_asset& quantity, const string& memo="") {
       check(is_account(to), "to account does not exist");
       check(quantity.quantity.is_valid(), "invalid quantity");
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
@@ -152,7 +152,7 @@ class transfer_mgmt {
       }
    }
 
-   void burn(name issuer, const extended_asset& quantity, const string& memo) {
+   void burn(name issuer, const extended_asset& quantity, const string& memo="") {
       check(is_account(issuer), "issuer account does not exist");
 
       check(quantity.quantity.is_valid(), "invalid quantity");

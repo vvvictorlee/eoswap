@@ -17,7 +17,7 @@ class IFactory {
    virtual storage_mgmt&   get_storage_mgmt()                        = 0;
    virtual transfer_mgmt&  get_transfer_mgmt()                       = 0;
    virtual instance_mgmt&  get_instance_mgmt()                       = 0;
-   virtual extended_symbol newLpToken(const extended_symbol& tokenx) = 0;
+   virtual extended_symbol newLpToken(name dodo_name,const extended_symbol& tokenx) = 0;
 
    //    template <typename T>
    //    void get_dodo(name dodo_name, T func) {
