@@ -7,6 +7,12 @@ let sleep = require('sleep');
 let async = require('async'); // https://www.npmjs.com/package/async
 // const { logTime } = require("./log_aop");
 require("./log_aop");
+const jq = require('node-jq');
+
+const prettyJson = async (log) => {
+    let jsonstr = await jq.run('.', JSON.stringify(log), { input: 'string', output: 'pretty' });
+    console.log(jsonstr);
+};
 
 dotenv.load();
 
@@ -155,15 +161,15 @@ function to_wei(value) {
 }
 
 function to_max_supply(sym) {
-    return "100000000000.0000 " + sym + "@eosdosxtoken";
+    return { quantity: "100000000000.0000 " + sym, contract: "eosdosxtoken" };
 }
 
 function to_sym(sym) {
-    return {sym:"4,"+ sym ,contract:'eosdosxtoken'};
+    return { sym: "4," + sym, contract: 'eosdosxtoken' };
 }
 
 function to_asset(value, sym) {
-    return value + ".0000 " + sym + "@eosdosxtoken";
+    return { quantity: value + ".0000 " + sym, contract: "eosdosxtoken" };
 }
 
 function to_wei_asset(value, sym) {
@@ -189,7 +195,7 @@ class EosClient {
         const keys = [process.env.EOS_KEY, '5JtUScZK2XEp3g9gh7F8bwtPTRAkASmNrrftmx4AxDKD5K4zDnr', '5JUNYmkJ5wVmtVY8x9A1KKzYe9UWLZ4Fq1hzGZxfwfzJB8jkw6u', '5KZFvhuNuU3es7hEoAorppkhfCuAfqBGGtzqvesArmzwVwJf64B', '5JtUScZK2XEp3g9gh7F8bwtPTRAkASmNrrftmx4AxDKD5K4zDnr', '5JCtWxuqPzcPUfFukj58q8TqyRJ7asGnhSYvvxi16yq3c5p6JRG', '5K79wAY8rgPwWQSRmyQa2BR8vPicieJdLCXL3cM5Db77QnsJess', "5K2L2my3qUKqj67KU61cSACoxgREkqGFi5nKaLGjbAbbRBYRq1m", "5JN8chYis1d8EYsCdDEKXyjLT3QmpW7HYoVB13dFKenK2uwyR65", "5Kju7hDTh3uCZqpzb5VWAdCp7cA1fAiEd94zdNhU59WNaQMQQmE", "5K6ZCUpk2jn1munFdiADgKgfAqcpGMHKCoJUue65p99xKX9WWCW"];
         const results = await eosrpc.import_keys(keys);
 
-        console.log(__line); console.log("results:", results);
+        console.log(__line); prettyJson(results);
     }
     async newtoken(token) {
         const results = await eosrpc.transaction(pushAction(admin, admin_pub, "mint", {
@@ -197,7 +203,7 @@ class EosClient {
             token: token
         }));
 
-        console.log(__line); console.log("results:", results);
+        console.log(__line); prettyJson(results);
 
     }
 
@@ -207,7 +213,7 @@ class EosClient {
             amt: amount
         }));
 
-        console.log(__line); console.log("results:", results);
+        console.log(__line); prettyJson(results);
     }
 
     async extransfer() {
@@ -218,7 +224,7 @@ class EosClient {
             memo: ""
         }));
 
-        console.log(__line); console.log("results:", results);
+        console.log(__line); prettyJson(results);
     }
 
     async neworacle() {
@@ -231,12 +237,12 @@ class EosClient {
     }
 
     async setprice() {
-        const results = await eosrpc.transaction(pushAction(admin, admin_pub, "neworacle", {
+        const results = await eosrpc.transaction(pushAction(admin, admin_pub, "setprice", {
             msg_sender: admin,
-            token: to_wei_asset(100, "WETH")
+            amt: to_wei_asset(100, "WETH")
         }));
 
-        console.log(__line); console.log("results:", results);
+        console.log(__line); prettyJson(results);
 
     }
 }
