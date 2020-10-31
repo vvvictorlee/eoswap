@@ -16,7 +16,7 @@ class IERC20 {
      */
     virtual uint8  totalSupply() = 0;
 
-    virtual string   name() = 0;
+    virtual std::string   name() = 0;
 
     /**
      * @dev Returns the amount of tokens owned by `account`.

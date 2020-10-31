@@ -52,9 +52,8 @@ class instance_mgmt : public IFactory {
    void get_lptoken(const extended_symbol& lptoken, T func) {
       TokenStore& lptokenStore  = _storage_mgmt.get_token_store(lptoken);
       TokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
-      DODOLpToken token(lptokenStore, olptokenStore,*this);
+      DODOLpToken token(lptokenStore, olptokenStore, *this);
       token.setMsgSender(getMsgSender());
-token.mint("eosdoseosdos"_n,88888);
       func(token);
    }
 
@@ -81,7 +80,9 @@ token.mint("eosdoseosdos"_n,88888);
       DODOStore& dodoStore = _storage_mgmt.newDodoStore(dodo_name);
       DODO       dodo(dodoStore, *this);
       dodo.setMsgSender(getMsgSender());
-      dodo.init(dodo_name,owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
+      dodo.init(
+          dodo_name, owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
+          gasPriceLimit);
    }
 
    void newOracle(const extended_symbol& tokenx) {
@@ -93,11 +94,11 @@ token.mint("eosdoseosdos"_n,88888);
 
    void newToken(const extended_asset& tokenx) {
       const extended_symbol& exsym      = tokenx.get_extended_symbol();
-      const symbol&          sym        = exsym.get_symbol();
       TokenStore&            tokenStore = _storage_mgmt.newTokenStore(exsym);
       TestERC20              otoken(tokenStore);
       otoken.setMsgSender(getMsgSender());
-      otoken.init(sym.code().to_string(), sym.precision(), exsym);
+      otoken.init(exsym);
+   _transfer_mgmt.create(msg_sender, tokenx);
    }
    static const uint256 MAX_TOTAL_SUPPLY = 1000000000000000;
    extended_symbol      newLpToken(name dodo_name, const extended_symbol& tokenx) override {
@@ -106,7 +107,7 @@ token.mint("eosdoseosdos"_n,88888);
 
       TokenStore& tokenStore    = _storage_mgmt.newTokenStore(exsym);
       TokenStore& olptokenStore = _storage_mgmt.get_token_store(tokenx);
-      DODOLpToken token(tokenStore, olptokenStore,*this);
+      DODOLpToken token(tokenStore, olptokenStore, *this);
       token.setMsgSender(getMsgSender());
       token.init(exsym, tokenx);
       _transfer_mgmt.create(msg_sender, extended_asset{MAX_TOTAL_SUPPLY, exsym});
@@ -119,7 +120,8 @@ token.mint("eosdoseosdos"_n,88888);
       TokenStore&            tokenStore = _storage_mgmt.newTokenStore(exsym);
       WETH9                  otoken(tokenStore);
       otoken.setMsgSender(getMsgSender());
-      otoken.init(getMsgSender(), exsym);
+      otoken.init(exsym);
+   _transfer_mgmt.create(msg_sender, tokenx);
    }
 };
 

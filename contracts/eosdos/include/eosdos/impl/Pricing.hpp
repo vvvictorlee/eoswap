@@ -30,7 +30,6 @@ class Pricing : virtual public Storage {
        , Storage(_stores, _factory) {}
 
    // ============ R = 1 cases ============
-
    uint256 _ROneSellBaseToken(uint256 amount, uint256 targetQuoteTokenAmount) {
       // uint256 receiveQuoteToken ;
       uint256 i  = getOraclePrice();

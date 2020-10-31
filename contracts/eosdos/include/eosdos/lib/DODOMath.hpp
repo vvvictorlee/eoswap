@@ -29,7 +29,7 @@ namespace DODOMath {
 */
 uint256 _GeneralIntegrate(uint256 V0, uint256 V1, uint256 V2, uint256 i, uint256 k) {
    uint256 fairAmount = DecimalMath::mul(i, sub(V1, V2)); // i*delta
-   uint256 V0V0V1V2   = DecimalMath::divCeil(div(mul(V0, V0), V1), V2);
+   uint256 V0V0V1V2   = DecimalMath::divCeil(div(SafeMath::mul(V0, V0), V1), V2);
    uint256 penalty    = DecimalMath::mul(k, V0V0V1V2); // k(V0^2/V1/V2)
    return DecimalMath::mul(fairAmount, add(sub(DecimalMath::ONE, k), penalty));
 }
@@ -51,8 +51,9 @@ uint256 _GeneralIntegrate(uint256 V0, uint256 V1, uint256 V2, uint256 i, uint256
 uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB, bool deltaBSig, uint256 k) {
    // calculate -b value and sig
    // -b = (1-k)Q1-kQ0^2/Q1+i*deltaB
-   uint256 kQ02Q1    = div(mul(DecimalMath::mul(k, Q0), Q0), Q1);      // kQ0^2/Q1
+   uint256 kQ02Q1    = div(SafeMath::mul(DecimalMath::mul(k, Q0), Q0), Q1);      // kQ0^2/Q1
    uint256 b         = DecimalMath::mul(sub(DecimalMath::ONE, k), Q1); // (1-k)Q1
+
    bool    minusbSig = true;
    if (deltaBSig) {
       b = add(b, ideltaB); // (1-k)Q1+i*deltaB
@@ -69,11 +70,11 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
 
    // calculate sqrt
    uint256 squareRoot =
-       DecimalMath::mul(mul(sub(DecimalMath::ONE, k), 4), mul(DecimalMath::mul(k, Q0), Q0)); // 4(1-k)kQ0^2
-   squareRoot = sqrt(add(mul(b, b), squareRoot));                                            // sqrt(b*b+4(1-k)kQ0*Q0)
+       DecimalMath::mul(SafeMath::mul(sub(DecimalMath::ONE, k), 4), SafeMath::mul(DecimalMath::mul(k, Q0), Q0)); // 4(1-k)kQ0^2
+   squareRoot = sqrt(add(SafeMath::mul(b, b), squareRoot));                                            // sqrt(b*b+4(1-k)kQ0*Q0)
 
    // final res
-   uint256 denominator = mul(sub(DecimalMath::ONE, k), 2); // 2(1-k)
+   uint256 denominator = SafeMath::mul(sub(DecimalMath::ONE, k), 2); // 2(1-k)
    uint256 numerator;
    if (minusbSig) {
       numerator = add(b, squareRoot);

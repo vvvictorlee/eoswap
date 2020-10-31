@@ -103,6 +103,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       // settlement
       _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
       _mintBaseCapital(to, capital);
+
       stores._TARGET_BASE_TOKEN_AMOUNT_ = add(stores._TARGET_BASE_TOKEN_AMOUNT_, amount);
 
       return capital;
@@ -143,22 +144,8 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       std::tie(baseTarget, std::ignore) = getExpectedTarget();
       uint256 totalBaseCapital          = getTotalBaseCapital();
       require(totalBaseCapital > 0, "NO_BASE_LP");
-      print("==========withdrawBaseTo==============");
       uint256 requireBaseCapital = divCeil(mul(amount, totalBaseCapital), baseTarget);
-      print("==========withdrawBaseTo====end==========");
-      getMsgSender().print();
-  uint256 balance = 0;
-stores._BASE_CAPITAL_TOKEN_.print();
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf("sss"_n);
-print("========getMsgSender() balance=======",balance);
- });
-stores._BASE_CAPITAL_TOKEN_.print();
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf("ssss"_n);
-print("========getMsgSender() balance=======",balance);
- });
       require(requireBaseCapital <= getBaseCapitalBalanceOf(getMsgSender()), "LP_BASE_CAPITAL_BALANCE_NOT_ENOUGH");
-
-  
 
       // handle penalty, penalty may exceed amount
       uint256 penalty = getWithdrawBasePenalty(amount);
@@ -215,20 +202,7 @@ print("========getMsgSender() balance=======",balance);
 
    // ============ Helper Functions ============
    void _mintBaseCapital(address user, uint256 amount) {
-
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) {
-print(amount,"========_mintBaseCapital===========");
-user.print();
- lptoken.mint(user, amount); 
-});
-
-  uint256 balance = 0;
-
-stores._BASE_CAPITAL_TOKEN_.print();
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(user);
-print("====ssss====_mintBaseCapital() balance=======",balance);
- });
-
+      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _mintQuoteCapital(address user, uint256 amount) {

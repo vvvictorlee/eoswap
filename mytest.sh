@@ -5,10 +5,10 @@
 #  ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/approve_tests -- --verbose
 case "$1" in
 "n") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/neworacle_tests -- --verbose ;;
-"s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/setprice_tests -- --verbose ;;
-"b") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/breeddodo_tests -- --verbose ;;
-"u") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buyeth1token_tests -- --verbose ;;
-"e") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sellethtoken_tests -- --verbose ;;
+"p") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/setprice_tests -- --verbose ;;
+"d") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/breeddodo_tests -- --verbose ;;
+"b") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buyeth1token_tests -- --verbose ;;
+"s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sellethtoken_tests -- --verbose ;;
 "w") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/withdrawe_ethbase_tests -- --verbose ;;
 *) ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests -- --verbose ;;
 esac

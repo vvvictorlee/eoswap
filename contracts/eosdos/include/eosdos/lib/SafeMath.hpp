@@ -21,7 +21,6 @@ uint256 mul(uint256 a, uint256 b) {
    }
 
    uint256 c = a * b;
-   print("\n", "====a========", a, "====b========", b, "====c========", c);
    require(c / a == b, "MUL_ERROR");
 
    return c;

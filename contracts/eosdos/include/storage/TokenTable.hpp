@@ -81,18 +81,19 @@ struct TokenStore {
    extended_symbol originToken;
    extended_symbol esymbol;
    OwnableStore    ownable;
-   name            contract_self;
    std::string                 names;
-   std::string                 symbols;
-   uint256                     decimals;
-   std::map<name, uint256>     balances;
-   std::map<name, uint256>     balanceOf;
-   std::map<name, Account2Amt> allowed;
-   std::map<name, Account2Amt> allowance;
-   uint256                     totalSupply;
+//    name            contract_self;
+//    std::string                 symbols;
+//    uint256                     decimals;
+//    std::map<name, uint256>     balances;
+//    std::map<name, uint256>     balanceOf;
+//    std::map<name, Account2Amt> allowed;
+//    std::map<name, Account2Amt> allowance;
+//    uint256                     totalSupply;
+// (contract_self)(symbols)(decimals)(balances)(allowed)(
+//                        balanceOf)(allowance)(totalSupply)
    EOSLIB_SERIALIZE(
-       TokenStore, (esymbol)(originToken)(ownable)(contract_self)(names)(symbols)(decimals)(balances)(allowed)(
-                       balanceOf)(allowance)(totalSupply))
+       TokenStore, (esymbol)(originToken)(ownable)(names))
 };
 
 struct LockedTokenVaultStore {

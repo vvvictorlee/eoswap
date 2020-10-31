@@ -117,6 +117,13 @@ class eosdos_tester : public tester {
       //      }
       //   }
 
+      std::vector<name> test_core_accounts = {N(alice),        N(bob),          N(carol),       N(eosdoseosdos),
+                                              N(eosdosoracle), N(ethbasemkr11), N(ethquotemkr1)};
+      for (auto& acc_name : test_core_accounts) {
+         transfer(config::system_account_name, acc_name, "100000.0000");
+         produce_blocks(1);
+      }
+
       is_auth_token = false;
       produce_blocks();
 
@@ -298,8 +305,11 @@ class eosdos_tester : public tester {
    ///////////////proxy ////////////////////
    // msg_sender, name dst, uint_eth amt
 
-   action_result init(name msg_sender, address dodoZoo, const extended_symbol& weth) {
-      return push_action(msg_sender, N(init), mvo()("msg_sender", msg_sender)("dodoZoo", dodoZoo)("weth", weth));
+   action_result
+   init(name msg_sender, address dodoZoo, const extended_symbol& weth, const extended_symbol& core_symbol) {
+      return push_action(
+          msg_sender, N(init),
+          mvo()("msg_sender", msg_sender)("dodoZoo", dodoZoo)("weth", weth)("core_symbol", core_symbol));
    }
 
    action_result sellethtoken(name msg_sender, const extended_asset& ethToken, const extended_asset& minReceiveToken) {
@@ -555,7 +565,9 @@ class eosdos_tester : public tester {
       return p;
    }
 
-   uint_eth to_wei(uint_eth value) { return value * pow(10, 6); }
+   uint_eth to_wei(uint_eth value) { 
+return value * pow(10, 4); 
+}
 
    extended_asset to_pool_asset(name pool_name, int64_t value) {
       return extended_asset{asset{value, symbol{4, "BPT"}}, pool_name};
@@ -568,6 +580,12 @@ class eosdos_tester : public tester {
    }
    extended_asset to_wei_asset(const std::string& sym, uint_eth value) {
       return to_asset(sym, static_cast<int64_t>(to_wei(value)));
+   }
+
+   extended_symbol get_core_symbol() { return extended_symbol{symbol{CORE_SYM}, name{"eosio.token"}}; }
+
+   symbol to_sym_from_string(const std::string& sym) {
+      return symbol{4, sym.c_str()};
    }
 
    extended_symbol to_sym(const std::string& sym) {
@@ -615,16 +633,16 @@ class eosdos_tester : public tester {
       //   buysellBefore();
       //   beforeEach();
       //   breedBefore();
-      init(admin, admin, to_sym("WETH"));
+      init(admin, admin, to_sym("WETH"), get_core_symbol());
 
       newethtoken(admin, to_maximum_supply("WETH"));
       newtoken(admin, to_maximum_supply("MKR"));
       //   newtoken(admin, to_maximum_supply("DAI"));
       //   newtoken(admin, to_maximum_supply("XXX"));
 
-      mintweth(admin, to_wei_asset("WETH", 1000));
-      mintweth(lp, to_wei_asset("WETH", 1000));
-      mintweth(trader, to_wei_asset("WETH", 1000));
+    //   mintweth(admin, to_wei_asset("WETH", 1000));
+    //   mintweth(lp, to_wei_asset("WETH", 1000));
+    //   mintweth(trader, to_wei_asset("WETH", 1000));
 
       mint(lp, to_wei_asset("MKR", 1000));
       mint(trader, to_wei_asset("MKR", 1000));
@@ -637,7 +655,7 @@ class eosdos_tester : public tester {
       extended_symbol oracle        = to_sym("WETH");
       uint256_x       lpFeeRate     = 2000;
       uint256_x       mtFeeRate     = 1000;
-      uint256_x       k             = 100000;
+      uint256_x       k             = 1000;
       uint256_x       gasPriceLimit = 0; // gweiStr("100")
       neworacle(admin, oracle);
       setprice(admin, to_wei_asset("WETH", 100));
@@ -657,8 +675,17 @@ class eosdos_tester : public tester {
       depositquote(lp, dodo_name, to_wei_asset("MKR", 1000));
       depositethab(lp, to_wei_asset("WETH", 10), to_sym("MKR"));
 
-      approve(admin, trader, to_wei_asset("MKR", 1000));
-      approveweth(admin, trader, to_wei_asset("WETH", 1000));
+    //   auto dodo_store = get_dodo_store();
+    //   BOOST_TEST_CHECK(nullptr == dodo_store);
+      //    auto zoo_store = get_zoo_store();
+      //    BOOST_TEST_CHECK(nullptr == zoo_store);
+      //    auto proxy_store = get_proxy_store();
+      //    BOOST_REQUIRE_EQUAL(nullptr, proxy_store);
+      //   approve(admin, trader, to_wei_asset("MKR", 1000));
+      //   approveweth(admin, trader, to_wei_asset("WETH", 1000));
+
+      // auto token_store = get_token_store();
+      //   BOOST_TEST_CHECK(nullptr == token_store);
    }
 
    bool is_auth_token;
@@ -713,21 +740,30 @@ BOOST_FIXTURE_TEST_CASE(buyeth1token_tests, eosdos_tester) try {
 
    auto store = dodos(dodo_ethbase_name);
    //    BOOST_REQUIRE_EQUAL(nullptr, store);
-   BOOST_REQUIRE_EQUAL("8999000", store["_BASE_BALANCE_"].as_string());
+   BOOST_TEST_CHECK("8999000"==store["_BASE_BALANCE_"].as_string());
+   std::string token_name = "MKR";
+   auto        sym        = to_sym_from_string(token_name);
+   auto        c          = eosio::chain::asset::from_string("0.0001 " + token_name);
+   auto        b          = get_balancex(trader, sym);
+   BOOST_TEST_CHECK(c == b);
 
-   //    auto token_store = get_token_store();
-   //    BOOST_TEST_CHECK(nullptr == token_store);
    //    BOOST_REQUIRE_EQUAL("898581839502056240973", balanceOf(quoteToken, trader));
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(sellethtoken_tests, eosdos_tester) try {
    ethBaseBefore();
+   BOOST_TEST_CHECK("11"== "");
    sellethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 50));
-
    auto store = dodos(dodo_ethbase_name);
-   BOOST_REQUIRE_EQUAL("11 WETH", store["_BASE_BALANCE_"].as_string());
-   //    BOOST_REQUIRE_EQUAL("1098617454226610630663", balanceOf(quoteToken, trader));
+   //    BOOST_REQUIRE_EQUAL(nullptr, store);
+   BOOST_TEST_CHECK("8999000"==store["_BASE_BALANCE_"].as_string());
+   BOOST_TEST_CHECK("11"== "ddd");
+   std::string token_name = "MKR";
+   auto        sym        = to_sym_from_string(token_name);
+   auto        c          = eosio::chain::asset::from_string("0.0001 " + token_name);
+   auto        b          = get_balancex(trader, sym);
+   BOOST_TEST_CHECK(c == b);
 }
 FC_LOG_AND_RETHROW()
 
@@ -736,9 +772,9 @@ BOOST_FIXTURE_TEST_CASE(withdrawe_ethbase_tests, eosdos_tester) try {
    withdraweab(lp, to_wei_asset("WETH", 5), to_sym("MKR"));
    std::string token_name = "WETH";
    auto        sym        = to_sym(token_name);
-   //    auto        c          = eosio::chain::asset::from_string("0.0001 " + token_name);
-   //    auto        b          = get_balancex(lp, sym.sym);
-   //    BOOST_TEST_CHECK(c == b);
+   auto        c          = eosio::chain::asset::from_string("0.0001 " + token_name);
+   auto        b          = get_balancex(lp, sym.sym);
+   BOOST_TEST_CHECK(c == b);
    //  const withdrawAmount = decimalStr("5");
    //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
    //       assert.strictEqual(
@@ -768,8 +804,7 @@ BOOST_FIXTURE_TEST_CASE(withdraw_allethasbase_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(withdrawaeab_tests, eosdos_tester) try {}
-FC_LOG_AND_RETHROW()
+
 ////////////////oracle////////////////////
 BOOST_FIXTURE_TEST_CASE(neworacle_tests, eosdos_tester) try {
    neworacle(admin, to_sym("WETH"));

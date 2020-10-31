@@ -1,6 +1,5 @@
 #pragma once
 #include <common/defines.hpp>
-#include <common/eosio.token.hpp>
 class transfer_mgmt {
  private:
    name self;
@@ -74,12 +73,62 @@ class transfer_mgmt {
       return _core_symbol;
    }
 
-   static asset get_balance(const name& owner, const extended_symbol& exsym) {
-      return eosio::token::get_balance(exsym.get_contract(), owner, exsym.get_symbol().code());
+   static uint64_t get_supply(const extended_symbol& exsym) {
+      return get_supply(exsym.get_contract(), exsym.get_symbol().code()).amount;
+   }
+
+   static uint64_t get_balance(const name& owner, const extended_symbol& exsym) {
+      return get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
    }
 
    static name get_issuer(const extended_symbol& exsym) {
-      return eosio::token::get_issuer(exsym.get_contract(), exsym.get_symbol().code());
+      return get_issuer(exsym.get_contract(), exsym.get_symbol().code());
+   }
+
+   static void static_transfer(name from, name to, extended_asset quantity, std::string memo = "") {
+      print_f("On static_transfer : % % % %", from, to, quantity, memo);
+
+      check(from != to, "cannot transfer to self");
+      //  require_auth( from );
+      check(is_account(to), "to account does not exist");
+      check(quantity.quantity.is_valid(), "invalid quantity");
+      check(quantity.quantity.amount > 0, "must transfer positive quantity");
+      check(memo.size() <= 256, "memo has more than 256 bytes");
+
+      action(
+          permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
+          std::make_tuple(from, to, quantity.quantity, memo))
+          .send();
+   }
+
+   static void static_issue(name to, const extended_asset& quantity, const std::string& memo = "") {
+      check(is_account(to), "to account does not exist");
+      check(quantity.quantity.is_valid(), "invalid quantity");
+      check(quantity.quantity.amount > 0, "must transfer positive quantity");
+      check(memo.size() <= 256, "memo has more than 256 bytes");
+      auto issuer = get_issuer(quantity.get_extended_symbol());
+      action(
+          permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
+          std::make_tuple(issuer, quantity.quantity, memo))
+          .send();
+      if (to != issuer) {
+         static_transfer(issuer, to, quantity, memo);
+      }
+   }
+
+   static void static_burn(name burnee, const extended_asset& quantity, const std::string& memo = "") {
+      check(is_account(burnee), "burnee account does not exist");
+
+      check(quantity.quantity.is_valid(), "invalid quantity");
+      check(quantity.quantity.amount > 0, "must transfer positive quantity");
+      check(memo.size() <= 256, "memo has more than 256 bytes");
+      auto issuer = get_issuer(quantity.get_extended_symbol());
+      if (burnee != issuer) {
+         static_transfer(burnee, issuer, quantity, memo);
+      }
+      action(
+          permission_level{issuer, "active"_n}, quantity.contract, "retire"_n, std::make_tuple(quantity.quantity, memo))
+          .send();
    }
 
    /**
@@ -90,14 +139,17 @@ class transfer_mgmt {
     * @param quantity
     * @param memo
     */
-   void transfer(name from, name to, extended_asset quantity, std::string memo="") {
+   void transfer(name from, name to, extended_asset quantity, std::string memo = "") {
       if (from == to) {
+         print_f(" from=to : % % % %", from, to, quantity, memo);
          return;
       }
       inner_transfer(from, to, quantity, memo);
    }
 
-   void inner_transfer(name from, name to, extended_asset quantity, std::string memo="", bool is_deferred = false) {
+   void inner_transfer(name from, name to, extended_asset quantity, std::string memo = "", bool is_deferred = false) {
+      print_f("On inner_transfer : % % % %", from, to, quantity, memo);
+
       check(from != to, "cannot transfer to self");
       //  require_auth( from );
       check(is_account(to), "to account does not exist");
@@ -137,31 +189,12 @@ class transfer_mgmt {
           .send();
    }
 
-   void issue(name to, const extended_asset& quantity, const string& memo="") {
-      check(is_account(to), "to account does not exist");
-      check(quantity.quantity.is_valid(), "invalid quantity");
-      check(quantity.quantity.amount > 0, "must transfer positive quantity");
-      check(memo.size() <= 256, "memo has more than 256 bytes");
-      auto issuer = get_issuer(quantity.get_extended_symbol());
-      action(
-          permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
-          std::make_tuple(issuer, quantity.quantity, memo))
-          .send();
-      if (to != issuer) {
-         transfer(issuer, to, quantity, memo);
-      }
+   void issue(name to, const extended_asset& quantity, const std::string& memo = "") {
+      static_issue(to, quantity, memo);
    }
 
-   void burn(name issuer, const extended_asset& quantity, const string& memo="") {
-      check(is_account(issuer), "issuer account does not exist");
-
-      check(quantity.quantity.is_valid(), "invalid quantity");
-      check(quantity.quantity.amount > 0, "must transfer positive quantity");
-      check(memo.size() <= 256, "memo has more than 256 bytes");
-
-      action(
-          permission_level{issuer, "active"_n}, quantity.contract, "retire"_n, std::make_tuple(quantity.quantity, memo))
-          .send();
+   void burn(name burnee, const extended_asset& quantity, const std::string& memo = "") {
+      static_burn(burnee, quantity, memo);
    }
 
    static std::vector<std::string> parse_string(const std::string& source, const std::string& delimiter = ",") {
@@ -205,4 +238,39 @@ class transfer_mgmt {
 
       return val;
    }
+
+   static name get_issuer(const name& token_contract_account, const symbol_code& sym_code) {
+      stats       statstable(token_contract_account, sym_code.raw());
+      const auto& st = statstable.get(sym_code.raw());
+      return st.issuer;
+   }
+   static asset get_supply(const name& token_contract_account, const symbol_code& sym_code) {
+      stats       statstable(token_contract_account, sym_code.raw());
+      const auto& st = statstable.get(sym_code.raw());
+      return st.supply;
+   }
+
+   static asset get_balance(const name& token_contract_account, const name& owner, const symbol_code& sym_code) {
+      accounts    accountstable(token_contract_account, owner.value);
+      const auto& ac = accountstable.get(sym_code.raw());
+      return ac.balance;
+   }
+
+ private:
+   struct [[eosio::table]] account {
+      asset balance;
+
+      uint64_t primary_key() const { return balance.symbol.code().raw(); }
+   };
+
+   struct [[eosio::table]] currency_stats {
+      asset supply;
+      asset max_supply;
+      name  issuer;
+
+      uint64_t primary_key() const { return supply.symbol.code().raw(); }
+   };
+
+   typedef eosio::multi_index<"accounts"_n, account>    accounts;
+   typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 };

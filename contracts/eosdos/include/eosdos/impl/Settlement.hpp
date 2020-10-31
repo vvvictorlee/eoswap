@@ -41,7 +41,7 @@ class Settlement : virtual  public Storage {
       require(
           add(stores._BASE_BALANCE_, amount) <= stores._BASE_BALANCE_LIMIT_, "BASE_BALANCE_LIMIT_EXCEEDED");
       //   IERC20(_BASE_TOKEN_).safeTransferFrom(from, address(this), amount);
-      factory.get_transfer_mgmt().transfer(from, factory.get_self(), tokenamount, "");
+      factory.get_transfer_mgmt().transfer(from, factory.get_self(), tokenamount);
       stores._BASE_BALANCE_ = add(stores._BASE_BALANCE_, amount);
    }
 
@@ -51,7 +51,7 @@ class Settlement : virtual  public Storage {
           add(stores._QUOTE_BALANCE_, amount) <= stores._QUOTE_BALANCE_LIMIT_,
           "QUOTE_BALANCE_LIMIT_EXCEEDED");
       //   IERC20(stores._QUOTE_TOKEN_).safeTransferFrom(from, address(this), amount);
-      factory.get_transfer_mgmt().transfer(from, factory.get_self(), tokenamount, "");
+      factory.get_transfer_mgmt().transfer(from, factory.get_self(), tokenamount);
       stores._QUOTE_BALANCE_ = add(stores._QUOTE_BALANCE_, amount);
    }
 
@@ -164,15 +164,15 @@ class Settlement : virtual  public Storage {
       const extended_symbol token  = tokenamount.get_extended_symbol();
       uint256               amount = tokenamount.quantity.amount;
       if (token == stores._BASE_TOKEN_) {
-         asset balance = factory.get_transfer_mgmt().get_balance(factory.get_self(), stores._BASE_TOKEN_);
-         require(balance.amount >= add(stores._BASE_BALANCE_,amount), "DODO_BASE_BALANCE_NOT_ENOUGH");
+         uint256 balance = factory.get_transfer_mgmt().get_balance(factory.get_self(), stores._BASE_TOKEN_);
+         require(balance >= add(stores._BASE_BALANCE_,amount), "DODO_BASE_BALANCE_NOT_ENOUGH");
          //  require(
          //      IERC20(stores._BASE_TOKEN_).balanceOf(address(this)) >= stores._BASE_BALANCE_,amount),
          //      "DODO_BASE_BALANCE_NOT_ENOUGH");
       }
       if (token == stores._QUOTE_TOKEN_) {
-         asset balance = factory.get_transfer_mgmt().get_balance(factory.get_self(), stores._QUOTE_TOKEN_);
-         require(balance.amount >= add(stores._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
+         uint256 balance = factory.get_transfer_mgmt().get_balance(factory.get_self(), stores._QUOTE_TOKEN_);
+         require(balance >= add(stores._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
          //  require(
          //      IERC20(stores._QUOTE_TOKEN_).balanceOf(address(this)) >=
          //      stores._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");

@@ -47,10 +47,11 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
        uint256 k, uint256 gasPriceLimit) {
       require(!stores._INITIALIZED_, "DODO_INITIALIZED");
+
       stores._INITIALIZED_ = true;
 
       stores.initownable._OWNER_ = owner;
-
+      
       stores._SUPERVISOR_            = supervisor;
       stores._MAINTAINER_            = maintainer;
       stores._BASE_TOKEN_            = baseToken;
