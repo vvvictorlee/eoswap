@@ -320,9 +320,9 @@ class eosdos_tester : public tester {
    }
 
    action_result
-   buyeth1token(name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
+   buyethtoken(name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
       return push_action(
-          msg_sender, N(buyeth1token),
+          msg_sender, N(buyethtoken),
           mvo()("msg_sender", msg_sender)("ethToken", ethToken)("maxPayTokenAmount", maxPayTokenAmount));
    }
 
@@ -519,28 +519,6 @@ class eosdos_tester : public tester {
       return p;
    }
 
-   std::string balanceOf(const extended_symbol& token, name account) {
-      const auto s = get_token_store();
-      const auto t = find_variant(s["tokens"], ns_to_string(to_namesym(token)));
-      const auto b = find_value(t["balanceOf"], account.to_string());
-      return b;
-   }
-
-   std::string balances(const extended_symbol& token, name account) {
-      const auto s = get_token_store();
-      const auto t = find_variant(s["tokens"], ns_to_string(to_namesym(token)));
-      const auto b = find_value(t["balances"], account.to_string());
-      return b;
-   }
-
-   std::string allowance(const extended_symbol& token, name src, name dst) {
-      const auto s   = get_token_store();
-      const auto t   = find_variant(s["tokens"], ns_to_string(to_namesym(token)));
-      const auto a   = find_variant(t["allowance"], src.to_string());
-      const auto amt = find_value(a["dst2amt"], dst.to_string());
-      return amt;
-   }
-
    std::string getPrice(const extended_symbol& oracle) {
       const auto ps  = get_oracle_store();
       const auto p   = find_variant(ps["oracles"], ns_to_string(to_namesym(oracle)));
@@ -600,6 +578,7 @@ class eosdos_tester : public tester {
 
    void newOracleBefore() {
       neworacle(admin, to_sym("WETH"));
+      neworacle(admin, to_sym("DAI"));
       neworacle(admin, to_sym("MKR"));
    }
 
@@ -730,19 +709,19 @@ BOOST_FIXTURE_TEST_CASE(breeddodo_tests, eosdos_tester) try {
 FC_LOG_AND_RETHROW()
 
 ////////////////proxy////////////////////
-BOOST_FIXTURE_TEST_CASE(buyeth1token_tests, eosdos_tester) try {
+BOOST_FIXTURE_TEST_CASE(buyethtoken_tests, eosdos_tester) try {
    ethBaseBefore();
 
    //    const buyAmount = "1";
-   buyeth1token(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 200));
+   buyethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 200));
 
    auto store = dodos(dodo_ethbase_name);
    //    BOOST_REQUIRE_EQUAL(nullptr, store);
    BOOST_TEST_CHECK("8999000" == store["_BASE_BALANCE_"].as_string());
-   std::string token_name = "MKR";
-   auto        sym        = to_sym_from_string(token_name);
-   auto        c          = eosio::chain::asset::from_string("0.0001 " + token_name);
-   auto        b          = get_balancex(trader, sym);
+   std::string quote_token_name = "MKR";
+   auto        sym              = to_sym_from_string(quote_token_name);
+   auto        c                = eosio::chain::asset::from_string("0.0001 " + quote_token_name);
+   auto        b                = get_balancex(trader, sym);
    BOOST_TEST_CHECK(c == b);
 
    //    BOOST_REQUIRE_EQUAL("898581839502056240973", balanceOf(quoteToken, trader));
@@ -829,8 +808,11 @@ BOOST_FIXTURE_TEST_CASE(mint_tests, eosdos_tester) try {
    mint(N(alice), to_wei_asset("WETH", 5));
    mint(N(alice), to_wei_asset("DAI", 200));
 
-   const auto ab = balanceOf(to_sym("WETH"), N(alice));
-   BOOST_REQUIRE_EQUAL(std::to_string(to_wei(5)), ab);
+   std::string quote_token_name = "WETH";
+   auto        sym              = to_sym_from_string(quote_token_name);
+   auto        a                = eosio::chain::asset::from_string("50000" + quote_token_name);
+   auto        b                = get_balancex(trader, sym);
+   BOOST_REQUIRE_EQUAL(a, b);
 }
 FC_LOG_AND_RETHROW()
 

@@ -74,14 +74,34 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        name msg_sender, const extended_asset& ethToken, const extended_asset& minReceiveToken) {
       proxy.setMsgSender(msg_sender);
       proxy.sellEthToToken(ethToken, minReceiveToken);
+
+   }
+/////////////////////////////////////////
+   [[eosio::action]] void buyethtoken(
+       name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
+      proxy.setMsgSender(msg_sender);
+    //   proxy.buyEthWithToken(ethToken, maxPayTokenAmount);
+      buyethtoken1_action buyethtoken1_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      buyethtoken1_act.send( msg_sender, ethToken,maxPayTokenAmount );
+      buyethtoken2_action buyethtoken2_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      buyethtoken2_act.send( msg_sender, ethToken,maxPayTokenAmount );
    }
 
-   [[eosio::action]] void buyeth1token(
+   [[eosio::action]] void buyethtoken1(
+       name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
+      proxy.setMsgSender(msg_sender);
+      proxy.buyEthWithToken(ethToken, maxPayTokenAmount,true);
+   }
+
+   [[eosio::action]] void buyethtoken2(
        name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
       proxy.setMsgSender(msg_sender);
       proxy.buyEthWithToken(ethToken, maxPayTokenAmount);
    }
 
+    using buyethtoken1_action = eosio::action_wrapper<"buyethtoken1"_n, &eosdos::buyethtoken1>;
+    using buyethtoken2_action = eosio::action_wrapper<"buyethtoken2"_n, &eosdos::buyethtoken2>;
+/////////////////////////////////////////////
    [[eosio::action]] void selltokeneth(
        name msg_sender, const extended_asset& baseToken, const extended_asset& minReceiveEth) {
       proxy.setMsgSender(msg_sender);
@@ -109,6 +129,8 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       withdraweab1_act.send( msg_sender, ethtokenamount, quoteToken );
       withdraweab2_action withdraweab2_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
       withdraweab2_act.send( msg_sender, ethtokenamount, quoteToken );
+      withdraweab3_action withdraweab3_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdraweab3_act.send( msg_sender, ethtokenamount, quoteToken );
    }
 
    [[eosio::action]] void withdraweab1(
@@ -135,8 +157,23 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void withdrawaeab(name msg_sender, const extended_symbol& quoteToken) {
       proxy.setMsgSender(msg_sender);
+    //   proxy.withdrawAllEthAsBase(quoteToken);
+      withdrawaeaa_action withdrawaeaa_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdrawaeaa_act.send( msg_sender,  quoteToken );
+      withdrawaeac_action withdrawaeac_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdrawaeac_act.send( msg_sender,  quoteToken );
+   }
+
+   [[eosio::action]] void withdrawaeaa(name msg_sender, const extended_symbol& quoteToken) {
+      proxy.setMsgSender(msg_sender);
+      proxy.withdrawAllEthAsBase(quoteToken,true);
+   }
+   [[eosio::action]] void withdrawaeac(name msg_sender, const extended_symbol& quoteToken) {
+      proxy.setMsgSender(msg_sender);
       proxy.withdrawAllEthAsBase(quoteToken);
    }
+    using withdrawaeaa_action = eosio::action_wrapper<"withdrawaeaa"_n, &eosdos::withdrawaeaa>;
+    using withdrawaeac_action = eosio::action_wrapper<"withdrawaeac"_n, &eosdos::withdrawaeac>;
 
    // Absorb any _token_ that have been sent to this contract into the pool
    [[eosio::action]] void depositethaq(
@@ -153,6 +190,8 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       withdraweaq1_act.send( msg_sender, ethtokenamount, baseToken );
       withdraweaq2_action withdraweaq2_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
       withdraweaq2_act.send( msg_sender, ethtokenamount, baseToken );
+      withdraweaq3_action withdraweaq3_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdraweaq3_act.send( msg_sender, ethtokenamount, baseToken );
    }
 
    [[eosio::action]] void withdraweaq1(
@@ -179,10 +218,25 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void withdrawaeaq(name msg_sender, const extended_symbol& baseToken) {
       proxy.setMsgSender(msg_sender);
+    //   proxy.withdrawAllEthAsQuote(baseToken);
+      withdrawaeao_action withdrawaeao_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdrawaeao_act.send( msg_sender,  baseToken );
+      withdrawaeap_action withdrawaeap_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdrawaeap_act.send( msg_sender,  baseToken );
+   }
+ 
+   [[eosio::action]] void withdrawaeao(name msg_sender, const extended_symbol& baseToken) {
+      proxy.setMsgSender(msg_sender);
+      proxy.withdrawAllEthAsQuote(baseToken,true);
+   }
+ 
+   [[eosio::action]] void withdrawaeap(name msg_sender, const extended_symbol& baseToken) {
+      proxy.setMsgSender(msg_sender);
       proxy.withdrawAllEthAsQuote(baseToken);
    }
-
  
+   using withdrawaeao_action = eosio::action_wrapper<"withdrawaeao"_n, &eosdos::withdrawaeao>;
+    using withdrawaeap_action = eosio::action_wrapper<"withdrawaeap"_n, &eosdos::withdrawaeap>;
 
    ////////////////////  admin dodo////////////////////////
    [[eosio::action]] void enabletradin(name msg_sender, name dodo_name) {

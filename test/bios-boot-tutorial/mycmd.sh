@@ -2,7 +2,7 @@ case "$1" in
 "n") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/neworacle_tests -- --verbose ;;
 "s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/setprice_tests -- --verbose ;;
 "b") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/breeddodo_tests -- --verbose ;;
-"u") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buyeth1token_tests -- --verbose ;;
+"u") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buyethtoken_tests -- --verbose ;;
 "o") curl -X POST --url http://10.11.5.37:8000/v1/chain/get_table_rows  -d '{
   "code":"eosdoseosdos",
   "scope": "eosdoseosdos",
