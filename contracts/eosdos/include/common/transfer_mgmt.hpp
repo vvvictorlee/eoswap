@@ -78,8 +78,7 @@ class transfer_mgmt {
    }
 
    static uint64_t get_balance(const name& owner, const extended_symbol& exsym) {
-      print_f(
-          "===get_balance : % % %===", owner, exsym,
+      print_f("===get_balance : % % %===", owner, exsym,
           get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount);
       return get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
    }
@@ -111,7 +110,7 @@ class transfer_mgmt {
    }
 
    static void static_create(name issuer, const extended_asset& maximum_supply) {
-      print_f("=======create========== % %", issuer, maximum_supply);
+      print_f("=======static_create========== % %", issuer, maximum_supply);
 
       require_auth(issuer);
       check(is_account(issuer), "issuer account does not exist");
@@ -124,6 +123,8 @@ class transfer_mgmt {
    }
 
    static void static_issue(name to, const extended_asset& quantity, const std::string& memo = "") {
+      print_f("==On static_issue :  % % %",  to, quantity, memo);
+
       check(is_account(to), "to account does not exist");
       check(quantity.quantity.is_valid(), "invalid quantity");
       check(quantity.quantity.amount > 0, "must transfer positive quantity");

@@ -267,12 +267,12 @@ class DODOEthProxy : public ReentrancyGuard {
       return wethAmount;
    }
 
-   uint256 withdrawAllEthAsBase(const extended_symbol& quoteToken, bool pretransfer = false) {
+   uint256 withdrawAllEthAsBase(const extended_symbol& quoteToken, uint8_t state) {
       // address quoteTokenAddress
       namesym quoteTokenAddress = to_namesym(quoteToken);
       address _dodo             = zoo.getDODO(to_namesym(stores.proxy._WETH_), quoteTokenAddress);
       require(_dodo != address(0), "DODO_NOT_EXIST");
-      if (pretransfer) {
+      if (1 == state) {
          _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
             const extended_symbol& ethLpToken = dodo._BASE_CAPITAL_TOKEN_();
 
@@ -287,11 +287,10 @@ class DODOEthProxy : public ReentrancyGuard {
          return 0;
       }
 
-      _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
-         const extended_symbol& ethLpToken = dodo._BASE_CAPITAL_TOKEN_();
-
-         dodo.withdrawAllBase();
-      });
+      if (2 == state) {
+         _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) { dodo.withdrawAllBase(); });
+         return 0;
+      }
 
       // because of withdraw penalty, withdrawAmount may not equal to ethAmount
       // query weth amount first and than transfer ETH to getMsgSender()
@@ -348,7 +347,7 @@ class DODOEthProxy : public ReentrancyGuard {
                //  uint256 lpBalance = IERC20(ethLpToken).balanceOf(getMsgSender());
                //  IERC20(ethLpToken).transferFrom(getMsgSender(), address(this), lpBalance);
                uint256 lpBalance = token.balanceOf(getMsgSender());
-               token.transferFrom(getMsgSender(),self, lpBalance);
+               token.transferFrom(getMsgSender(), self, lpBalance);
             });
          });
          return 0;
@@ -390,13 +389,13 @@ class DODOEthProxy : public ReentrancyGuard {
       return wethAmount;
    }
 
-   uint256 withdrawAllEthAsQuote(const extended_symbol& baseToken, bool pretransfer = false) {
+   uint256 withdrawAllEthAsQuote(const extended_symbol& baseToken, uint8_t state) {
       // address baseTokenAddress
       namesym baseTokenAddress = to_namesym(baseToken);
 
       address _dodo = zoo.getDODO(baseTokenAddress, to_namesym(stores.proxy._WETH_));
       require(_dodo != address(0), "DODO_NOT_EXIST");
-      if (pretransfer) {
+      if (1 == state) {
          _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
             const extended_symbol& ethLpToken = dodo._QUOTE_CAPITAL_TOKEN_();
 
@@ -410,12 +409,14 @@ class DODOEthProxy : public ReentrancyGuard {
          });
          return 0;
       }
+      if (2 == state) {
+         _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
+            const extended_symbol& ethLpToken = dodo._QUOTE_CAPITAL_TOKEN_();
 
-      _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
-         const extended_symbol& ethLpToken = dodo._QUOTE_CAPITAL_TOKEN_();
-
-         dodo.withdrawAllQuote();
-      });
+            dodo.withdrawAllQuote();
+         });
+         return 0;
+      }
 
       // because of withdraw penalty, withdrawAmount may not equal to ethAmount
       // query weth amount first and than transfer ETH to getMsgSender()

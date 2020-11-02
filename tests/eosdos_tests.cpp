@@ -43,13 +43,15 @@ class eosdos_tester : public tester {
       create_accounts({N(eosio.token), N(eosio.ram), N(eosio.ramfee), N(eosio.stake), N(eosio.bpay), N(eosio.vpay),
                        N(eosio.saving), N(eosio.names), N(eosio.rex)});
 
-      create_accounts({N(alice), N(bob), N(carol), N(eosdoseosdos), N(eosdosoracle), N(ethbasemkr11), N(ethquotemkr1)});
+      create_accounts({N(alice), N(bob), N(carol), N(eosdoseosdos), N(eosdosoracle), N(ethbasemkr11), N(ethquotemkr1),
+                       N(maintainer11), N(tokenissuer1), N(dodoowner111)});
       create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(eosdosxtoken)});
       produce_blocks(2);
       admin              = N(eosdoseosdos);
-      nonadmin           = N(alice);
-      user1              = N(bob);
-      user2              = N(carol);
+      doowner            = N(dodoowner111);
+      tokenissuer        = N(tokenissuer1);
+      maintainer         = N(maintainer11);
+      oracleadmin        = N(eosdosoracle);
       lp                 = N(alice);
       trader             = N(bob);
       dodo_ethbase_name  = N(ethbasemkr11);
@@ -152,6 +154,11 @@ class eosdos_tester : public tester {
          push_permission_update_auth_action(N(alice1111111));
          push_permission_update_auth_action(dodo_ethbase_name);
          push_permission_update_auth_action(dodo_ethquote_name);
+
+         push_permission_update_auth_action(doowner);
+         push_permission_update_auth_action(tokenissuer);
+         push_permission_update_auth_action(maintainer);
+         push_permission_update_auth_action(oracleadmin);
       }
 
       string action_type_name = abi_ser.get_action_type(name);
@@ -319,8 +326,7 @@ class eosdos_tester : public tester {
           mvo()("msg_sender", msg_sender)("ethToken", ethToken)("minReceiveToken", minReceiveToken));
    }
 
-   action_result
-   buyethtoken(name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
+   action_result buyethtoken(name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
       return push_action(
           msg_sender, N(buyethtoken),
           mvo()("msg_sender", msg_sender)("ethToken", ethToken)("maxPayTokenAmount", maxPayTokenAmount));
@@ -577,14 +583,14 @@ class eosdos_tester : public tester {
    }
 
    void newOracleBefore() {
-      neworacle(admin, to_sym("WETH"));
-      neworacle(admin, to_sym("DAI"));
-      neworacle(admin, to_sym("MKR"));
+      neworacle(oracleadmin, to_sym("WETH"));
+      neworacle(oracleadmin, to_sym("DAI"));
+      neworacle(oracleadmin, to_sym("MKR"));
    }
 
    void setPriceBefore() {
       // await pool.setSwapFee(toWei('0.003'));
-      setprice(admin, to_asset("WETH", 100));
+      setprice(oracleadmin, to_asset("WETH", 100));
    }
 
    void buysellBefore() {}
@@ -598,15 +604,15 @@ class eosdos_tester : public tester {
       //   beforeEach();
       //   breedBefore();
       BOOST_TEST_CHECK(__LINE__ == 0);
-      init(admin, admin, to_sym("WETH"), get_core_symbol());
+      init(admin, maintainer, to_sym("WETH"), get_core_symbol());
       BOOST_TEST_CHECK(__LINE__ == 0);
 
-      newethtoken(admin, to_maximum_supply("WETH"));
+      newethtoken(tokenissuer, to_maximum_supply("WETH"));
       BOOST_TEST_CHECK(__LINE__ == 0);
 
-      newtoken(admin, to_maximum_supply("MKR"));
-      //   newtoken(admin, to_maximum_supply("DAI"));
-      //   newtoken(admin, to_maximum_supply("XXX"));
+      newtoken(tokenissuer, to_maximum_supply("MKR"));
+      //    newtoken(tokenissuer, to_maximum_supply("DAI"));
+      //    newtoken(tokenissuer, to_maximum_supply("XXX"));
 
       //   mintweth(admin, to_wei_asset("WETH", 1000));
       //   mintweth(lp, to_wei_asset("WETH", 1000));
@@ -621,7 +627,7 @@ class eosdos_tester : public tester {
 
       name            msg_sender    = admin;
       name            dodo_name     = dodo_ethbase_name;
-      address         maintainer    = nonadmin;
+      address         maintainer    = doowner;
       extended_symbol baseToken     = to_sym("WETH");
       extended_symbol quoteToken    = to_sym("MKR");
       extended_symbol oracle        = to_sym("WETH");
@@ -629,8 +635,8 @@ class eosdos_tester : public tester {
       uint256_x       mtFeeRate     = 1000;
       uint256_x       k             = 1000;
       uint256_x       gasPriceLimit = 0; // gweiStr("100")
-      neworacle(admin, oracle);
-      setprice(admin, to_wei_asset("WETH", 100));
+      neworacle(oracleadmin, oracle);
+      setprice(oracleadmin, to_wei_asset("WETH", 100));
       //    auto oracle_store = get_oracle_store();
       //    BOOST_TEST_CHECK(nullptr == oracle_store);
       //   lpFeeRate: decimalStr("0.002"),
@@ -668,9 +674,10 @@ class eosdos_tester : public tester {
    bool is_auth_token;
 
    name           admin;
-   name           nonadmin;
-   name           user1;
-   name           user2;
+   name           doowner;
+   name           tokenissuer;
+   name           maintainer;
+   name           oracleadmin;
    name           lp;
    name           trader;
    name           dodo_ethbase_name;
@@ -681,11 +688,11 @@ class eosdos_tester : public tester {
 BOOST_AUTO_TEST_SUITE(eosdos_tests)
 ////////////////zoo////////////////////
 BOOST_FIXTURE_TEST_CASE(breeddodo_tests, eosdos_tester) try {
-   newtoken(admin, to_maximum_supply("MKR"));
-   newtoken(admin, to_maximum_supply("DAI"));
+   newtoken(tokenissuer, to_maximum_supply("MKR"));
+   newtoken(tokenissuer, to_maximum_supply("DAI"));
    name            msg_sender    = admin;
    name            dodo_name     = dodo_ethbase_name;
-   address         maintainer    = nonadmin;
+   address         maintainer    = doowner;
    extended_symbol baseToken     = to_sym("MKR");
    extended_symbol quoteToken    = to_sym("DAI");
    extended_symbol oracle        = to_sym("WETH");
@@ -712,33 +719,27 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(buyethtoken_tests, eosdos_tester) try {
    ethBaseBefore();
 
-   //    const buyAmount = "1";
    buyethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 200));
 
    auto store = dodos(dodo_ethbase_name);
-   //    BOOST_REQUIRE_EQUAL(nullptr, store);
    BOOST_TEST_CHECK("8999000" == store["_BASE_BALANCE_"].as_string());
    std::string quote_token_name = "MKR";
    auto        sym              = to_sym_from_string(quote_token_name);
    auto        c                = eosio::chain::asset::from_string("0.0001 " + quote_token_name);
    auto        b                = get_balancex(trader, sym);
    BOOST_TEST_CHECK(c == b);
-
-   //    BOOST_REQUIRE_EQUAL("898581839502056240973", balanceOf(quoteToken, trader));
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(sellethtoken_tests, eosdos_tester) try {
    ethBaseBefore();
-   BOOST_TEST_CHECK("11" == "");
    sellethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 50));
    auto store = dodos(dodo_ethbase_name);
-   //    BOOST_REQUIRE_EQUAL(nullptr, store);
-   BOOST_TEST_CHECK("8999000" == store["_BASE_BALANCE_"].as_string());
-   BOOST_TEST_CHECK("11" == "ddd");
+   BOOST_TEST_CHECK("110000" == store["_BASE_BALANCE_"].as_string());
+
    std::string token_name = "MKR";
    auto        sym        = to_sym_from_string(token_name);
-   auto        c          = eosio::chain::asset::from_string("0.0001 " + token_name);
+   auto        c          = eosio::chain::asset::from_string("1069.2400 " + token_name);
    auto        b          = get_balancex(trader, sym);
    BOOST_TEST_CHECK(c == b);
 }
@@ -783,34 +784,34 @@ FC_LOG_AND_RETHROW()
 
 ////////////////oracle////////////////////
 BOOST_FIXTURE_TEST_CASE(neworacle_tests, eosdos_tester) try {
-   neworacle(admin, to_sym("WETH"));
-   neworacle(admin, to_sym("DAI"));
-   neworacle(admin, to_sym("MKR"));
+   neworacle(oracleadmin, to_sym("WETH"));
+   neworacle(oracleadmin, to_sym("DAI"));
+   neworacle(oracleadmin, to_sym("MKR"));
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(setprice_tests, eosdos_tester) try {
    newOracleBefore();
    extended_asset ea = to_wei_asset("WETH", 5);
-   setprice(admin, ea);
-   setprice(admin, to_wei_asset("DAI", 10));
-   setprice(admin, to_wei_asset("MKR", 20));
+   setprice(oracleadmin, ea);
+   setprice(oracleadmin, to_wei_asset("DAI", 10));
+   setprice(oracleadmin, to_wei_asset("MKR", 20));
    auto b = getPrice(to_sym("WETH"));
-   BOOST_REQUIRE_EQUAL("500.0000 WETH", b);
+   BOOST_REQUIRE_EQUAL("5.0000 WETH", b);
 }
 FC_LOG_AND_RETHROW()
 
 ////////////////token////////////////////
 BOOST_FIXTURE_TEST_CASE(mint_tests, eosdos_tester) try {
    //    newpool(admin, N(pool));
-   newtoken(admin, to_maximum_supply("WETH"));
-   newtoken(admin, to_maximum_supply("DAI"));
-   mint(N(alice), to_wei_asset("WETH", 5));
+   newtoken(tokenissuer, to_maximum_supply("WETH"));
+   newtoken(tokenissuer, to_maximum_supply("DAI"));
+   mint(trader, to_wei_asset("WETH", 5));
    mint(N(alice), to_wei_asset("DAI", 200));
 
    std::string quote_token_name = "WETH";
    auto        sym              = to_sym_from_string(quote_token_name);
-   auto        a                = eosio::chain::asset::from_string("50000" + quote_token_name);
+   auto        a                = eosio::chain::asset::from_string("5.0000 " + quote_token_name);
    auto        b                = get_balancex(trader, sym);
    BOOST_REQUIRE_EQUAL(a, b);
 }
@@ -819,12 +820,12 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(extransfer_tests, eosdos_tester) try {
    const std::string     token_name = "POOL";
    const extended_asset& max_supply = to_asset(token_name, 1);
-   newtoken(admin, to_maximum_supply(token_name));
+    newtoken(tokenissuer, to_maximum_supply(token_name));
    mint(N(alice1111111), max_supply);
    const symbol& sym = max_supply.quantity.get_symbol();
-   extransfer(N(alice1111111), user2, max_supply);
+   extransfer(N(alice1111111), maintainer, max_supply);
 
-   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 " + token_name), get_balancex(user2, sym));
+   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 " + token_name), get_balancex(maintainer, sym));
 }
 FC_LOG_AND_RETHROW()
 
