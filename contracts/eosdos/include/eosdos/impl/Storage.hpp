@@ -55,7 +55,7 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
 
    uint256 getOraclePrice() {
       uint256 price = 0;
-      factory.get_oracle(stores._ORACLE_, [&](auto& oracle) { price = oracle.getPrice(); });
+      factory.get_oracle(getMsgSender(),stores._ORACLE_, [&](auto& oracle) { price = oracle.getPrice(); });
       return price;
       // return IOracle(_ORACLE_).getPrice();
    }
@@ -64,14 +64,14 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
       uint256 balance = 0;
     //   asset lpbalance = transfer_mgmt::get_balance(getMsgSender(), stores._BASE_CAPITAL_TOKEN_);
     //   balance = lpbalance.amount;
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
+      factory.get_lptoken(getMsgSender(),stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
       return balance;
       // return IDODOLpToken(stores._BASE_CAPITAL_TOKEN_).balanceOf(lp);
    }
 
    uint256 getTotalBaseCapital() {
       uint256 totalSupply = 0;
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
+      factory.get_lptoken(getMsgSender(),stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
       return totalSupply;
 
       // return IDODOLpToken(stores._BASE_CAPITAL_TOKEN_).totalSupply();
@@ -79,14 +79,14 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
 
    uint256 getQuoteCapitalBalanceOf(address _lp) {
       uint256 balance = 0;
-      factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
+      factory.get_lptoken(getMsgSender(),stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { balance = lptoken.balanceOf(_lp); });
       return balance;
       //   return IDODOLpToken(stores._QUOTE_CAPITAL_TOKEN_).balanceOf(lp);
    }
 
    uint256 getTotalQuoteCapital() {
       uint256 totalSupply = 0;
-      factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
+      factory.get_lptoken(getMsgSender(),stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { totalSupply = lptoken.totalSupply(); });
 
       return totalSupply;
       // return IDODOLpToken(stores._QUOTE_CAPITAL_TOKEN_).totalSupply();

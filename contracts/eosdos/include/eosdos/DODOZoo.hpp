@@ -27,7 +27,6 @@
 class DODOZoo : public Ownable {
  private:
    name           self;
-   name           msg_sender;
    instance_mgmt& _instance_mgmt;
    ZooStorage&    zoo_storage;
 
@@ -40,7 +39,7 @@ class DODOZoo : public Ownable {
    }
 
    void init(address _dodoLogic, address _cloneFactory, address _defaultSupervisor) {
-      zoo_storage.ownable._OWNER_      = getMsgSender();
+      zoo_storage.ownable._OWNER_      =  self;
       zoo_storage._DODO_LOGIC_         = _dodoLogic;
       zoo_storage._CLONE_FACTORY_      = _cloneFactory;
       zoo_storage._DEFAULT_SUPERVISOR_ = _defaultSupervisor;
@@ -65,7 +64,7 @@ class DODOZoo : public Ownable {
 
    void removeDODO(address _dodo) {
       onlyOwner();
-      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(self,_dodo, [&](auto& dodo) {
          namesym baseToken  = dodo._BASE_TOKEN_();
          namesym quoteToken = dodo._QUOTE_TOKEN_();
 
@@ -83,7 +82,7 @@ class DODOZoo : public Ownable {
    }
 
    void addDODO(address _dodo) {
-      _instance_mgmt.get_dodo(_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(self,_dodo, [&](auto& dodo) {
          namesym baseToken  = dodo._BASE_TOKEN_();
          namesym quoteToken = dodo._QUOTE_TOKEN_();
 
@@ -103,7 +102,7 @@ class DODOZoo : public Ownable {
 
       require(!isDODORegistered(nbaseToken, nquoteToken), "DODO_REGISTERED");
 
-      _instance_mgmt.newDODO(
+      _instance_mgmt.newDODO(getMsgSender(),
           dodo_name, zoo_storage.ownable._OWNER_, zoo_storage._DEFAULT_SUPERVISOR_, maintainer, baseToken, quoteToken,
           oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
 

@@ -39,7 +39,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
        uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.newDODO(
+      _instance_mgmt.newDODO(msg_sender,
           dodo_name, owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
           gasPriceLimit);
    }
@@ -84,7 +84,6 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void selltokeneth(
        name msg_sender, const extended_asset& baseToken, const extended_asset& minReceiveEth) {
-
       proxy.setMsgSender(msg_sender);
       proxy.sellTokenToEth(baseToken, minReceiveEth);
    }
@@ -105,8 +104,34 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::action]] void withdraweab(
        name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
       proxy.setMsgSender(msg_sender);
-      proxy.withdrawEthAsBase(ethtokenamount, quoteToken);
+    //   proxy.withdrawEthAsBase(ethtokenamount, quoteToken);
+      withdraweab1_action withdraweab1_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdraweab1_act.send( msg_sender, ethtokenamount, quoteToken );
+      withdraweab2_action withdraweab2_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdraweab2_act.send( msg_sender, ethtokenamount, quoteToken );
    }
+
+   [[eosio::action]] void withdraweab1(
+       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
+      proxy.setMsgSender(msg_sender);
+      proxy.withdrawEthAsBase(ethtokenamount, quoteToken,1);
+   }
+
+   [[eosio::action]] void withdraweab2(
+       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
+      proxy.setMsgSender(msg_sender);
+      proxy.withdrawEthAsBase(ethtokenamount, quoteToken,2);
+   }
+
+   [[eosio::action]] void withdraweab3(
+       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
+      proxy.setMsgSender(msg_sender);
+      proxy.withdrawEthAsBase(ethtokenamount, quoteToken,3);
+   }
+
+    using withdraweab1_action = eosio::action_wrapper<"withdraweab1"_n, &eosdos::withdraweab1>;
+    using withdraweab2_action = eosio::action_wrapper<"withdraweab2"_n, &eosdos::withdraweab2>;
+    using withdraweab3_action = eosio::action_wrapper<"withdraweab3"_n, &eosdos::withdraweab3>;
 
    [[eosio::action]] void withdrawaeab(name msg_sender, const extended_symbol& quoteToken) {
       proxy.setMsgSender(msg_sender);
@@ -123,30 +148,59 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::action]] void withdraweaq(
        name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
       proxy.setMsgSender(msg_sender);
-      proxy.withdrawEthAsQuote(ethtokenamount, baseToken);
+    //   proxy.withdrawEthAsQuote(ethtokenamount, baseToken);
+      withdraweaq1_action withdraweaq1_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdraweaq1_act.send( msg_sender, ethtokenamount, baseToken );
+      withdraweaq2_action withdraweaq2_act{ "eosdoseosdos"_n, { {msg_sender, "active"_n} } };
+      withdraweaq2_act.send( msg_sender, ethtokenamount, baseToken );
    }
+
+   [[eosio::action]] void withdraweaq1(
+       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
+      proxy.setMsgSender(msg_sender);
+      proxy.withdrawEthAsQuote(ethtokenamount, baseToken,1);
+   }
+
+   [[eosio::action]] void withdraweaq2(
+       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
+      proxy.setMsgSender(msg_sender);
+      proxy.withdrawEthAsQuote(ethtokenamount, baseToken,2);
+   }
+
+   [[eosio::action]] void withdraweaq3(
+       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
+      proxy.setMsgSender(msg_sender);
+      proxy.withdrawEthAsQuote(ethtokenamount, baseToken,3);
+   }
+
+   using withdraweaq1_action = eosio::action_wrapper<"withdraweaq1"_n, &eosdos::withdraweaq1>;
+    using withdraweaq2_action = eosio::action_wrapper<"withdraweaq2"_n, &eosdos::withdraweaq2>;
+  using withdraweaq3_action = eosio::action_wrapper<"withdraweaq3"_n, &eosdos::withdraweaq3>;
 
    [[eosio::action]] void withdrawaeaq(name msg_sender, const extended_symbol& baseToken) {
       proxy.setMsgSender(msg_sender);
       proxy.withdrawAllEthAsQuote(baseToken);
    }
+
+ 
+
    ////////////////////  admin dodo////////////////////////
    [[eosio::action]] void enabletradin(name msg_sender, name dodo_name) {
       check(_self == msg_sender, "no  admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) { dodo.enableTrading(); });
+      _instance_mgmt.get_dodo(msg_sender,dodo_name, [&](auto& dodo) { dodo.enableTrading(); });
    }
 
    [[eosio::action]] void enablequodep(name msg_sender, name dodo_name) {
       check(_self == msg_sender, "no  admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) { dodo.enableQuoteDeposit(); });
+      _instance_mgmt.get_dodo(msg_sender,dodo_name, [&](auto& dodo) { dodo.enableQuoteDeposit(); });
    }
 
    [[eosio::action]] void enablebasdep(name msg_sender, name dodo_name) {
       check(_self == msg_sender, "no  admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) { dodo.enableBaseDeposit(); });
+      _instance_mgmt.get_dodo(msg_sender,dodo_name, [&](auto& dodo) { dodo.enableBaseDeposit(); });
    }
 
    ////////////////////  LiquidityProvider dodo////////////////////////
@@ -156,77 +210,56 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       //   DODO       dodo(dodoStore, zoo);
       //   dodo.setMsgSender(msg_sender);
       //   dodo.depositQuote(amt.quantity.amount);
-      _instance_mgmt.get_dodo(dodo_name, [&](auto& dodo) { (void)dodo.depositQuote(amt.quantity.amount); });
+      _instance_mgmt.get_dodo(msg_sender,dodo_name, [&](auto& dodo) { (void)dodo.depositQuote(amt.quantity.amount); });
    }
 
    ////////////////////   Oracle////////////////////////
    [[eosio::action]] void neworacle(name msg_sender, const extended_symbol& token) {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.newOracle(token);
+      _instance_mgmt.newOracle(msg_sender,token);
    }
 
    [[eosio::action]] void setprice(name msg_sender, const extended_asset& amt) {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_oracle(amt.get_extended_symbol(), [&](auto& oracle) { oracle.setPrice(amt); });
+      _instance_mgmt.get_oracle(msg_sender,amt.get_extended_symbol(), [&](auto& oracle) { oracle.setPrice(amt); });
    }
 
    ////////////////////  TOKEN////////////////////////
    [[eosio::action]] void extransfer(name from, name to, extended_asset quantity, std::string memo) {
-      _instance_mgmt.get_transfer_mgmt().transfer(from, to, quantity, memo);
+      transfer_mgmt::static_transfer(from, to, quantity, memo);
    }
 
    [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
       check(_self == msg_sender, "no  admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.newToken(token);
+      _instance_mgmt.newToken<TestERC20>(msg_sender,token);
    }
 
    [[eosio::action]] void newethtoken(name msg_sender, const extended_asset& token) {
       check(_self == msg_sender, "no  admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.newEthToken(token);
+      _instance_mgmt.newToken<WETH9>(msg_sender,token);
    }
 
    //    /////test interface /////
    [[eosio::action]] void mint(name msg_sender, const extended_asset& amt) {
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_token<TestERC20>(amt.get_extended_symbol(), [&](auto& _token_) {
+      _instance_mgmt.get_token<TestERC20>(msg_sender,amt.get_extended_symbol(), [&](auto& _token_) {
          _token_.mint(msg_sender, amt.quantity.amount);
       });
    }
 
    [[eosio::action]] void mintweth(name msg_sender, const extended_asset& amt) {
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_token<WETH9>(amt.get_extended_symbol(), [&](auto& _token_) {
+      _instance_mgmt.get_token<WETH9>(msg_sender,amt.get_extended_symbol(), [&](auto& _token_) {
          _token_.mint(msg_sender, amt.quantity.amount);
       });
    }
 
-      [[eosio::action]] void approve(name msg_sender, name dst, const extended_asset& amt)
-      {
-         proxy.setMsgSender(msg_sender);
-         _instance_mgmt.get_token<TestERC20>(amt.get_extended_symbol(), [&](auto& _token_) {
-            _token_.approve(dst, amt.quantity.amount);
-         });
-      }
 
-      [[eosio::action]] void approveweth(name msg_sender, name dst, const extended_asset& amt)
-      {
-         proxy.setMsgSender(msg_sender);
-         _instance_mgmt.get_token<WETH9>(amt.get_extended_symbol(), [&](auto& _token_) {
-            _token_.approve(dst, amt.quantity.amount);
-         });
-      }
 
-     [[eosio::action]] void approvelp(name msg_sender, name dst, const extended_asset& amt)
-      {
-         proxy.setMsgSender(msg_sender);
-         _instance_mgmt.get_lptoken(amt.get_extended_symbol(), [&](auto& _token_) {
-            _token_.approve(dst, amt.quantity.amount);
-         });
-      }
 
    ////////////////////on_notify////////////////////
    [[eosio::on_notify("eosio.token::transfer")]] void on_transfer(
@@ -251,10 +284,11 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
-        print_f("On notify 2 : % % % %", from, to, quantity, memo);
+        print_f("On notify 2 :% % % % %", get_first_receiver(),from, to, quantity, memo);
       _instance_mgmt.get_transfer_mgmt().non_eosiotoken_transfer(
           from, to, quantity, memo, [&](const auto& action_event) {
 
           });
    }
+
 };

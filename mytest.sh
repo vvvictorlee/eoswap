@@ -9,7 +9,7 @@ case "$1" in
 "d") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/breeddodo_tests -- --verbose ;;
 "b") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buyeth1token_tests -- --verbose ;;
 "s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sellethtoken_tests -- --verbose ;;
-"w") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/withdrawe_ethbase_tests -- --verbose ;;
+"w") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/withdraw_ethbase_tests -- --verbose ;;
 *) ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests -- --verbose ;;
 esac
 

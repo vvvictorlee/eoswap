@@ -47,7 +47,7 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
        uint256 k, uint256 gasPriceLimit) {
       require(!stores._INITIALIZED_, "DODO_INITIALIZED");
-
+      stores.dodo_name =dodo_name;
       stores._INITIALIZED_ = true;
 
       stores.initownable._OWNER_ = owner;
@@ -73,8 +73,8 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
       stores._MT_FEE_RATE_         = mtFeeRate;
       stores._K_                   = k;
       stores._R_STATUS_            = Types::RStatus::ONE;
-      stores._BASE_CAPITAL_TOKEN_  = factory.newLpToken(dodo_name,stores._BASE_TOKEN_);
-      stores._QUOTE_CAPITAL_TOKEN_ = factory.newLpToken(dodo_name,stores._QUOTE_TOKEN_);
+      stores._BASE_CAPITAL_TOKEN_  = factory.newLpToken(getMsgSender(),dodo_name,stores._BASE_TOKEN_);
+      stores._QUOTE_CAPITAL_TOKEN_ = factory.newLpToken(getMsgSender(),dodo_name,stores._QUOTE_TOKEN_);
 
       _checkDODOParameters();
    }

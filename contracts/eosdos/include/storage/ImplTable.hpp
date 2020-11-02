@@ -4,6 +4,7 @@
 #include <storage/LibTable.hpp>
 
 struct DODOStore {
+   name dodo_name;
    OwnableStore         initownable;
    ReentrancyGuardStore guard;
    // ============ Variables for Control ============
@@ -52,7 +53,7 @@ struct DODOStore {
    std::map<address, bool> _CLAIMED_;
    EOSLIB_SERIALIZE(
        DODOStore,
-       (initownable)(guard)(_INITIALIZED_)(_CLOSED_)(_DEPOSIT_QUOTE_ALLOWED_)(_DEPOSIT_BASE_ALLOWED_)(
+       (dodo_name)(initownable)(guard)(_INITIALIZED_)(_CLOSED_)(_DEPOSIT_QUOTE_ALLOWED_)(_DEPOSIT_BASE_ALLOWED_)(
            _TRADE_ALLOWED_)(_GAS_PRICE_LIMIT_)(_BUYING_ALLOWED_)(_SELLING_ALLOWED_)(_BASE_BALANCE_LIMIT_)(
            _QUOTE_BALANCE_LIMIT_)(_SUPERVISOR_)(_MAINTAINER_)(_BASE_TOKEN_)(_QUOTE_TOKEN_)(_ORACLE_)(_LP_FEE_RATE_)(
            _MT_FEE_RATE_)(_K_)(_R_STATUS_)(_TARGET_BASE_TOKEN_AMOUNT_)(_TARGET_QUOTE_TOKEN_AMOUNT_)(_BASE_BALANCE_)(

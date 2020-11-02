@@ -41,7 +41,7 @@ class Settlement : virtual  public Storage {
       require(
           add(stores._BASE_BALANCE_, amount) <= stores._BASE_BALANCE_LIMIT_, "BASE_BALANCE_LIMIT_EXCEEDED");
       //   IERC20(_BASE_TOKEN_).safeTransferFrom(from, address(this), amount);
-      factory.get_transfer_mgmt().transfer(from, factory.get_self(), tokenamount);
+      transfer_mgmt::static_transfer(from, stores.dodo_name, tokenamount);
       stores._BASE_BALANCE_ = add(stores._BASE_BALANCE_, amount);
    }
 
@@ -51,21 +51,21 @@ class Settlement : virtual  public Storage {
           add(stores._QUOTE_BALANCE_, amount) <= stores._QUOTE_BALANCE_LIMIT_,
           "QUOTE_BALANCE_LIMIT_EXCEEDED");
       //   IERC20(stores._QUOTE_TOKEN_).safeTransferFrom(from, address(this), amount);
-      factory.get_transfer_mgmt().transfer(from, factory.get_self(), tokenamount);
+      transfer_mgmt::static_transfer(from, stores.dodo_name, tokenamount);
       stores._QUOTE_BALANCE_ = add(stores._QUOTE_BALANCE_, amount);
    }
 
    void _baseTokenTransferOut(address to, const extended_asset& tokenamount) {
       uint256 amount = tokenamount.quantity.amount;
       //   IERC20(_BASE_TOKEN_).safeTransfer(to, amount);
-      factory.get_transfer_mgmt().transfer(factory.get_self(), to, tokenamount, "");
+      transfer_mgmt::static_transfer(stores.dodo_name, to, tokenamount, "");
       stores._BASE_BALANCE_ = sub(stores._BASE_BALANCE_, amount);
    }
 
    void _quoteTokenTransferOut(address to, const extended_asset& tokenamount) {
       uint256 amount = tokenamount.quantity.amount;
       //   IERC20(_QUOTE_TOKEN_).safeTransfer(to, amount);
-      factory.get_transfer_mgmt().transfer(factory.get_self(), to, tokenamount, "");
+      transfer_mgmt::static_transfer(stores.dodo_name, to, tokenamount, "");
       stores._QUOTE_BALANCE_ = sub(stores._QUOTE_BALANCE_, amount);
    }
 
@@ -149,10 +149,10 @@ class Settlement : virtual  public Storage {
       //   IDODOLpToken(stores._BASE_CAPITAL_TOKEN_).burn(getMsgSender(), baseCapital);
       //   IDODOLpToken(stores._QUOTE_CAPITAL_TOKEN_).burn(getMsgSender(), quoteCapital);
 
-      factory.get_lptoken(
+      factory.get_lptoken(getMsgSender(),
           stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(getMsgSender(), baseCapital); });
 
-      factory.get_lptoken(
+      factory.get_lptoken(getMsgSender(),
           stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(getMsgSender(), quoteCapital); });
 
       return;
@@ -164,20 +164,20 @@ class Settlement : virtual  public Storage {
       const extended_symbol token  = tokenamount.get_extended_symbol();
       uint256               amount = tokenamount.quantity.amount;
       if (token == stores._BASE_TOKEN_) {
-         uint256 balance = factory.get_transfer_mgmt().get_balance(factory.get_self(), stores._BASE_TOKEN_);
+         uint256 balance = factory.get_transfer_mgmt().get_balance(getMsgSender(), stores._BASE_TOKEN_);
          require(balance >= add(stores._BASE_BALANCE_,amount), "DODO_BASE_BALANCE_NOT_ENOUGH");
          //  require(
          //      IERC20(stores._BASE_TOKEN_).balanceOf(address(this)) >= stores._BASE_BALANCE_,amount),
          //      "DODO_BASE_BALANCE_NOT_ENOUGH");
       }
       if (token == stores._QUOTE_TOKEN_) {
-         uint256 balance = factory.get_transfer_mgmt().get_balance(factory.get_self(), stores._QUOTE_TOKEN_);
+         uint256 balance = factory.get_transfer_mgmt().get_balance(getMsgSender(), stores._QUOTE_TOKEN_);
          require(balance >= add(stores._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
          //  require(
          //      IERC20(stores._QUOTE_TOKEN_).balanceOf(address(this)) >=
          //      stores._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
       }
       //   IERC20(token).safeTransfer(getMsgSender(), amount);
-      factory.get_transfer_mgmt().transfer(factory.get_self(), getMsgSender(), tokenamount, "");
+      transfer_mgmt::static_transfer(factory.get_self(), getMsgSender(), tokenamount, "");
    }
 };

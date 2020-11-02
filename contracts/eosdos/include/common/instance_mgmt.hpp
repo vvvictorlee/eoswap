@@ -22,7 +22,6 @@
 class instance_mgmt : public IFactory {
  private:
    name          self;
-   name          msg_sender;
    storage_mgmt  _storage_mgmt;
    transfer_mgmt _transfer_mgmt;
 
@@ -36,101 +35,88 @@ class instance_mgmt : public IFactory {
    storage_mgmt&  get_storage_mgmt() override { return _storage_mgmt; }
    transfer_mgmt& get_transfer_mgmt() override { return _transfer_mgmt; }
    instance_mgmt& get_instance_mgmt() override { return *this; }
-   name           getMsgSender() { return msg_sender; }
-   void           setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
 
    template <typename T>
-   void get_dodo(name dodo_name, T func) {
-
+   void get_dodo(name _msg_sender, name dodo_name, T func) {
       DODOStore& dodoStore = _storage_mgmt.get_dodo_store(dodo_name);
       DODO       dodo(dodoStore, *this);
-      dodo.setMsgSender(getMsgSender());
+      dodo.setMsgSender(_msg_sender);
       func(dodo);
    }
 
    template <typename T>
-   void get_lptoken(const extended_symbol& lptoken, T func) {
+   void get_lptoken(name _msg_sender, const extended_symbol& lptoken, T func) {
       TokenStore& lptokenStore  = _storage_mgmt.get_token_store(lptoken);
       TokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
       DODOLpToken token(lptokenStore, olptokenStore, *this);
-      token.setMsgSender(getMsgSender());
+      token.setMsgSender(_msg_sender);
       func(token);
    }
 
-   template <typename TT, typename T>
-   void get_token(const extended_symbol& _token, T func) {
+   template <typename T, typename F>
+   void get_token(name _msg_sender, const extended_symbol& _token, F func) {
       TokenStore& tokenStore = _storage_mgmt.get_token_store(_token);
-      TT          token(tokenStore);
-      token.setMsgSender(getMsgSender());
+      T          token(tokenStore);
+      token.setMsgSender(_msg_sender);
       func(token);
    }
 
    template <typename T>
-   void get_oracle(const extended_symbol& oracle, T func) {
+   void get_oracle(name _msg_sender, const extended_symbol& oracle, T func) {
       OracleStore&  oracleStore = _storage_mgmt.get_oracle_store(oracle);
       MinimumOracle minioracle(oracleStore);
-      minioracle.setMsgSender(getMsgSender());
+      minioracle.setMsgSender(_msg_sender);
       func(minioracle);
    }
 
    void newDODO(
-       name dodo_name, address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
-       const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
-       uint256 k, uint256 gasPriceLimit) {
+       name _msg_sender, name dodo_name, address owner, address supervisor, address maintainer,
+       const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
+       uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
       DODOStore& dodoStore = _storage_mgmt.newDodoStore(dodo_name);
       DODO       dodo(dodoStore, *this);
-      dodo.setMsgSender(getMsgSender());
+      dodo.setMsgSender(_msg_sender);
       dodo.init(
           dodo_name, owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
           gasPriceLimit);
    }
 
-   void newOracle(const extended_symbol& tokenx) {
+   void newOracle(name _msg_sender, const extended_symbol& tokenx) {
       OracleStore&  oracleStore = _storage_mgmt.newOracleStore(tokenx);
       MinimumOracle minioracle(oracleStore);
-      minioracle.setMsgSender(getMsgSender());
+      minioracle.setMsgSender(_msg_sender);
       minioracle.init();
    }
 
-   void newToken(const extended_asset& tokenx) {
+   template <typename T>
+   void newToken(name _msg_sender, const extended_asset& tokenx) {
       const extended_symbol& exsym      = tokenx.get_extended_symbol();
       TokenStore&            tokenStore = _storage_mgmt.newTokenStore(exsym);
-      TestERC20              otoken(tokenStore);
-      otoken.setMsgSender(getMsgSender());
-      otoken.init(exsym);
-   _transfer_mgmt.create(msg_sender, tokenx);
+      T              otoken(tokenStore);
+      otoken.setMsgSender(_msg_sender);
+      otoken.init(tokenx);
    }
    static const uint256 MAX_TOTAL_SUPPLY = 1000000000000000;
-   extended_symbol      newLpToken(name dodo_name, const extended_symbol& tokenx) override {
+   extended_symbol      newLpToken(name _msg_sender, name dodo_name, const extended_symbol& tokenx) override {
       const symbol&   sym   = tokenx.get_symbol();
       extended_symbol exsym = extended_symbol(sym, dodo_name);
 
       TokenStore& tokenStore    = _storage_mgmt.newTokenStore(exsym);
       TokenStore& olptokenStore = _storage_mgmt.get_token_store(tokenx);
       DODOLpToken token(tokenStore, olptokenStore, *this);
-      token.setMsgSender(getMsgSender());
-      token.init(exsym, tokenx);
-      _transfer_mgmt.create(msg_sender, extended_asset{MAX_TOTAL_SUPPLY, exsym});
+      token.setMsgSender(_msg_sender);
+      token.init(extended_asset{MAX_TOTAL_SUPPLY, exsym}, tokenx);
 
       return exsym;
-   }
-
-   void newEthToken(const extended_asset& tokenx) {
-      const extended_symbol& exsym      = tokenx.get_extended_symbol();
-      TokenStore&            tokenStore = _storage_mgmt.newTokenStore(exsym);
-      WETH9                  otoken(tokenStore);
-      otoken.setMsgSender(getMsgSender());
-      otoken.init(exsym);
-   _transfer_mgmt.create(msg_sender, tokenx);
    }
 };
 
 template <typename T>
-void IFactory::get_lptoken(const extended_symbol& lptoken, T func) {
-   get_instance_mgmt().get_lptoken(lptoken, func);
+void IFactory::get_lptoken(name _msg_sender, const extended_symbol& lptoken, T func) {
+   get_instance_mgmt().get_lptoken(_msg_sender, lptoken, func);
 }
 
 template <typename T>
-void IFactory::get_oracle(const extended_symbol& oracle, T func) {
-   get_instance_mgmt().get_oracle(oracle, func);
+void IFactory::get_oracle(name _msg_sender, const extended_symbol& oracle, T func) {
+   get_instance_mgmt().get_oracle(_msg_sender, oracle, func);
 }

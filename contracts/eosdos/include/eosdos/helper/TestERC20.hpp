@@ -18,26 +18,23 @@ class TestERC20 {
  public:
    TestERC20(TokenStore& _stores)
        : stores(_stores) {}
-   void init(const extended_symbol& esymbol) {
+   void init(const extended_asset& token) {
       //   stores.decimals = _decimals;
-      stores.esymbol = esymbol;
+      stores.esymbol = token.get_extended_symbol();
       //   stores.originToken = esymbol;
+      transfer_mgmt::static_create(msg_sender, token);
    }
 
    name getMsgSender() { return msg_sender; }
-   void setMsgSender(name _msg_sender) {
-      require_auth(_msg_sender);
-      msg_sender = _msg_sender;
-   }
+   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
    bool transfer(address to, uint256 amount) {
       //   require(to != address(0), "TO_ADDRESS_IS_EMPTY");
       //   require(amount <= stores.balances[getMsgSender()], "BALANCE_NOT_ENOUGH");
       //   stores.balances[getMsgSender()] = sub(stores.balances[getMsgSender()], amount);
       //   stores.balances[to]             = add(stores.balances[to], amount);
-    //   return true;
+      //   return true;
 
       return transferFrom(getMsgSender(), to, amount);
-
    }
 
    uint256 balanceOf(address owner) {

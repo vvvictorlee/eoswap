@@ -28,8 +28,7 @@ class MinimumOracle {
 
    // ============ Functions ============
    name getMsgSender() { return msg_sender; }
-   void setMsgSender(name _msg_sender) { require_auth(_msg_sender);
-msg_sender = _msg_sender; }
+   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
    // ============ Modifiers ============
 
    void onlyOwner() { require(msg_sender == stores._OWNER_, "NOT_OWNER"); }

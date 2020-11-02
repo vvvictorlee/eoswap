@@ -27,7 +27,6 @@ class InitializableOwnable {
    // ============ Modifiers ============
    name getMsgSender() { return msg_sender; }
    void setMsgSender(name _msg_sender) {
-      require_auth(_msg_sender);
       msg_sender = _msg_sender;
    }
    void onlyOwner() { require(getMsgSender() == ownable_store._OWNER_, "NOT_OWNER"); }

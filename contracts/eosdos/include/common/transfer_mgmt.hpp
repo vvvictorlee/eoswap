@@ -78,6 +78,9 @@ class transfer_mgmt {
    }
 
    static uint64_t get_balance(const name& owner, const extended_symbol& exsym) {
+      print_f(
+          "===get_balance : % % %===", owner, exsym,
+          get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount);
       return get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
    }
 
@@ -98,6 +101,25 @@ class transfer_mgmt {
       action(
           permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
           std::make_tuple(from, to, quantity.quantity, memo))
+          .send();
+
+    //   token::transfer_action transfer_act{ token_account, { {bidder, active_permission} } };
+    //   transfer_act.send( bidder, names_account, bid, std::string("bid name ")+ newname.to_string() );
+
+    //     token::issue_action issue_act{ token_account, { {get_self(), active_permission} } };
+    //            issue_act.send( get_self(), asset(new_tokens, core_symbol()), "issue tokens for producer pay and savings" );
+   }
+
+   static void static_create(name issuer, const extended_asset& maximum_supply) {
+      print_f("=======create========== % %", issuer, maximum_supply);
+
+      require_auth(issuer);
+      check(is_account(issuer), "issuer account does not exist");
+      check(maximum_supply.quantity.is_valid(), "invalid quantity");
+      check(maximum_supply.quantity.amount > 0, "must transfer positive quantity");
+      action(
+          permission_level{maximum_supply.contract, "active"_n}, maximum_supply.contract, "create"_n,
+          std::make_tuple(issuer, maximum_supply.quantity))
           .send();
    }
 
@@ -131,23 +153,7 @@ class transfer_mgmt {
           .send();
    }
 
-   /**
-    * @brief
-    *
-    * @param from
-    * @param to
-    * @param quantity
-    * @param memo
-    */
-   void transfer(name from, name to, extended_asset quantity, std::string memo = "") {
-      if (from == to) {
-         print_f(" from=to : % % % %", from, to, quantity, memo);
-         return;
-      }
-      inner_transfer(from, to, quantity, memo);
-   }
-
-   void inner_transfer(name from, name to, extended_asset quantity, std::string memo = "", bool is_deferred = false) {
+   void d_transfer(name from, name to, extended_asset quantity, std::string memo = "") { //, bool is_deferred = false)
       print_f("On inner_transfer : % % % %", from, to, quantity, memo);
 
       check(from != to, "cannot transfer to self");
@@ -157,37 +163,20 @@ class transfer_mgmt {
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
       check(memo.size() <= 256, "memo has more than 256 bytes");
 
-      if (!is_deferred) {
-         action(
-             permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
-             std::make_tuple(from, to, quantity.quantity, memo))
-             .send();
-      } else {
-         transaction t;
-         t.actions.emplace_back(
-             permission_level{from, active_permission}, quantity.contract, "transfer"_n,
-             std::make_tuple(from, to, quantity.quantity, memo));
-         t.delay_sec           = 0;
-         uint128_t deferred_id = (uint128_t(to.value) << 64) | current_time_point_sec().sec_since_epoch();
-         cancel_deferred(deferred_id);
-         t.send(deferred_id, self, true);
-      }
+      transaction t;
+      t.actions.emplace_back(
+          permission_level{from, active_permission}, quantity.contract, "transfer"_n,
+          std::make_tuple(from, to, quantity.quantity, memo));
+      t.delay_sec           = 0;
+      uint128_t deferred_id = (uint128_t(to.value) << 64) | current_time_point_sec().sec_since_epoch();
+      cancel_deferred(deferred_id);
+      t.send(deferred_id, self, true);
 
       // INLINE_ACTION_SENDER(eosio::token, transfer)(token_account, {{from,
       // active_permission}, {to, active_permission}},{from, to, quantity, memo});
    }
 
-   void create(name issuer, const extended_asset& maximum_supply) {
-      require_auth(issuer);
-      check(is_account(issuer), "issuer account does not exist");
-
-      check(maximum_supply.quantity.is_valid(), "invalid quantity");
-      check(maximum_supply.quantity.amount > 0, "must transfer positive quantity");
-      action(
-          permission_level{maximum_supply.contract, "active"_n}, maximum_supply.contract, "create"_n,
-          std::make_tuple(issuer, maximum_supply.quantity))
-          .send();
-   }
+   void create(name issuer, const extended_asset& maximum_supply) { static_create(issuer, maximum_supply); }
 
    void issue(name to, const extended_asset& quantity, const std::string& memo = "") {
       static_issue(to, quantity, memo);

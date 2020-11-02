@@ -27,7 +27,7 @@ class Ownable {
        //    address _OWNER_;
        //    address _NEW_OWNER_;
    name getMsgSender() { return msg_sender; }
-   void setMsgSender(name _msg_sender) {require_auth(_msg_sender); msg_sender = _msg_sender; }
+   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
        // ============ Modifiers ============
 
        void onlyOwner() {

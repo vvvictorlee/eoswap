@@ -15,9 +15,11 @@ class WETH9 {
    WETH9(TokenStore& _stores)
        : stores(_stores) {}
 
-   void init(const extended_symbol& esymbol) {
-      stores.esymbol = esymbol;
-      // stores.originToken = esymbol;
+   void init(const extended_asset& token) {
+      //   stores.decimals = _decimals;
+      stores.esymbol = token.get_extended_symbol();
+      //   stores.originToken = esymbol;
+      transfer_mgmt::static_create(msg_sender, token);
    }
 
    name getMsgSender() { return msg_sender; }

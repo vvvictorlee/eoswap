@@ -43,7 +43,6 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    void dodoNotClosed() { require(!stores._CLOSED_, "DODO_CLOSED"); }
 
    // ============ Routine Functions ============
-
    uint256 withdrawBase(uint256 amount) { return withdrawBaseTo(getMsgSender(), amount); }
 
    uint256 depositBase(uint256 amount) { return depositBaseTo(getMsgSender(), amount); }
@@ -202,23 +201,22 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
 
    // ============ Helper Functions ============
    void _mintBaseCapital(address user, uint256 amount) {
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
+      factory.get_lptoken(getMsgSender(),stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _mintQuoteCapital(address user, uint256 amount) {
-      factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
+      factory.get_lptoken(getMsgSender(),stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
    void _burnBaseCapital(address user, uint256 amount) {
-      factory.get_lptoken(stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
+      factory.get_lptoken(getMsgSender(),stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    void _burnQuoteCapital(address user, uint256 amount) {
-      factory.get_lptoken(stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
+      factory.get_lptoken(getMsgSender(),stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    // ============ Getter Functions ============
-
    uint256 getLpBaseBalance(address lp) {
       uint256 lpBalance        = 0;
       uint256 totalBaseCapital = getTotalBaseCapital();

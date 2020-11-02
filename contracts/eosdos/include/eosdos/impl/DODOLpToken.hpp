@@ -33,10 +33,12 @@ class DODOLpToken : public Ownable {
 
    // ============ Functions ============
 
-   void init(const extended_symbol& esymbol, const extended_symbol& _originToken) {
-      stores.esymbol     = esymbol;
+   void init(const extended_asset& token, const extended_symbol& _originToken) {
+      stores.esymbol     = token.get_extended_symbol();
       stores.originToken = _originToken;
+      transfer_mgmt::static_create(getMsgSender(), token);
    }
+
    const extended_symbol& get_esymbol() { return stores.esymbol; }
    std::string            names() {
       std::string lpTokenSuffix = "_DODO_LP_TOKEN_";
@@ -91,7 +93,7 @@ class DODOLpToken : public Ownable {
       //   stores.balances[from]                        = sub(stores.balances[from], amount);
       //   stores.balances[to]                          = sub(stores.balances[to], amount);
       //   stores.allowed[from].dst2amt[getMsgSender()] = sub(stores.allowed[from].dst2amt[getMsgSender()], amount);
-      factory.get_transfer_mgmt().transfer(from, to, extended_asset(amount, stores.esymbol));
+      transfer_mgmt::static_transfer(from, to, extended_asset(amount, stores.esymbol));
       return true;
    }
 
@@ -120,12 +122,12 @@ class DODOLpToken : public Ownable {
    void mint(address user, uint256 value) {
       //   stores.balances[user] = add(stores.balances[user], value);
       //   stores.totalSupply    = add(stores.totalSupply, value);
-      factory.get_transfer_mgmt().issue(user, extended_asset(value, stores.esymbol));
+      transfer_mgmt::static_issue(user, extended_asset(value, stores.esymbol));
    }
 
    void burn(address user, uint256 value) {
       //   stores.balances[user] = sub(stores.balances[user], value);
       //   stores.totalSupply    = sub(stores.totalSupply, value);
-      factory.get_transfer_mgmt().burn(user, extended_asset(value, stores.esymbol));
+      transfer_mgmt::static_burn(user, extended_asset(value, stores.esymbol));
    }
 };
