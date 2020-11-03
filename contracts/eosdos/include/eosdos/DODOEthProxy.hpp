@@ -119,9 +119,9 @@ class DODOEthProxy : public ReentrancyGuard {
 
       return payTokenAmount;
    }
-   template <typename T>
+
    uint256 sellTokenToEth(
-       const extended_asset& baseToken, const extended_asset& minReceiveEth, uint256 receiveEthAmount, uint8_t state,T receiveEthAmountHandle) {
+       const extended_asset& baseToken, const extended_asset& minReceiveEth, uint256 receiveEthAmount, uint8_t state) {
       // address baseTokenAddress, uint256 tokenAmount, uint256 minReceiveEthAmount
       namesym baseTokenAddress    = to_namesym(baseToken.get_extended_symbol());
       uint256 tokenAmount         = baseToken.quantity.amount;
@@ -144,8 +144,6 @@ class DODOEthProxy : public ReentrancyGuard {
          _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
             receiveEthAmount = dodo.sellBaseToken(tokenAmount, minReceiveEthAmount, {});
          });
-
-         receiveEthAmountHandle(receiveEthAmount);
 
          return receiveEthAmount;
       }

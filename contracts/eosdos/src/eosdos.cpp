@@ -14,6 +14,7 @@ using eosio::action;
 using eosio::asset;
 using eosio::name;
 using eosio::permission_level;
+enum ACTION_STEP { STEP_ONE = 1, STEP_TWO, STEP_THREE };
 
 class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
  private:
@@ -92,7 +93,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void buyethtokenx(
        name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount, bool pretransfer) {
-         require_auth(_self);
+      require_auth(_self);
       proxy.setMsgSender(msg_sender, false);
       proxy.buyEthWithToken(ethToken, maxPayTokenAmount, pretransfer);
    }
@@ -105,8 +106,8 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       //   proxy.sellTokenToEth(baseToken, minReceiveEth);
       selltokenetha_action selltokenetha_act{admin_account, {{_self, "active"_n}}};
-      selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, 0, 1);
-      selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, 0, 2);
+      selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, 0, ACTION_STEP::STEP_ONE);
+      selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, 0, ACTION_STEP::STEP_TWO);
    }
 
    [[eosio::action]] void selltokenetha(
@@ -114,12 +115,11 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        uint8_t state) {
       require_auth(_self);
       proxy.setMsgSender(msg_sender, false);
-      proxy.sellTokenToEth(baseToken, minReceiveEth, receiveEthAmount, state, [&](auto receiveEthAmounts) {
-         if (2 == state) {
-            selltokenetha_action selltokenetha_act{admin_account, {{_self, "active"_n}}};
-            selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, receiveEthAmounts, 3);
-         }
-      });
+      uint256 receiveEthAmounts = proxy.sellTokenToEth(baseToken, minReceiveEth, receiveEthAmount, state);
+      if (ACTION_STEP::STEP_TWO == state) {
+         selltokenetha_action selltokenetha_act{admin_account, {{_self, "active"_n}}};
+         selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, receiveEthAmounts, ACTION_STEP::STEP_THREE);
+      }
    }
 
    using selltokenetha_action = eosio::action_wrapper<"selltokenetha"_n, &eosdos::selltokenetha>;
@@ -129,14 +129,14 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       //   proxy.buyTokenWithEth(baseToken, maxPayEthAmount);
       buytokenethx_action buytokenethx_act{admin_account, {{_self, "active"_n}}};
-      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, 1);
-      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, 2);
-      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, 3);
+      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, ACTION_STEP::STEP_ONE);
+      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, ACTION_STEP::STEP_TWO);
+      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, ACTION_STEP::STEP_THREE);
    }
 
    [[eosio::action]] void buytokenethx(
        name msg_sender, const extended_asset& baseToken, const extended_asset& maxPayEthAmount, uint8_t state) {
-         require_auth(_self);
+      require_auth(_self);
       proxy.setMsgSender(msg_sender, false);
       proxy.buyTokenWithEth(baseToken, maxPayEthAmount, state);
    }
@@ -157,14 +157,14 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       //   proxy.withdrawEthAsBase(ethtokenamount, quoteToken);
       withdraweabx_action withdraweabx_act{admin_account, {{_self, "active"_n}}};
-      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, 1);
-      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, 2);
-      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, 3);
+      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, ACTION_STEP::STEP_ONE);
+      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, ACTION_STEP::STEP_TWO);
+      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, ACTION_STEP::STEP_THREE);
    }
 
    [[eosio::action]] void withdraweabx(
        name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken, uint8_t state) {
-         require_auth(_self);
+      require_auth(_self);
       proxy.setMsgSender(msg_sender, false);
       proxy.withdrawEthAsBase(ethtokenamount, quoteToken, state);
    }
@@ -176,13 +176,13 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       //   proxy.withdrawAllEthAsBase(quoteToken);
       withdrawaebx_action withdrawaebx_act{admin_account, {{_self, "active"_n}}};
-      withdrawaebx_act.send(msg_sender, quoteToken, 1);
-      withdrawaebx_act.send(msg_sender, quoteToken, 2);
-      withdrawaebx_act.send(msg_sender, quoteToken, 3);
+      withdrawaebx_act.send(msg_sender, quoteToken, ACTION_STEP::STEP_ONE);
+      withdrawaebx_act.send(msg_sender, quoteToken, ACTION_STEP::STEP_TWO);
+      withdrawaebx_act.send(msg_sender, quoteToken, ACTION_STEP::STEP_THREE);
    }
 
    [[eosio::action]] void withdrawaebx(name msg_sender, const extended_symbol& quoteToken, uint8_t state) {
-         require_auth(_self);
+      require_auth(_self);
       proxy.setMsgSender(msg_sender, false);
       proxy.withdrawAllEthAsBase(quoteToken, state);
    }
@@ -202,14 +202,14 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       //   proxy.withdrawEthAsQuote(ethtokenamount, baseToken);
       withdraweaqx_action withdraweaqx_act{admin_account, {{_self, "active"_n}}};
-      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, 1);
-      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, 2);
-      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, 3);
+      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, ACTION_STEP::STEP_ONE);
+      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, ACTION_STEP::STEP_TWO);
+      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, ACTION_STEP::STEP_THREE);
    }
 
    [[eosio::action]] void withdraweaqx(
        name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken, uint8_t state) {
-         require_auth(_self);
+      require_auth(_self);
       proxy.setMsgSender(msg_sender, false);
       proxy.withdrawEthAsQuote(ethtokenamount, baseToken, state);
    }
@@ -221,13 +221,13 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       //   proxy.withdrawAllEthAsQuote(baseToken);
       withdrawaeqx_action withdrawaeqx_act{admin_account, {{_self, "active"_n}}};
-      withdrawaeqx_act.send(msg_sender, baseToken, 1);
-      withdrawaeqx_act.send(msg_sender, baseToken, 2);
-      withdrawaeqx_act.send(msg_sender, baseToken, 3);
+      withdrawaeqx_act.send(msg_sender, baseToken, ACTION_STEP::STEP_ONE);
+      withdrawaeqx_act.send(msg_sender, baseToken, ACTION_STEP::STEP_TWO);
+      withdrawaeqx_act.send(msg_sender, baseToken, ACTION_STEP::STEP_THREE);
    }
 
    [[eosio::action]] void withdrawaeqx(name msg_sender, const extended_symbol& baseToken, uint8_t state) {
-         require_auth(_self);
+      require_auth(_self);
       proxy.setMsgSender(msg_sender, false);
       proxy.withdrawAllEthAsQuote(baseToken, state);
    }
@@ -328,7 +328,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
-      my_print_f("On notify 2 :% % % % %", get_first_receiver(), from, to, quantity, memo);
+      my_print_f("On notify ACTION_STEP::STEP_TWO :% % % % %", get_first_receiver(), from, to, quantity, memo);
       _instance_mgmt.get_transfer_mgmt().non_eosiotoken_transfer(
           from, to, quantity, memo, [&](const auto& action_event) {
 
