@@ -31,6 +31,7 @@ uint256 _GeneralIntegrate(uint256 V0, uint256 V1, uint256 V2, uint256 i, uint256
    uint256 fairAmount = DecimalMath::mul(i, sub(V1, V2)); // i*delta
    uint256 V0V0V1V2   = DecimalMath::divCeil(div(SafeMath::mul(V0, V0), V1), V2);
    uint256 penalty    = DecimalMath::mul(k, V0V0V1V2); // k(V0^2/V1/V2)
+
    return DecimalMath::mul(fairAmount, add(sub(DecimalMath::ONE, k), penalty));
 }
 

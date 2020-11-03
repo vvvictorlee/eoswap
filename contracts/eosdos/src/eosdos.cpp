@@ -85,38 +85,65 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
       proxy.setMsgSender(msg_sender);
       //   proxy.buyEthWithToken(ethToken, maxPayTokenAmount);
-      buyethtoken1_action buyethtoken1_act{admin_account, {{msg_sender, "active"_n}}};
-      buyethtoken1_act.send(msg_sender, ethToken, maxPayTokenAmount);
-      buyethtoken2_action buyethtoken2_act{admin_account, {{msg_sender, "active"_n}}};
-      buyethtoken2_act.send(msg_sender, ethToken, maxPayTokenAmount);
+      buyethtokenx_action buyethtokenx_act{admin_account, {{_self, "active"_n}}};
+      buyethtokenx_act.send(msg_sender, ethToken, maxPayTokenAmount, true);
+      buyethtokenx_act.send(msg_sender, ethToken, maxPayTokenAmount, false);
    }
 
-   [[eosio::action]] void buyethtoken1(
-       name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
-      proxy.setMsgSender(msg_sender);
-      proxy.buyEthWithToken(ethToken, maxPayTokenAmount, true);
+   [[eosio::action]] void buyethtokenx(
+       name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount, bool pretransfer) {
+         require_auth(_self);
+      proxy.setMsgSender(msg_sender, false);
+      proxy.buyEthWithToken(ethToken, maxPayTokenAmount, pretransfer);
    }
 
-   [[eosio::action]] void buyethtoken2(
-       name msg_sender, const extended_asset& ethToken, const extended_asset& maxPayTokenAmount) {
-      proxy.setMsgSender(msg_sender);
-      proxy.buyEthWithToken(ethToken, maxPayTokenAmount);
-   }
+   using buyethtokenx_action = eosio::action_wrapper<"buyethtokenx"_n, &eosdos::buyethtokenx>;
 
-   using buyethtoken1_action = eosio::action_wrapper<"buyethtoken1"_n, &eosdos::buyethtoken1>;
-   using buyethtoken2_action = eosio::action_wrapper<"buyethtoken2"_n, &eosdos::buyethtoken2>;
-   /////////////////////////////////////////////
+   /////////////////////buy&sell token ////////////////////////
    [[eosio::action]] void selltokeneth(
        name msg_sender, const extended_asset& baseToken, const extended_asset& minReceiveEth) {
       proxy.setMsgSender(msg_sender);
-      proxy.sellTokenToEth(baseToken, minReceiveEth);
+      //   proxy.sellTokenToEth(baseToken, minReceiveEth);
+      selltokenetha_action selltokenetha_act{admin_account, {{_self, "active"_n}}};
+      selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, 0, 1);
+      selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, 0, 2);
    }
 
-   [[eosio::action]] void buytoken1eth(
+   [[eosio::action]] void selltokenetha(
+       name msg_sender, const extended_asset& baseToken, const extended_asset& minReceiveEth, uint256 receiveEthAmount,
+       uint8_t state) {
+      require_auth(_self);
+      proxy.setMsgSender(msg_sender, false);
+      proxy.sellTokenToEth(baseToken, minReceiveEth, receiveEthAmount, state, [&](auto receiveEthAmounts) {
+         if (2 == state) {
+            selltokenetha_action selltokenetha_act{admin_account, {{_self, "active"_n}}};
+            selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, receiveEthAmounts, 3);
+         }
+      });
+   }
+
+   using selltokenetha_action = eosio::action_wrapper<"selltokenetha"_n, &eosdos::selltokenetha>;
+
+   [[eosio::action]] void buytokeneth(
        name msg_sender, const extended_asset& baseToken, const extended_asset& maxPayEthAmount) {
       proxy.setMsgSender(msg_sender);
-      proxy.buyTokenWithEth(baseToken, maxPayEthAmount);
+      //   proxy.buyTokenWithEth(baseToken, maxPayEthAmount);
+      buytokenethx_action buytokenethx_act{admin_account, {{_self, "active"_n}}};
+      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, 1);
+      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, 2);
+      buytokenethx_act.send(msg_sender, baseToken, maxPayEthAmount, 3);
    }
+
+   [[eosio::action]] void buytokenethx(
+       name msg_sender, const extended_asset& baseToken, const extended_asset& maxPayEthAmount, uint8_t state) {
+         require_auth(_self);
+      proxy.setMsgSender(msg_sender, false);
+      proxy.buyTokenWithEth(baseToken, maxPayEthAmount, state);
+   }
+
+   using buytokenethx_action = eosio::action_wrapper<"buytokenethx"_n, &eosdos::buytokenethx>;
+
+   /////////////////////////////////////////////////////////////
    // _lock_  Bind does not lock because it jumps to `rebind`, which does
 
    [[eosio::action]] void depositethab(
@@ -129,135 +156,83 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
       proxy.setMsgSender(msg_sender);
       //   proxy.withdrawEthAsBase(ethtokenamount, quoteToken);
-      withdraweab1_action withdraweab1_act{admin_account, {{msg_sender, "active"_n}}};
-      withdraweab1_act.send(msg_sender, ethtokenamount, quoteToken);
-      withdraweab2_action withdraweab2_act{admin_account, {{msg_sender, "active"_n}}};
-      withdraweab2_act.send(msg_sender, ethtokenamount, quoteToken);
-      withdraweab3_action withdraweab3_act{admin_account, {{msg_sender, "active"_n}}};
-      withdraweab3_act.send(msg_sender, ethtokenamount, quoteToken);
+      withdraweabx_action withdraweabx_act{admin_account, {{_self, "active"_n}}};
+      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, 1);
+      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, 2);
+      withdraweabx_act.send(msg_sender, ethtokenamount, quoteToken, 3);
    }
 
-   [[eosio::action]] void withdraweab1(
-       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawEthAsBase(ethtokenamount, quoteToken, 1);
+   [[eosio::action]] void withdraweabx(
+       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken, uint8_t state) {
+         require_auth(_self);
+      proxy.setMsgSender(msg_sender, false);
+      proxy.withdrawEthAsBase(ethtokenamount, quoteToken, state);
    }
 
-   [[eosio::action]] void withdraweab2(
-       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawEthAsBase(ethtokenamount, quoteToken, 2);
-   }
+   using withdraweabx_action = eosio::action_wrapper<"withdraweabx"_n, &eosdos::withdraweabx>;
 
-   [[eosio::action]] void withdraweab3(
-       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawEthAsBase(ethtokenamount, quoteToken, 3);
-   }
-
-   using withdraweab1_action = eosio::action_wrapper<"withdraweab1"_n, &eosdos::withdraweab1>;
-   using withdraweab2_action = eosio::action_wrapper<"withdraweab2"_n, &eosdos::withdraweab2>;
-   using withdraweab3_action = eosio::action_wrapper<"withdraweab3"_n, &eosdos::withdraweab3>;
-////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
    [[eosio::action]] void withdrawaeab(name msg_sender, const extended_symbol& quoteToken) {
       proxy.setMsgSender(msg_sender);
       //   proxy.withdrawAllEthAsBase(quoteToken);
-      withdrawaeb1_action withdrawaeb1_act{admin_account, {{msg_sender, "active"_n}}};
-      withdrawaeb1_act.send(msg_sender, quoteToken);
-      withdrawaeb2_action withdrawaeb2_act{admin_account, {{msg_sender, "active"_n}}};
-      withdrawaeb2_act.send(msg_sender, quoteToken);
-      withdrawaeb3_action withdrawaeb3_act{admin_account, {{msg_sender, "active"_n}}};
-      withdrawaeb3_act.send(msg_sender, quoteToken);
+      withdrawaebx_action withdrawaebx_act{admin_account, {{_self, "active"_n}}};
+      withdrawaebx_act.send(msg_sender, quoteToken, 1);
+      withdrawaebx_act.send(msg_sender, quoteToken, 2);
+      withdrawaebx_act.send(msg_sender, quoteToken, 3);
    }
 
-   [[eosio::action]] void withdrawaeb1(name msg_sender, const extended_symbol& quoteToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawAllEthAsBase(quoteToken, 1);
-   }
-   [[eosio::action]] void withdrawaeb2(name msg_sender, const extended_symbol& quoteToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawAllEthAsBase(quoteToken,2);
-   }
-   [[eosio::action]] void withdrawaeb3(name msg_sender, const extended_symbol& quoteToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawAllEthAsBase(quoteToken,3);
+   [[eosio::action]] void withdrawaebx(name msg_sender, const extended_symbol& quoteToken, uint8_t state) {
+         require_auth(_self);
+      proxy.setMsgSender(msg_sender, false);
+      proxy.withdrawAllEthAsBase(quoteToken, state);
    }
 
-   using withdrawaeb1_action = eosio::action_wrapper<"withdrawaeb1"_n, &eosdos::withdrawaeb1>;
-   using withdrawaeb2_action = eosio::action_wrapper<"withdrawaeb2"_n, &eosdos::withdrawaeb2>;
-   using withdrawaeb3_action = eosio::action_wrapper<"withdrawaeb3"_n, &eosdos::withdrawaeb3>;
+   using withdrawaebx_action = eosio::action_wrapper<"withdrawaebx"_n, &eosdos::withdrawaebx>;
 
-////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
    // Absorb any _token_ that have been sent to this contract into the pool
    [[eosio::action]] void depositethaq(
        name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
       proxy.setMsgSender(msg_sender);
       proxy.depositEthAsQuote(ethtokenamount, baseToken);
    }
-////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
    [[eosio::action]] void withdraweaq(
        name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
       proxy.setMsgSender(msg_sender);
       //   proxy.withdrawEthAsQuote(ethtokenamount, baseToken);
-      withdraweaq1_action withdraweaq1_act{admin_account, {{msg_sender, "active"_n}}};
-      withdraweaq1_act.send(msg_sender, ethtokenamount, baseToken);
-      withdraweaq2_action withdraweaq2_act{admin_account, {{msg_sender, "active"_n}}};
-      withdraweaq2_act.send(msg_sender, ethtokenamount, baseToken);
-      withdraweaq3_action withdraweaq3_act{admin_account, {{msg_sender, "active"_n}}};
-      withdraweaq3_act.send(msg_sender, ethtokenamount, baseToken);
+      withdraweaqx_action withdraweaqx_act{admin_account, {{_self, "active"_n}}};
+      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, 1);
+      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, 2);
+      withdraweaqx_act.send(msg_sender, ethtokenamount, baseToken, 3);
    }
 
-   [[eosio::action]] void withdraweaq1(
-       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawEthAsQuote(ethtokenamount, baseToken, 1);
+   [[eosio::action]] void withdraweaqx(
+       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken, uint8_t state) {
+         require_auth(_self);
+      proxy.setMsgSender(msg_sender, false);
+      proxy.withdrawEthAsQuote(ethtokenamount, baseToken, state);
    }
 
-   [[eosio::action]] void withdraweaq2(
-       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawEthAsQuote(ethtokenamount, baseToken, 2);
-   }
+   using withdraweaqx_action = eosio::action_wrapper<"withdraweaqx"_n, &eosdos::withdraweaqx>;
 
-   [[eosio::action]] void withdraweaq3(
-       name msg_sender, const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawEthAsQuote(ethtokenamount, baseToken, 3);
-   }
-
-   using withdraweaq1_action = eosio::action_wrapper<"withdraweaq1"_n, &eosdos::withdraweaq1>;
-   using withdraweaq2_action = eosio::action_wrapper<"withdraweaq2"_n, &eosdos::withdraweaq2>;
-   using withdraweaq3_action = eosio::action_wrapper<"withdraweaq3"_n, &eosdos::withdraweaq3>;
-////////////////////////////////////////////////////
+   ////////////////////////////////////////////////////
    [[eosio::action]] void withdrawaeaq(name msg_sender, const extended_symbol& baseToken) {
       proxy.setMsgSender(msg_sender);
       //   proxy.withdrawAllEthAsQuote(baseToken);
-      withdrawaeq1_action withdrawaeq1_act{admin_account, {{msg_sender, "active"_n}}};
-      withdrawaeq1_act.send(msg_sender, baseToken);
-      withdrawaeq2_action withdrawaeq2_act{admin_account, {{msg_sender, "active"_n}}};
-      withdrawaeq2_act.send(msg_sender, baseToken);
-      withdrawaeq3_action withdrawaeq3_act{admin_account, {{msg_sender, "active"_n}}};
-      withdrawaeq3_act.send(msg_sender, baseToken);
+      withdrawaeqx_action withdrawaeqx_act{admin_account, {{_self, "active"_n}}};
+      withdrawaeqx_act.send(msg_sender, baseToken, 1);
+      withdrawaeqx_act.send(msg_sender, baseToken, 2);
+      withdrawaeqx_act.send(msg_sender, baseToken, 3);
    }
 
-   [[eosio::action]] void withdrawaeq1(name msg_sender, const extended_symbol& baseToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawAllEthAsQuote(baseToken, 1);
+   [[eosio::action]] void withdrawaeqx(name msg_sender, const extended_symbol& baseToken, uint8_t state) {
+         require_auth(_self);
+      proxy.setMsgSender(msg_sender, false);
+      proxy.withdrawAllEthAsQuote(baseToken, state);
    }
 
-   [[eosio::action]] void withdrawaeq2(name msg_sender, const extended_symbol& baseToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawAllEthAsQuote(baseToken,2);
-   }
-
-   [[eosio::action]] void withdrawaeq3(name msg_sender, const extended_symbol& baseToken) {
-      proxy.setMsgSender(msg_sender);
-      proxy.withdrawAllEthAsQuote(baseToken,3);
-   }
-
-   using withdrawaeq1_action = eosio::action_wrapper<"withdrawaeq1"_n, &eosdos::withdrawaeq1>;
-   using withdrawaeq2_action = eosio::action_wrapper<"withdrawaeq2"_n, &eosdos::withdrawaeq2>;
-   using withdrawaeq3_action = eosio::action_wrapper<"withdrawaeq3"_n, &eosdos::withdrawaeq3>;
+   using withdrawaeqx_action = eosio::action_wrapper<"withdrawaeqx"_n, &eosdos::withdrawaeqx>;
 
    ////////////////////  admin dodo////////////////////////
    [[eosio::action]] void enabletradin(name msg_sender, name dodo_name) {
@@ -283,7 +258,10 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.depositQuote(amt.quantity.amount); });
    }
-
+   [[eosio::action]] void depositbase(name msg_sender, name dodo_name, const extended_asset& amt) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.depositBase(amt.quantity.amount); });
+   }
    ////////////////////   Oracle////////////////////////
    [[eosio::action]] void neworacle(name msg_sender, const extended_symbol& token) {
       check(oracle_account == msg_sender, "no oracle admin");
@@ -331,7 +309,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::on_notify("eosio.token::transfer")]] void on_transfer(
        name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() == "eosio.token"_n, "should be eosio.token");
-      print_f("On notify : % % % %", from, to, quantity, memo);
+      my_print_f("On notify : % % % %", from, to, quantity, memo);
       _instance_mgmt.get_transfer_mgmt().eosiotoken_transfer(from, to, quantity, memo, [&](const auto& action_event) {
          if (action_event.action.empty()) {
             return;
@@ -350,7 +328,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
-      print_f("On notify 2 :% % % % %", get_first_receiver(), from, to, quantity, memo);
+      my_print_f("On notify 2 :% % % % %", get_first_receiver(), from, to, quantity, memo);
       _instance_mgmt.get_transfer_mgmt().non_eosiotoken_transfer(
           from, to, quantity, memo, [&](const auto& action_event) {
 

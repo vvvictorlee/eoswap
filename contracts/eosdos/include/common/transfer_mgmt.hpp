@@ -78,7 +78,8 @@ class transfer_mgmt {
    }
 
    static uint64_t get_balance(const name& owner, const extended_symbol& exsym) {
-      print_f("===get_balance : % % %===", owner, exsym,
+      my_print_f(
+          "===get_balance : % % %===", owner, exsym,
           get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount);
       return get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
    }
@@ -88,7 +89,7 @@ class transfer_mgmt {
    }
 
    static void static_transfer(name from, name to, extended_asset quantity, std::string memo = "") {
-      print_f("On static_transfer : % % % %", from, to, quantity, memo);
+      my_print_f("On static_transfer : % % % %", from, to, quantity, memo);
 
       check(from != to, "cannot transfer to self");
       //  require_auth( from );
@@ -102,15 +103,16 @@ class transfer_mgmt {
           std::make_tuple(from, to, quantity.quantity, memo))
           .send();
 
-    //   token::transfer_action transfer_act{ token_account, { {bidder, active_permission} } };
-    //   transfer_act.send( bidder, names_account, bid, std::string("bid name ")+ newname.to_string() );
+      //   token::transfer_action transfer_act{ token_account, { {bidder, active_permission} } };
+      //   transfer_act.send( bidder, names_account, bid, std::string("bid name ")+ newname.to_string() );
 
-    //     token::issue_action issue_act{ token_account, { {get_self(), active_permission} } };
-    //            issue_act.send( get_self(), asset(new_tokens, core_symbol()), "issue tokens for producer pay and savings" );
+      //     token::issue_action issue_act{ token_account, { {get_self(), active_permission} } };
+      //            issue_act.send( get_self(), asset(new_tokens, core_symbol()), "issue tokens for producer pay and
+      //            savings" );
    }
 
    static void static_create(name issuer, const extended_asset& maximum_supply) {
-      print_f("=======static_create========== % %", issuer, maximum_supply);
+      my_print_f("=======static_create========== % %", issuer, maximum_supply);
 
       require_auth(issuer);
       check(is_account(issuer), "issuer account does not exist");
@@ -123,7 +125,7 @@ class transfer_mgmt {
    }
 
    static void static_issue(name to, const extended_asset& quantity, const std::string& memo = "") {
-      print_f("==On static_issue :  % % %",  to, quantity, memo);
+      my_print_f("==On static_issue :  % % %", to, quantity, memo);
 
       check(is_account(to), "to account does not exist");
       check(quantity.quantity.is_valid(), "invalid quantity");
@@ -140,6 +142,7 @@ class transfer_mgmt {
    }
 
    static void static_burn(name burnee, const extended_asset& quantity, const std::string& memo = "") {
+      my_print_f("On static_burn : % % % ", burnee, quantity, memo);
       check(is_account(burnee), "burnee account does not exist");
 
       check(quantity.quantity.is_valid(), "invalid quantity");
@@ -155,7 +158,7 @@ class transfer_mgmt {
    }
 
    void d_transfer(name from, name to, extended_asset quantity, std::string memo = "") { //, bool is_deferred = false)
-      print_f("On inner_transfer : % % % %", from, to, quantity, memo);
+      my_print_f("On inner_transfer : % % % %", from, to, quantity, memo);
 
       check(from != to, "cannot transfer to self");
       //  require_auth( from );

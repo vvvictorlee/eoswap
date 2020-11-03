@@ -8,7 +8,12 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #include <fc/variant_object.hpp>
 #include <sstream>
-
+// #define EOSDOS_DEBUG
+#ifdef EOSDOS_DEBUG
+#define LINE_DEBUG BOOST_TEST_CHECK(__LINE__ == 0);
+#else
+#define LINE_DEBUG
+#endif
 using namespace eosio::testing;
 using namespace eosio;
 using namespace eosio::chain;
@@ -338,9 +343,9 @@ class eosdos_tester : public tester {
           mvo()("msg_sender", msg_sender)("baseToken", baseToken)("minReceiveEth", minReceiveEth));
    }
 
-   action_result buytoken1eth(name msg_sender, const extended_asset& baseToken, const extended_asset& maxPayEthAmount) {
+   action_result buytokeneth(name msg_sender, const extended_asset& baseToken, const extended_asset& maxPayEthAmount) {
       return push_action(
-          msg_sender, N(buytoken1eth),
+          msg_sender, N(buytokeneth),
           mvo()("msg_sender", msg_sender)("baseToken", baseToken)("maxPayEthAmount", maxPayEthAmount));
    }
 
@@ -395,7 +400,10 @@ class eosdos_tester : public tester {
       return push_action(
           msg_sender, N(depositquote), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amt", amt));
    }
-
+   action_result depositbase(name msg_sender, name dodo_name, const extended_asset& amt) {
+      return push_action(
+          msg_sender, N(depositbase), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amt", amt));
+   }
    //////////////////Oracle//////////////
    action_result neworacle(name msg_sender, const extended_symbol& token) {
       return push_action(msg_sender, N(neworacle), mvo()("msg_sender", msg_sender)("token", token));
@@ -540,11 +548,15 @@ class eosdos_tester : public tester {
 
    uint_eth to_wei(uint_eth value) { return value * pow(10, 4); }
 
-   extended_asset to_pool_asset(name pool_name, int64_t value) {
-      return extended_asset{asset{value, symbol{4, "BPT"}}, pool_name};
+   extended_asset to_pl_asset(int64_t value, const std::string& sym, name lp_contract_name) {
+      return extended_asset{asset{value, symbol{4, sym.c_str()}}, lp_contract_name};
    }
 
-   extended_symbol to_pool_sym(name pool_name) { return extended_symbol{symbol{4, "BPT"}, pool_name}; }
+   extended_symbol to_lp_esym(const std::string& sym, name lp_contract_name) {
+      return extended_symbol{symbol{4, sym.c_str()}, lp_contract_name};
+   }
+
+   symbol to_lp_sym(const std::string& sym) { return symbol{4, sym.c_str()}; }
 
    extended_asset to_asset(const std::string& sym, int64_t value) {
       return extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eosdosxtoken"}};
@@ -582,61 +594,60 @@ class eosdos_tester : public tester {
       return s;
    }
 
+   void initProxyBefore() {
+      LINE_DEBUG;
+      init(admin, maintainer, to_sym("WETH"), get_core_symbol());
+   }
+
+   void newTokenBefore() {
+
+      LINE_DEBUG;
+
+      newethtoken(tokenissuer, to_maximum_supply("WETH"));
+      LINE_DEBUG;
+
+      newtoken(tokenissuer, to_maximum_supply("MKR"));
+   }
+
+   void mintBefore() {
+      LINE_DEBUG;
+
+      mint(lp, to_wei_asset("MKR", 1000));
+      LINE_DEBUG;
+
+      mint(trader, to_wei_asset("MKR", 1000));
+      LINE_DEBUG;
+   }
+
    void newOracleBefore() {
       neworacle(oracleadmin, to_sym("WETH"));
       neworacle(oracleadmin, to_sym("DAI"));
       neworacle(oracleadmin, to_sym("MKR"));
    }
 
-   void setPriceBefore() {
+   void setPriceBaseBefore() {
       // await pool.setSwapFee(toWei('0.003'));
-      setprice(oracleadmin, to_asset("WETH", 100));
+      setprice(oracleadmin, to_asset("WETH", 1000000));
    }
 
-   void buysellBefore() {}
+   void setPriceQuoteBefore() {
+      // await pool.setSwapFee(toWei('0.003'));
+      setprice(oracleadmin, to_asset("MKR", 100));
+   }
 
-   void beforeEach() { depositethab(lp, to_wei_asset("WETH", 10), to_sym("MKR")); }
+   void breedBaseBefore() {
 
-   void breedBefore() {}
-
-   void ethBaseBefore() {
-      //   buysellBefore();
-      //   beforeEach();
-      //   breedBefore();
-      BOOST_TEST_CHECK(__LINE__ == 0);
-      init(admin, maintainer, to_sym("WETH"), get_core_symbol());
-      BOOST_TEST_CHECK(__LINE__ == 0);
-
-      newethtoken(tokenissuer, to_maximum_supply("WETH"));
-      BOOST_TEST_CHECK(__LINE__ == 0);
-
-      newtoken(tokenissuer, to_maximum_supply("MKR"));
-      //    newtoken(tokenissuer, to_maximum_supply("DAI"));
-      //    newtoken(tokenissuer, to_maximum_supply("XXX"));
-
-      //   mintweth(admin, to_wei_asset("WETH", 1000));
-      //   mintweth(lp, to_wei_asset("WETH", 1000));
-      //   mintweth(trader, to_wei_asset("WETH", 1000));
-      BOOST_TEST_CHECK(__LINE__ == 0);
-
-      mint(lp, to_wei_asset("MKR", 1000));
-      BOOST_TEST_CHECK(__LINE__ == 0);
-
-      mint(trader, to_wei_asset("MKR", 1000));
-      BOOST_TEST_CHECK(__LINE__ == 0);
-
+      LINE_DEBUG;
       name            msg_sender    = admin;
       name            dodo_name     = dodo_ethbase_name;
       address         maintainer    = doowner;
       extended_symbol baseToken     = to_sym("WETH");
       extended_symbol quoteToken    = to_sym("MKR");
       extended_symbol oracle        = to_sym("WETH");
-      uint256_x       lpFeeRate     = 2000;
-      uint256_x       mtFeeRate     = 1000;
-      uint256_x       k             = 1000;
+      uint256_x       lpFeeRate     = 2;
+      uint256_x       mtFeeRate     = 1;
+      uint256_x       k             = 1;
       uint256_x       gasPriceLimit = 0; // gweiStr("100")
-      neworacle(oracleadmin, oracle);
-      setprice(oracleadmin, to_wei_asset("WETH", 100));
       //    auto oracle_store = get_oracle_store();
       //    BOOST_TEST_CHECK(nullptr == oracle_store);
       //   lpFeeRate: decimalStr("0.002"),
@@ -644,31 +655,95 @@ class eosdos_tester : public tester {
       //   k: decimalStr("0.1"),
       //   gasPriceLimit: gweiStr("100"),
 
-      BOOST_TEST_CHECK(__LINE__ == 0);
+      LINE_DEBUG;
       breeddodo(
           msg_sender, dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
-      BOOST_TEST_CHECK(__LINE__ == 0);
+   }
 
+   void breedQuoteBefore() {
+
+      LINE_DEBUG;
+      name            msg_sender    = admin;
+      name            dodo_name     = dodo_ethquote_name;
+      address         maintainer    = doowner;
+      extended_symbol baseToken     = to_sym("WETH");
+      extended_symbol quoteToken    = to_sym("MKR");
+      extended_symbol oracle        = to_sym("MKR");
+      uint256_x       lpFeeRate     = 2;
+      uint256_x       mtFeeRate     = 2;
+      uint256_x       k             = 1;
+      uint256_x       gasPriceLimit = 0; // gweiStr("100")
+      //    auto oracle_store = get_oracle_store();
+      //    BOOST_TEST_CHECK(nullptr == oracle_store);
+      //   lpFeeRate: decimalStr("0.002"),
+      //   mtFeeRate: decimalStr("0.001"),
+      //   k: decimalStr("0.1"),
+      //   gasPriceLimit: gweiStr("100"),
+
+      LINE_DEBUG;
+      breeddodo(
+          msg_sender, dodo_name, maintainer, quoteToken, baseToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
+   }
+
+   void enableBaseBefore() {
+      LINE_DEBUG;
+      name dodo_name = dodo_ethbase_name;
       enabletradin(admin, dodo_name);
       enablequodep(admin, dodo_name);
       enablebasdep(admin, dodo_name);
-      BOOST_TEST_CHECK(__LINE__ == 0);
+   }
 
-      depositquote(lp, dodo_name, to_wei_asset("MKR", 1000));
-      BOOST_TEST_CHECK(__LINE__ == 0);
+   void enableQuoteBefore() {
+      LINE_DEBUG;
+      name dodo_name = dodo_ethquote_name;
+      enabletradin(admin, dodo_name);
+      enablequodep(admin, dodo_name);
+      enablebasdep(admin, dodo_name);
+   }
 
+   void depositQuoteBefore() {
+      LINE_DEBUG;
+      depositquote(lp, dodo_ethbase_name, to_wei_asset("MKR", 1000));
+   }
+
+   void depositBaseBefore() {
+      LINE_DEBUG;
+      depositbase(lp, dodo_ethquote_name, to_wei_asset("MKR", 1000));
+   }
+
+   void depositEthAsBaseBefore() {
+      LINE_DEBUG;
       depositethab(lp, to_wei_asset("WETH", 10), to_sym("MKR"));
-      BOOST_TEST_CHECK(__LINE__ == 0);
+   }
 
-      //   auto dodo_store = get_dodo_store();
-      //   BOOST_TEST_CHECK(nullptr == dodo_store);
-      //    auto zoo_store = get_zoo_store();
-      //    BOOST_TEST_CHECK(nullptr == zoo_store);
-      //    auto proxy_store = get_proxy_store();
-      //    BOOST_REQUIRE_EQUAL(nullptr, proxy_store);
+   void depositEthAsQuoteBefore() {
+      LINE_DEBUG;
+      depositethaq(lp, to_wei_asset("WETH", 10), to_sym("MKR"));
+   }
+   void ethBaseBefore() {
+      initProxyBefore();
+      newTokenBefore();
+      mintBefore();
+      newOracleBefore();
+      setPriceBaseBefore();
+      breedBaseBefore();
+      enableBaseBefore();
 
-      // auto token_store = get_token_store();
-      //   BOOST_TEST_CHECK(nullptr == token_store);
+      depositQuoteBefore();
+      depositEthAsBaseBefore();
+   }
+
+   void ethQuoteBefore() {
+      initProxyBefore();
+      newTokenBefore();
+      mintBefore();
+      newOracleBefore();
+      setPriceQuoteBefore();
+      breedQuoteBefore();
+      enableQuoteBefore();
+
+      depositBaseBefore();
+      depositEthAsQuoteBefore();
    }
 
    bool is_auth_token;
@@ -715,23 +790,24 @@ BOOST_FIXTURE_TEST_CASE(breeddodo_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-////////////////proxy////////////////////
-BOOST_FIXTURE_TEST_CASE(buyethtoken_tests, eosdos_tester) try {
+////////////////proxy////eth base////////////////
+BOOST_FIXTURE_TEST_CASE(buy_eth_with_token_tests, eosdos_tester) try {
    ethBaseBefore();
 
    buyethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 200));
 
    auto store = dodos(dodo_ethbase_name);
-   BOOST_TEST_CHECK("8999000" == store["_BASE_BALANCE_"].as_string());
+   BOOST_TEST_CHECK("89999" == store["_BASE_BALANCE_"].as_string());
    std::string quote_token_name = "MKR";
    auto        sym              = to_sym_from_string(quote_token_name);
-   auto        c                = eosio::chain::asset::from_string("0.0001 " + quote_token_name);
+   auto        c                = eosio::chain::asset::from_string("899.9700 " + quote_token_name);
    auto        b                = get_balancex(trader, sym);
    BOOST_TEST_CHECK(c == b);
+   // 898581839502056240973
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(sellethtoken_tests, eosdos_tester) try {
+BOOST_FIXTURE_TEST_CASE(sell_eth_to_token_tests, eosdos_tester) try {
    ethBaseBefore();
    sellethtoken(trader, to_wei_asset("WETH", 1), to_wei_asset("MKR", 50));
    auto store = dodos(dodo_ethbase_name);
@@ -739,46 +815,130 @@ BOOST_FIXTURE_TEST_CASE(sellethtoken_tests, eosdos_tester) try {
 
    std::string token_name = "MKR";
    auto        sym        = to_sym_from_string(token_name);
-   auto        c          = eosio::chain::asset::from_string("1069.2400 " + token_name);
+   auto        c          = eosio::chain::asset::from_string("1099.9690 " + token_name);
    auto        b          = get_balancex(trader, sym);
    BOOST_TEST_CHECK(c == b);
+   // 1098617454226610630663
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(withdraw_ethbase_tests, eosdos_tester) try {
+BOOST_FIXTURE_TEST_CASE(withdraw_eth_as_base_tests, eosdos_tester) try {
    ethBaseBefore();
    withdraweab(lp, to_wei_asset("WETH", 5), to_sym("MKR"));
    std::string token_name = "WETH";
-   auto        sym        = to_sym(token_name);
-   auto        c          = eosio::chain::asset::from_string("0.0001 " + token_name);
-   auto        b          = get_balancex(lp, sym.sym);
+   auto        sym        = to_lp_esym(token_name, dodo_ethbase_name);
+   auto        c          = eosio::chain::asset::from_string("5.0000 " + token_name);
+   auto        b          = get_balancex(lp, sym.sym, sym.contract);
    BOOST_TEST_CHECK(c == b);
-   //  const withdrawAmount = decimalStr("5");
-   //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
-   //       assert.strictEqual(
-   //         await ctx.DODO.methods.getLpBaseBalance(lp).call(),
-   //         withdrawAmount
-   //       );
-   //       const lpEthBalanceAfter = await ctx.Web3.eth.getBalance(lp);
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(withdraw_allethasbase_tests, eosdos_tester) try {
+BOOST_FIXTURE_TEST_CASE(withdraw_all_eth_as_base_tests, eosdos_tester) try {
    ethBaseBefore();
    withdrawaeab(lp, to_sym("MKR"));
+   std::string token_name = "WETH";
+   auto        sym        = to_lp_esym(token_name, dodo_ethbase_name);
+   auto        c          = eosio::chain::asset::from_string("0.0000 " + token_name);
+   auto        b          = get_balancex(lp, sym.sym, sym.contract);
+   BOOST_TEST_CHECK(c == b);
+}
+FC_LOG_AND_RETHROW()
 
-   //  BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 " + token_name), get_balancex(lp, sym));
-   //  const withdrawAmount = decimalStr("10");
-   //       const lpEthBalanceBefore = await ctx.Web3.eth.getBalance(lp);
-   //       const txReceipt: TransactionReceipt = await DODOEthProxy.methods
-   //         .withdrawAllEthAsBase(ctx.QUOTE.options.address)
+////////////////proxy eth quote////////////////////
+BOOST_FIXTURE_TEST_CASE(buy_token_with_eth_tests, eosdos_tester) try {
+   ethQuoteBefore();
+
+   buytokeneth(trader, to_wei_asset("MKR", 200), to_asset("WETH", 21000));
+
+   auto store = dodos(dodo_ethquote_name);
+   BOOST_TEST_CHECK("120008" == store["_QUOTE_BALANCE_"].as_string());
+   std::string quote_token_name = "MKR";
+   auto        sym              = to_sym_from_string(quote_token_name);
+   auto        c                = eosio::chain::asset::from_string("1200.0000 " + quote_token_name);
+   auto        b                = get_balancex(trader, sym);
+   BOOST_TEST_CHECK(c == b);
+
+   //  const maxPayEthAmount = "2.1";
+   //       const ethInPoolBefore = decimalStr("10");
+
+   //         DODOEthProxy.methods.buyTokenWithEth(
+   //           ctx.BASE.options.address,
+   //           decimalStr("200"),
+   //           decimalStr(maxPayEthAmount)
+   //       const ethInPoolAfter = "12056338203652739553";
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods._QUOTE_BALANCE_().call(),
+   //         ethInPoolAfter
+   //       );
+   //       assert.strictEqual(
+   //         await ctx.BASE.methods.balanceOf(trader).call(),
+   //         decimalStr("1200")
+   //       );
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(sell_token_to_eth_tests, eosdos_tester) try {
+   ethQuoteBefore();
+   selltokeneth(trader, to_wei_asset("MKR", 50), to_asset("WETH", 4500));
+   auto store = dodos(dodo_ethquote_name);
+   BOOST_TEST_CHECK("95001" == store["_QUOTE_BALANCE_"].as_string());
+
+   std::string token_name = "MKR";
+   auto        sym        = to_sym_from_string(token_name);
+   auto        c          = eosio::chain::asset::from_string("950.0000 " + token_name);
+   auto        b          = get_balancex(trader, sym);
+   BOOST_TEST_CHECK(c == b);
+
+   //  const minReceiveEthAmount = "0.45";
+
+   //         DODOEthProxy.methods.sellTokenToEth(
+   //           ctx.BASE.options.address,
+   //           decimalStr("50"),
+   //           decimalStr(minReceiveEthAmount)
+
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods._QUOTE_BALANCE_().call(),
+   //         "9503598324131652490"
+   //       );
+   //         await ctx.BASE.methods.balanceOf(trader).call(),
+   //         decimalStr("950")
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(withdraw_eth_as_quote_tests, eosdos_tester) try {
+   ethQuoteBefore();
+   withdraweaq(lp, to_wei_asset("WETH", 5), to_sym("MKR"));
+   std::string token_name = "WETH";
+   auto        sym        = to_lp_esym(token_name, dodo_ethquote_name);
+   auto        c          = eosio::chain::asset::from_string("5.0000 " + token_name);
+   auto        b          = get_balancex(lp, sym.sym, sym.contract);
+   BOOST_TEST_CHECK(c == b);
+   //    const withdrawAmount = decimalStr("5");
+
+   //         .withdrawEthAsQuote(withdrawAmount, ctx.BASE.options.address)
    //         .send(ctx.sendParam(lp));
 
    //       assert.strictEqual(
-   //         await ctx.DODO.methods.getLpBaseBalance(lp).call(),
+   //         await ctx.DODO.methods.getLpQuoteBalance(lp).call(),
+   // withdrawAmount
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(withdraw_all_eth_as_quote_tests, eosdos_tester) try {
+   ethQuoteBefore();
+   withdrawaeaq(lp, to_sym("MKR"));
+   std::string token_name = "WETH";
+   auto        sym        = to_lp_esym(token_name, dodo_ethquote_name);
+   auto        c          = eosio::chain::asset::from_string("0.0000 " + token_name);
+   auto        b          = get_balancex(lp, sym.sym, sym.contract);
+   BOOST_TEST_CHECK(c == b);
+
+   //    const withdrawAmount = decimalStr("10");
+   //         .withdrawAllEthAsQuote(ctx.BASE.options.address)
+   //         .send(ctx.sendParam(lp));
+   //       assert.strictEqual(
+   //         await ctx.DODO.methods.getLpQuoteBalance(lp).call(),
    //         "0"
-   //       );
-   //       const lpEthBalanceAfter = await ctx.Web3.eth.getBalance(lp);
 }
 FC_LOG_AND_RETHROW()
 
@@ -820,7 +980,7 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(extransfer_tests, eosdos_tester) try {
    const std::string     token_name = "POOL";
    const extended_asset& max_supply = to_asset(token_name, 1);
-    newtoken(tokenissuer, to_maximum_supply(token_name));
+   newtoken(tokenissuer, to_maximum_supply(token_name));
    mint(N(alice1111111), max_supply);
    const symbol& sym = max_supply.quantity.get_symbol();
    extransfer(N(alice1111111), maintainer, max_supply);
