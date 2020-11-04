@@ -26,6 +26,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    static constexpr eosio::name     admin_account{"eosdoseosdos"_n};
    static constexpr eosio::name     doowner_account{"dodoowner111"_n};
    static constexpr eosio::name     tokenissuer_account{"tokenissuer1"_n};
+   static constexpr eosio::name     dostoken_account{"eosdosxtoken"_n};
    static constexpr eosio::name     maintainer_account{"maintainer11"_n};
    static constexpr eosio::name     oracle_account{"eosdosoracle"_n};
    static constexpr extended_symbol weth_symbol = {symbol(symbol_code("WETH"), 4), "eosdosxtoken"_n};
@@ -262,6 +263,20 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.depositBase(amt.quantity.amount); });
    }
+   [[eosio::action]] void sellbastoken(
+       name msg_sender, name dodo_name, const extended_asset& amount, const extended_asset& minReceiveQuote) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) {
+         (void)dodo.sellBaseToken(amount.quantity.amount, minReceiveQuote.quantity.amount, {});
+      });
+   }
+   [[eosio::action]] void buybasetoken(
+       name msg_sender, name dodo_name, const extended_asset& amount, const extended_asset& maxPayQuote) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) {
+         (void)dodo.buyBaseToken(amount.quantity.amount, maxPayQuote.quantity.amount, {});
+      });
+   }
    ////////////////////   Oracle////////////////////////
    [[eosio::action]] void neworacle(name msg_sender, const extended_symbol& token) {
       check(oracle_account == msg_sender, "no oracle admin");
@@ -283,25 +298,18 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
       check(tokenissuer_account == msg_sender, "no  token issuer");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.newToken<TestERC20>(msg_sender, token);
-   }
-
-   [[eosio::action]] void newethtoken(name msg_sender, const extended_asset& token) {
-      check(tokenissuer_account == msg_sender, "no  token issuer");
-      proxy.setMsgSender(msg_sender);
-      _instance_mgmt.newToken<WETH9>(msg_sender, token);
+      if (token.contract == dostoken_account &&
+          token.get_extended_symbol().get_symbol().code().to_string().compare("WETH") == 0) {
+         _instance_mgmt.newToken<WETH9>(msg_sender, token);
+      } else {
+         _instance_mgmt.newToken<TestERC20>(msg_sender, token);
+      }
    }
 
    //    /////test interface /////
    [[eosio::action]] void mint(name msg_sender, const extended_asset& amt) {
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_token<TestERC20>(
-          msg_sender, amt.get_extended_symbol(), [&](auto& _token_) { _token_.mint(msg_sender, amt.quantity.amount); });
-   }
-
-   [[eosio::action]] void mintweth(name msg_sender, const extended_asset& amt) {
-      proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_token<WETH9>(
           msg_sender, amt.get_extended_symbol(), [&](auto& _token_) { _token_.mint(msg_sender, amt.quantity.amount); });
    }
 
@@ -328,7 +336,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
-      my_print_f("On notify ACTION_STEP::STEP_TWO :% % % % %", get_first_receiver(), from, to, quantity, memo);
+      my_print_f("On notify 2 :% % % % %", get_first_receiver(), from, to, quantity, memo);
       _instance_mgmt.get_transfer_mgmt().non_eosiotoken_transfer(
           from, to, quantity, memo, [&](const auto& action_event) {
 

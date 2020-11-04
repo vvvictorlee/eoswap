@@ -90,7 +90,9 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       depositBaseAllowed();
       uint256 baseTarget                = 0;
       std::tie(baseTarget, std::ignore) = getExpectedTarget();
+
       uint256 totalBaseCapital          = getTotalBaseCapital();
+
       uint256 capital                   = amount;
       if (totalBaseCapital == 0) {
          // give remaining base token to lp as a gift
@@ -101,6 +103,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
 
       // settlement
       _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
+
       _mintBaseCapital(to, capital);
 
       stores._TARGET_BASE_TOKEN_AMOUNT_ = add(stores._TARGET_BASE_TOKEN_AMOUNT_, amount);

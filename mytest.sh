@@ -10,6 +10,8 @@ case "$1" in
 "b") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buy_token_with_eth_tests -- --verbose ;;
 "s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sell_token_to_eth_tests -- --verbose ;;
 "w") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/withdraw_ethbase_tests -- --verbose ;;
+"bs") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buy_base_token_tests -- --verbose ;;
+"se") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sell_base_token_tests -- --verbose ;;
 *) ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests -- --verbose ;;
 esac
 

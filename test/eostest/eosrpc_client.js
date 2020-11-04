@@ -198,7 +198,7 @@ class EosClient {
         console.log(__line); prettyJson(results);
     }
     async newtoken(token) {
-        const results = await eosrpc.transaction(pushAction(admin, admin_pub, "mint", {
+        const results = await eosrpc.transaction(pushAction(admin, admin_pub, "newtoken", {
             msg_sender: admin,
             token: token
         }));

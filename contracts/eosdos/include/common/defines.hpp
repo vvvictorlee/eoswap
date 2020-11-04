@@ -41,7 +41,7 @@ inline void my_print_f(const char* s, Arg val, Args... rest) {
 #endif
 }
 
-inline void myprint_f(const char* s) {
+inline void my_print_f(const char* s) {
 #ifdef EOSDOS_CONTRACT_DEBUG
    print(s);
 #endif
