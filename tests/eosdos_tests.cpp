@@ -845,22 +845,22 @@ BOOST_FIXTURE_TEST_CASE(buy_base_token_tests, eosdos_tester) try {
    check_balance("DAI", "11000.0000");
    check_balance("MKR", "8999.9000");
 
-   buybasetoken(trader, dodo_stablecoin_name, to_wei_asset("DAI", 8900), to_wei_asset("MKR", 10000));
-   check_balance("DAI", "19900.0000");
-   check_balance("MKR", "8999.9000");
+   buybasetoken(trader, dodo_stablecoin_name, to_wei_asset("DAI", 8906), to_wei_asset("MKR", 9000));
+   check_balance("DAI", "19906.0000");
+   check_balance("MKR", "8.3940");
 
    sellbastoken(trader, dodo_stablecoin_name, to_wei_asset("DAI", 19900), to_asset("MKR", 19970));
-   check_balance("DAI", "0.0000");
-   check_balance("MKR", "19899.0019");
+   check_balance("DAI", "6.0000");
+   check_balance("MKR", "19912.7339");
    //   // 10% depth avg price 1.000100000111135
    //   await ctx.DODO.methods.buyBaseToken(decimalStr("1000"), decimalStr("1001"), "0x").send(ctx.sendParam(trader))
    //   assert.equal(await ctx.BASE.methods.balanceOf(trader).call(), decimalStr("11000"))
-   //   assert.equal(await ctx.QUOTE.methods.balanceOf(trader).call(), "899989999988886543")
+   //   assert.equal(await ctx.QUOTE.methods.balanceOf(trader).call(), "8999 89 9999 8888 6543 1655")
 
    //   // 99.9% depth avg price 1.00010109
    //   await ctx.DODO.methods.buyBaseToken(decimalStr("8990"), decimalStr("10000"), "0x").send(ctx.sendParam(trader))
    //   assert.equal(await ctx.BASE.methods.balanceOf(trader).call(), decimalStr("19990"))
-   //   assert.equal(await ctx.QUOTE.methods.balanceOf(trader).call(), "8990031967806921648")
+   //   assert.equal(await ctx.QUOTE.methods.balanceOf(trader).call(), "8 99 0031 9678 0692 1648")
 
    //   // sell to 99.9% depth avg price 0.9999
    //   await ctx.DODO.methods.sellBaseToken(decimalStr("19980"), decimalStr("19970"), "0x").send(ctx.sendParam(trader))
@@ -869,40 +869,7 @@ BOOST_FIXTURE_TEST_CASE(buy_base_token_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(buy2_base_token_tests, eosdos_tester) try {
- stableCoinBefore();
 
-   auto check_balance = [&](std::string token_name, std::string amount) {
-      auto sym = to_sym_from_string(token_name);
-      auto c   = eosio::chain::asset::from_string(amount + " " + token_name);
-      auto b   = get_balancex(trader, sym);
-      BOOST_TEST_CHECK(c == b);
-   };
-
-   buybasetoken(trader, dodo_stablecoin_name, to_wei_asset("DAI", 8990), to_wei_asset("MKR", 10000));
-   check_balance("DAI", "19990.0000");
-   check_balance("MKR", "8999.9000");
-
-}
-FC_LOG_AND_RETHROW()
-
-
-BOOST_FIXTURE_TEST_CASE(sell_base_token_tests, eosdos_tester) try {
- stableCoinBefore();
-
-   auto check_balance = [&](std::string token_name, std::string amount) {
-      auto sym = to_sym_from_string(token_name);
-      auto c   = eosio::chain::asset::from_string(amount + " " + token_name);
-      auto b   = get_balancex(trader, sym);
-      BOOST_TEST_CHECK(c == b);
-   };
-
-  
-   sellbastoken(trader, dodo_stablecoin_name, to_wei_asset("DAI", 19980), to_asset("MKR", 19970));
-   check_balance("DAI", "10.0000");
-   check_balance("MKR", "19986992950440.0000");
-}
-FC_LOG_AND_RETHROW()
 
 ////////////////proxy////eth base////////////////
 BOOST_FIXTURE_TEST_CASE(buy_eth_with_token_tests, eosdos_tester) try {
