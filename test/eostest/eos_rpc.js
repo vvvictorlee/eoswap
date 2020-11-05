@@ -8,7 +8,7 @@ let password = '';
 module.exports = () => {
     const api = {};
     api.import_keys = async (private_keys) => {
-        const name = `dos${WALLET_NAME}`
+        const name = `${WALLET_NAME}`
         let res = await w.create(name)
         password = res;
         for (const pvt of private_keys) {

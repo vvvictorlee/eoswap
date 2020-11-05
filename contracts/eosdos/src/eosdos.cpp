@@ -263,6 +263,22 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.depositBase(amt.quantity.amount); });
    }
+   [[eosio::action]] void withdrawquote(name msg_sender, name dodo_name, const extended_asset& amt) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.withdrawQuote(amt.quantity.amount); });
+   }
+   [[eosio::action]] void withdrawbase(name msg_sender, name dodo_name, const extended_asset& amt) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.withdrawBase(amt.quantity.amount); });
+   }
+   [[eosio::action]] void withdrawallq(name msg_sender, name dodo_name) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.withdrawAllQuote(); });
+   }
+   [[eosio::action]] void withdrawallb(name msg_sender, name dodo_name) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.withdrawAllBase(); });
+   }
    [[eosio::action]] void sellbastoken(
        name msg_sender, name dodo_name, const extended_asset& amount, const extended_asset& minReceiveQuote) {
       proxy.setMsgSender(msg_sender);

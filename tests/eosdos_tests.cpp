@@ -408,6 +408,22 @@ class eosdos_tester : public tester {
       return push_action(
           msg_sender, N(depositbase), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amt", amt));
    }
+
+   action_result withdrawquote(name msg_sender, name dodo_name, const extended_asset& amt) {
+      return push_action(
+          msg_sender, N(withdrawquote), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amt", amt));
+   }
+   action_result withdrawbase(name msg_sender, name dodo_name, const extended_asset& amt) {
+      return push_action(
+          msg_sender, N(withdrawbase), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amt", amt));
+   }
+   action_result withdrawallq(name msg_sender, name dodo_name) {
+      return push_action(msg_sender, N(withdrawallq), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
+   }
+   action_result withdrawallb(name msg_sender, name dodo_name) {
+      return push_action(msg_sender, N(withdrawallb), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
+   }
+
    action_result
    sellbastoken(name msg_sender, name dodo_name, const extended_asset& amount, const extended_asset& minReceiveQuote) {
       return push_action(
@@ -869,7 +885,16 @@ BOOST_FIXTURE_TEST_CASE(buy_base_token_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
+BOOST_FIXTURE_TEST_CASE(withdraw_dodo_tests, eosdos_tester) try {
+   stableCoinBefore();
+   withdrawbase(lp, dodo_stablecoin_name, to_wei_asset("DAI", 1000));
 
+   withdrawquote(lp, dodo_stablecoin_name, to_wei_asset("MKR", 9000));
+
+   withdrawallb(lp, dodo_stablecoin_name);
+   withdrawallq(lp, dodo_stablecoin_name);
+}
+FC_LOG_AND_RETHROW()
 
 ////////////////proxy////eth base////////////////
 BOOST_FIXTURE_TEST_CASE(buy_eth_with_token_tests, eosdos_tester) try {
