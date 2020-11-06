@@ -23,7 +23,7 @@
  *
  * @notice Entrance for users
  */
-static const uint256 MAX_INT = 0xffffffffffffffff;
+static const uint64_t MAX_INT = 0xffffffffffffffff;
 //   ffffffffffffffffffffffffffffffffffffffffffffffff;
 
 class DODO : public Admin, public Trader, virtual public LiquidityProvider {
@@ -44,8 +44,8 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
 }
    void init(name dodo_name,
        address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
-       const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
-       uint256 k, uint256 gasPriceLimit) {
+       const extended_symbol& quoteToken, const extended_symbol& oracle, uint64_t lpFeeRate, uint64_t mtFeeRate,
+       uint64_t k, uint64_t gasPriceLimit) {
       require(!stores._INITIALIZED_, "DODO_INITIALIZED");
       stores.dodo_name =dodo_name;
       stores._INITIALIZED_ = true;

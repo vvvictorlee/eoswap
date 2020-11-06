@@ -27,7 +27,7 @@ class TestERC20 {
 
    name getMsgSender() { return msg_sender; }
    void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
-   bool transfer(address to, uint256 amount) {
+   bool transfer(address to, uint64_t amount) {
       //   require(to != address(0), "TO_ADDRESS_IS_EMPTY");
       //   require(amount <= stores.balances[getMsgSender()], "BALANCE_NOT_ENOUGH");
       //   stores.balances[getMsgSender()] = sub(stores.balances[getMsgSender()], amount);
@@ -37,12 +37,12 @@ class TestERC20 {
       return transferFrom(getMsgSender(), to, amount);
    }
 
-   uint256 balanceOf(address owner) {
+   uint64_t balanceOf(address owner) {
       return transfer_mgmt::get_balance(owner, stores.esymbol);
       // return stores.balances[owner];
    }
 
-   bool transferFrom(address from, address to, uint256 amount) {
+   bool transferFrom(address from, address to, uint64_t amount) {
       //   require(to != address(0), "TO_ADDRESS_IS_EMPTY");
       //   require(amount <= stores.balances[from], "BALANCE_NOT_ENOUGH");
       //   require(amount <= stores.allowed[from].dst2amt[getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
@@ -56,18 +56,18 @@ class TestERC20 {
       return true;
    }
 
-   bool approve(address spender, uint256 amount) {
+   bool approve(address spender, uint64_t amount) {
       //   stores.allowed[getMsgSender()].dst2amt[spender] = amount;
 
       return true;
    }
 
-   uint256 allowance(address owner, address spender) {
-      return uint256(-1);
+   uint64_t allowance(address owner, address spender) {
+      return uint64_t(-1);
       // return stores.allowed[owner].dst2amt[spender];
    }
 
-   void mint(address account, uint256 amount) {
+   void mint(address account, uint64_t amount) {
       // stores.balances[account] = add(stores.balances[account], amount);
       transfer_mgmt::static_issue(account, extended_asset(amount, stores.esymbol));
    }

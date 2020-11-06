@@ -44,7 +44,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
 
    // ============ Trade Functions ============
 
-   uint256 sellBaseToken(uint256 amount, uint256 minReceiveQuote, bytes data) {
+   uint64_t sellBaseToken(uint64_t amount, uint64_t minReceiveQuote, bytes data) {
       tradeAllowed();
       sellingAllowed();
       gasPriceLimit();
@@ -61,13 +61,13 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       require(receiveQuote >= minReceiveQuote, "SELL_BASE_RECEIVE_NOT_ENOUGH");
 
       // settle assets
-      _quoteTokenTransferOut(getMsgSender(), extended_asset(receiveQuote, stores._QUOTE_TOKEN_));
+      _quoteTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(receiveQuote), stores._QUOTE_TOKEN_));
       if (data.size() > 0) {
          //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
       }
       _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
       if (mtFeeQuote != 0) {
-         _quoteTokenTransferOut(stores._MAINTAINER_, extended_asset(mtFeeQuote, stores._QUOTE_TOKEN_));
+         _quoteTokenTransferOut(stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeQuote), stores._QUOTE_TOKEN_));
       }
 
       // update TARGET
@@ -83,7 +83,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
 
       _donateQuoteToken(lpFeeQuote);
 
-      return receiveQuote;
+      return static_cast<uint64_t>(receiveQuote);
    }
 
    uint256 buyBaseToken(uint256 amount, uint256 maxPayQuote, bytes data) {
@@ -106,9 +106,9 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       if (data.size() > 0) {
          //  IDODOCallee(getMsgSender()).dodoCall(true, amount, payQuote, data);
       }
-      _quoteTokenTransferIn(getMsgSender(), extended_asset(payQuote, stores._QUOTE_TOKEN_));
+      _quoteTokenTransferIn(getMsgSender(), extended_asset(static_cast<uint64_t>(payQuote), stores._QUOTE_TOKEN_));
       if (mtFeeBase != 0) {
-         _baseTokenTransferOut(stores._MAINTAINER_, extended_asset(mtFeeBase, stores._BASE_TOKEN_));
+         _baseTokenTransferOut(stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_));
       }
 
       // update TARGET
@@ -124,7 +124,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
 
       _donateBaseToken(lpFeeBase);
 
-      return payQuote;
+      return static_cast<uint64_t>(payQuote);
    }
 
    // ============ Query Functions ============

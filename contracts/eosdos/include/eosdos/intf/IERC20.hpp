@@ -21,7 +21,7 @@ class IERC20 {
     /**
      * @dev Returns the amount of tokens owned by `account`.
      */
-    virtual uint256  balanceOf(address account) = 0;
+    virtual uint64_t  balanceOf(address account) = 0;
 
     /**
      * @dev Moves `amount` tokens from the caller's account to `recipient`.
@@ -30,7 +30,7 @@ class IERC20 {
      *
      * Emits a {Transfer} 
 */
-    virtual bool  transfer(address recipient, uint256 amount) = 0;
+    virtual bool  transfer(address recipient, uint64_t amount) = 0;
 
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
@@ -39,7 +39,7 @@ class IERC20 {
      *
      * This value changes when {approve} or {transferFrom} are called.
      */
-    virtual uint256  allowance(address owner, address spender) = 0;
+    virtual uint64_t  allowance(address owner, address spender) = 0;
 
     /**
      * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
@@ -55,7 +55,7 @@ class IERC20 {
      *
      * Emits an {Approval} event.
      */
-    virtual bool  approve(address spender, uint256 amount) = 0;
+    virtual bool  approve(address spender, uint64_t amount) = 0;
 
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient` using the
@@ -69,6 +69,6 @@ class IERC20 {
     virtual bool  transferFrom(
         address sender,
         address recipient,
-        uint256 amount
+        uint64_t amount
     ) = 0;
 };

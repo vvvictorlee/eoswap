@@ -12,19 +12,19 @@
 class IWETH { 
  public:
 
-    virtual uint256  totalSupply() = 0;
+    virtual uint64_t  totalSupply() = 0;
 
-    virtual uint256  transfer(address recipient, uint256 amount) = 0;
+    virtual uint64_t  transfer(address recipient, uint64_t amount) = 0;
 
-    virtual bool  approve(address spender, uint256 amount) = 0;
+    virtual bool  approve(address spender, uint64_t amount) = 0;
 
     virtual bool transferFrom(
         address src,
         address dst,
-        uint256 wad
+        uint64_t wad
     ) = 0;
 
     virtual void  deposit() = 0;
 
-    virtual void  withdraw(uint256 wad) = 0;
+    virtual void  withdraw(uint64_t wad) = 0;
 };

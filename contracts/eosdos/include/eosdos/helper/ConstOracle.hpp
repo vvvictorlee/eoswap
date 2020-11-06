@@ -21,7 +21,7 @@ private:
         stores.tokenPrice = _price;
     }
 
-    uint256  getPrice() {
+    uint64_t  getPrice() {
         return stores.tokenPrice.quantity.amount;
     }
 };

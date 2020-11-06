@@ -6,7 +6,7 @@
 
 struct MigrationsStore {
    address owner;
-   uint256 last_completed_migration;
+   uint64_t last_completed_migration;
    EOSLIB_SERIALIZE(MigrationsStore, (owner)(last_completed_migration))
 };
 
@@ -19,7 +19,7 @@ struct OracleStore {
 
 struct Transaction {
    address destination;
-   uint256 value;
+   uint64_t value;
    bytes   data;
    bool    executed;
    EOSLIB_SERIALIZE(Transaction, (destination)(value)(data)(executed))
@@ -27,7 +27,7 @@ struct Transaction {
 
 struct EmergencyCall {
    bytes32 selector;
-   uint256 paramsBytesCount;
+   uint64_t paramsBytesCount;
    EOSLIB_SERIALIZE(EmergencyCall, (selector)(paramsBytesCount))
 };
 
@@ -37,14 +37,14 @@ struct a2b {
 };
 
 struct MultiSigWalletWithTimelockStore {
-   std::map<uint256, Transaction> transactions;
-   std::map<uint256, a2b>         confirmations;
+   std::map<uint64_t, Transaction> transactions;
+   std::map<uint64_t, a2b>         confirmations;
    std::map<address, bool>        isOwner;
    std::map<address, address>     unlockTimes;
 
    std::vector<address> owners;
-   uint256              required;
-   uint256              transactionCount;
+   uint64_t              required;
+   uint64_t              transactionCount;
 
    // Functions bypass the time lock process
    std::vector<EmergencyCall> emergencyCalls;
@@ -65,10 +65,10 @@ struct IUniswapV2FactoryStore {
    uint112 reserve1;           // uses single storage slot, accessible via getReserves
    uint32  blockTimestampLast; // uses single storage slot, accessible via getReserves
 
-   uint256 price0CumulativeLast;
-   uint256 price1CumulativeLast;
-   uint256 kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity
-   uint256 unlocked = 1;
+   uint64_t price0CumulativeLast;
+   uint64_t price1CumulativeLast;
+   uint64_t kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity
+   uint64_t unlocked = 1;
 
    EOSLIB_SERIALIZE(
        IUniswapV2FactoryStore, (factory)(token0)(token1)(reserve0)(reserve1)(blockTimestampLast)(price0CumulativeLast)(

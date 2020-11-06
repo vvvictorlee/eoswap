@@ -13,8 +13,8 @@ class IDODOCallee {
 
     virtual void dodoCall(
         bool isBuyBaseToken,
-        uint256 baseAmount,
-        uint256 quoteAmount,
+        uint64_t baseAmount,
+        uint64_t quoteAmount,
         bytes  data
     ) = 0;
 };

@@ -53,15 +53,15 @@ void _callOptionalReturn(IERC20& token, T data) {
 #endif
 }
 
-void safeTransfer(IERC20& token, address to, uint256 value) {
+void safeTransfer(IERC20& token, address to, uint64_t value) {
    _callOptionalReturn(token, std::make_tuple("token.transfer.selector", to, value));
 }
 
-void safeTransferFrom(IERC20& token, address from, address to, uint256 value) {
+void safeTransferFrom(IERC20& token, address from, address to, uint64_t value) {
    _callOptionalReturn(token, std::make_tuple("token.transferFrom.selector", from, to, value));
 }
 
-void safeApprove(IERC20& token, name self,address spender, uint256 value) {
+void safeApprove(IERC20& token, name self,address spender, uint64_t value) {
    // safeApprove should only be called when setting an initial allowance,
    // or when resetting it to zero. To increase and decrease it, use
    // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'

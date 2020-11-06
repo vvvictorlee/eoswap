@@ -43,7 +43,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    [[eosio::action]] void newdodo(
        name msg_sender, name dodo_name, address owner, address supervisor, address maintainer,
        const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
-       uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
+       uint64_t lpFeeRate, uint64_t mtFeeRate, uint64_t k, uint64_t gasPriceLimit) {
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.newDODO(
           msg_sender, dodo_name, owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
@@ -62,8 +62,8 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void breeddodo(
        name msg_sender, name dodo_name, address maintainer, const extended_symbol& baseToken,
-       const extended_symbol& quoteToken, const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate,
-       uint256 k, uint256 gasPriceLimit) {
+       const extended_symbol& quoteToken, const extended_symbol& oracle, uint64_t lpFeeRate, uint64_t mtFeeRate,
+       uint64_t k, uint64_t gasPriceLimit) {
       proxy.setMsgSender(msg_sender);
       zoo.breedDODO(dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
    }
@@ -112,11 +112,11 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    }
 
    [[eosio::action]] void selltokenetha(
-       name msg_sender, const extended_asset& baseToken, const extended_asset& minReceiveEth, uint256 receiveEthAmount,
+       name msg_sender, const extended_asset& baseToken, const extended_asset& minReceiveEth, uint64_t receiveEthAmount,
        uint8_t state) {
       require_auth(_self);
       proxy.setMsgSender(msg_sender, false);
-      uint256 receiveEthAmounts = proxy.sellTokenToEth(baseToken, minReceiveEth, receiveEthAmount, state);
+      uint64_t receiveEthAmounts = proxy.sellTokenToEth(baseToken, minReceiveEth, receiveEthAmount, state);
       if (ACTION_STEP::STEP_TWO == state) {
          selltokenetha_action selltokenetha_act{admin_account, {{_self, "active"_n}}};
          selltokenetha_act.send(msg_sender, baseToken, minReceiveEth, receiveEthAmounts, ACTION_STEP::STEP_THREE);
@@ -343,7 +343,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
             auto           paras = transfer_mgmt::parse_string(action_event.param);
             name           pool_name;
             extended_asset balance;
-            uint256        denorm;
+            uint64_t        denorm;
             proxy.setMsgSender(action_event.msg_sender);
             // proxy.pool(pool_name, [&](auto& pool) { pool.bind(balance, denorm); });
          }

@@ -10,9 +10,9 @@
 
 class IMinimumOracle {
  public:
-   virtual uint256 getPrice() = 0;
+   virtual uint64_t getPrice() = 0;
 
-   virtual void setPrice(uint256 newPrice) = 0;
+   virtual void setPrice(uint64_t newPrice) = 0;
 
    virtual void transferOwnership(address newOwner) = 0;
 };
@@ -49,5 +49,5 @@ class MinimumOracle {
       stores.tokenPrice = newPrice;
    }
 
-   uint256 getPrice() { return stores.tokenPrice.quantity.amount; }
+   uint64_t getPrice() { return stores.tokenPrice.quantity.amount; }
 };

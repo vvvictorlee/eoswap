@@ -33,23 +33,23 @@ class Admin : virtual  public Storage {
 
    void setMaintainer(address newMaintainer) { stores._MAINTAINER_ = newMaintainer; }
 
-   void setLiquidityProviderFeeRate(uint256 newLiquidityPorviderFeeRate) {
+   void setLiquidityProviderFeeRate(uint64_t newLiquidityPorviderFeeRate) {
       stores._LP_FEE_RATE_ = newLiquidityPorviderFeeRate;
       _checkDODOParameters();
    }
 
-   void setMaintainerFeeRate(uint256 newMaintainerFeeRate) {
+   void setMaintainerFeeRate(uint64_t newMaintainerFeeRate) {
       stores._MT_FEE_RATE_ = newMaintainerFeeRate;
       _checkDODOParameters();
    }
 
-   void setK(uint256 newK) {
+   void setK(uint64_t newK) {
 
       stores._K_ = newK;
       _checkDODOParameters();
    }
 
-   void setGasPriceLimit(uint256 newGasPriceLimit) { stores._GAS_PRICE_LIMIT_ = newGasPriceLimit; }
+   void setGasPriceLimit(uint64_t newGasPriceLimit) { stores._GAS_PRICE_LIMIT_ = newGasPriceLimit; }
 
    // ============ System Control Functions ============
 
@@ -75,9 +75,9 @@ class Admin : virtual  public Storage {
 
    void enableSelling() { stores._SELLING_ALLOWED_ = true; }
 
-   void setBaseBalanceLimit(uint256 newBaseBalanceLimit) { stores._BASE_BALANCE_LIMIT_ = newBaseBalanceLimit; }
+   void setBaseBalanceLimit(uint64_t newBaseBalanceLimit) { stores._BASE_BALANCE_LIMIT_ = newBaseBalanceLimit; }
 
-   void setQuoteBalanceLimit(uint256 newQuoteBalanceLimit) {
+   void setQuoteBalanceLimit(uint64_t newQuoteBalanceLimit) {
       stores._QUOTE_BALANCE_LIMIT_ = newQuoteBalanceLimit;
    }
 };

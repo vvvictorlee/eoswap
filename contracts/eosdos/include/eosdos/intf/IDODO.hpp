@@ -19,35 +19,35 @@ class IDODO {
         address baseToken,
         address quoteToken,
         address oracle,
-        uint256 lpFeeRate,
-        uint256 mtFeeRate,
-        uint256 k,
-        uint256 gasPriceLimit
+        uint64_t lpFeeRate,
+        uint64_t mtFeeRate,
+        uint64_t k,
+        uint64_t gasPriceLimit
     ) = 0;
 
     virtual void  transferOwnership(address newOwner) = 0;
 
     virtual void  claimOwnership() = 0;
 
-    virtual uint256 sellBaseToken(
-        uint256 amount,
-        uint256 minReceiveQuote,
+    virtual uint64_t sellBaseToken(
+        uint64_t amount,
+        uint64_t minReceiveQuote,
         bytes  data
     ) = 0;
 
-    virtual uint256 buyBaseToken(
-        uint256 amount,
-        uint256 maxPayQuote,
+    virtual uint64_t buyBaseToken(
+        uint64_t amount,
+        uint64_t maxPayQuote,
         bytes  data
     ) = 0;
 
-    virtual uint256  querySellBaseToken(uint256 amount) = 0;
+    virtual uint64_t  querySellBaseToken(uint64_t amount) = 0;
 
-    virtual uint256  getExpectedTarget() = 0;
+    virtual uint64_t  getExpectedTarget() = 0;
 
-    virtual uint256  withdrawBase(uint256 amount) = 0;
+    virtual uint64_t  withdrawBase(uint64_t amount) = 0;
 
-    virtual uint256  depositQuoteTo(address to, uint256 amount) = 0;
+    virtual uint64_t  depositQuoteTo(address to, uint64_t amount) = 0;
 
     virtual address  withdrawAllQuote() = 0;
 

@@ -12,8 +12,8 @@
 #pragma once 
  #include <common/defines.hpp>
 
-const uint256 MAX_OWNER_COUNT = 50;
-const uint256 lockSeconds     = 86400;
+const uint64_t MAX_OWNER_COUNT = 50;
+const uint64_t lockSeconds     = 86400;
 class MultiSigWalletWithTimelock {
  public:
    void onlyWallet() {
@@ -31,22 +31,22 @@ class MultiSigWalletWithTimelock {
          revert("OWNER_EXISTS_ERROR");
    }
 
-   void transactionExists(uint256 transactionId) {
+   void transactionExists(uint64_t transactionId) {
       if (transactions[transactionId].destination == address(0))
          revert("TRANSACTION_EXISTS_ERROR");
    }
 
-   void confirmed(uint256 transactionId, address owner) {
+   void confirmed(uint64_t transactionId, address owner) {
       if (!confirmations[transactionId][owner])
          revert("CONFIRMED_ERROR");
    }
 
-   void notConfirmed(uint256 transactionId, address owner) {
+   void notConfirmed(uint64_t transactionId, address owner) {
       if (confirmations[transactionId][owner])
          revert("NOT_CONFIRMED_ERROR");
    }
 
-   void notExecuted(uint256 transactionId) {
+   void notExecuted(uint64_t transactionId) {
       if (transactions[transactionId].executed)
          revert("NOT_EXECUTED_ERROR");
    }
@@ -56,7 +56,7 @@ class MultiSigWalletWithTimelock {
          revert("NOT_NULL_ERROR");
    }
 
-   void validRequirement(uint256 ownerCount, uint256 _required) {
+   void validRequirement(uint64_t ownerCount, uint64_t _required) {
       if (ownerCount > MAX_OWNER_COUNT || _required > ownerCount || _required == 0 || ownerCount == 0)
          revert("VALID_REQUIREMENT_ERROR");
    }
@@ -76,9 +76,9 @@ class MultiSigWalletWithTimelock {
     * @param _owners List of initial owners.
     * @param _required Number of required confirmations.
     */
-   MultiSigWalletWithTimelock(address[] _owners, uint256 _required) {
+   MultiSigWalletWithTimelock(address[] _owners, uint64_t _required) {
       validRequirement(_owners.length, _required);
-      for (uint256 i = 0; i < _owners.length; i++) {
+      for (uint64_t i = 0; i < _owners.length; i++) {
          if (isOwner[_owners[i]] || _owners[i] == address(0)) {
             revert("OWNER_ERROR");
          }
@@ -93,12 +93,12 @@ class MultiSigWalletWithTimelock {
       emergencyCalls.push(
           EmergencyCall({selector : keccak256(abi.encodePacked("claimOwnership()")), paramsBytesCount : 0}));
       emergencyCalls.push(
-          EmergencyCall({selector : keccak256(abi.encodePacked("setK(uint256)")), paramsBytesCount : 64}));
+          EmergencyCall({selector : keccak256(abi.encodePacked("setK(uint64_t)")), paramsBytesCount : 64}));
       emergencyCalls.push(EmergencyCall(
-          {selector : keccak256(abi.encodePacked("setLiquidityProviderFeeRate(uint256)")), paramsBytesCount : 64}));
+          {selector : keccak256(abi.encodePacked("setLiquidityProviderFeeRate(uint64_t)")), paramsBytesCount : 64}));
    }
 
-   uint256 count getEmergencyCallsCount() { return emergencyCalls.length; }
+   uint64_t count getEmergencyCallsCount() { return emergencyCalls.length; }
 
    /** @dev Allows to add a new owner. Transaction has to be sent by wallet.
     * @param owner Address of new owner.
@@ -119,7 +119,7 @@ class MultiSigWalletWithTimelock {
       onlyWallet();
       ownerExists(owner);
       isOwner[owner] = false;
-      for (uint256 i = 0; i < owners.length - 1; i++) {
+      for (uint64_t i = 0; i < owners.length - 1; i++) {
          if (owners[i] == owner) {
             owners[i] = owners[owners.length - 1];
             break;
@@ -141,7 +141,7 @@ class MultiSigWalletWithTimelock {
       onlyWallet();
       ownerExists(owner);
       ownerDoesNotExist(newOwner);
-      for (uint256 i = 0; i < owners.length; i++) {
+      for (uint64_t i = 0; i < owners.length; i++) {
          if (owners[i] == owner) {
             owners[i] = newOwner;
             break;
@@ -155,7 +155,7 @@ class MultiSigWalletWithTimelock {
    /** @dev Allows to change the number of required confirmations. Transaction has to be sent by wallet.
     * @param _required Number of required confirmations.
     */
-   void changeRequirement(uint256 _required) {
+   void changeRequirement(uint64_t _required) {
       onlyWallet();
       validRequirement(owners.length, _required);
       required = _required;
@@ -164,7 +164,7 @@ class MultiSigWalletWithTimelock {
    /** @dev Changes the duration of the time lock for transactions.
     * @param _lockSeconds Duration needed after a transaction is confirmed and before it becomes executable, in seconds.
     */
-   void changeLockSeconds(uint256 _lockSeconds) {
+   void changeLockSeconds(uint64_t _lockSeconds) {
       onlyWallet();
       lockSeconds = _lockSeconds;
    }
@@ -175,7 +175,7 @@ class MultiSigWalletWithTimelock {
     * @param data Transaction data payload.
     * @return transactionId Returns transaction ID.
     */
-   uint256 submitTransaction(address destination, uint256 value, bytes data) {
+   uint64_t submitTransaction(address destination, uint64_t value, bytes data) {
       ownerExists(getMsgSender());
       notNull(destination);
       transactionId = transactionCount;
@@ -189,7 +189,7 @@ class MultiSigWalletWithTimelock {
    /** @dev Allows an owner to confirm a transaction.
     * @param transactionId Transaction ID.
     */
-   void confirmTransaction(uint256 transactionId) {
+   void confirmTransaction(uint64_t transactionId) {
       ownerExists(getMsgSender());
       transactionExists(transactionId);
       notConfirmed(transactionId, getMsgSender());
@@ -197,15 +197,15 @@ class MultiSigWalletWithTimelock {
       confirmations[transactionId][getMsgSender()] = true;
 
       if (isConfirmed(transactionId) && unlockTimes[transactionId] == 0 && !isEmergencyCall(transactionId)) {
-         uint256 unlockTime         = block.timestamp + lockSeconds;
+         uint64_t unlockTime         = block.timestamp + lockSeconds;
          unlockTimes[transactionId] = unlockTime;
       }
    }
 
-   bool isEmergencyCall(uint256 transactionId) {
+   bool isEmergencyCall(uint64_t transactionId) {
       bytes data = transactions[transactionId].data;
 
-      for (uint256 i = 0; i < emergencyCalls.length; i++) {
+      for (uint64_t i = 0; i < emergencyCalls.length; i++) {
          EmergencyCall emergencyCall = emergencyCalls[i];
 
          if (data.length == emergencyCall.paramsBytesCount + 4 && data.length >= 4 &&
@@ -218,7 +218,7 @@ class MultiSigWalletWithTimelock {
       return false;
    }
 
-   void addEmergencyCall(string funcName, uint256 _paramsBytesCount) {
+   void addEmergencyCall(string funcName, uint64_t _paramsBytesCount) {
       onlyWallet();
       emergencyCalls.push(
           EmergencyCall({selector : keccak256(abi.encodePacked(funcName)), paramsBytesCount : _paramsBytesCount}));
@@ -227,12 +227,12 @@ class MultiSigWalletWithTimelock {
    /** @dev Allows an owner to revoke a confirmation for a transaction.
     * @param transactionId Transaction ID.
     */
-   void revokeConfirmation(uint256 transactionId) { confirmations[transactionId][getMsgSender()] = false; }
+   void revokeConfirmation(uint64_t transactionId) { confirmations[transactionId][getMsgSender()] = false; }
 
    /** @dev Allows anyone to execute a confirmed transaction.
     * @param transactionId Transaction ID.
     */
-   void executeTransaction(uint256 transactionId) {
+   void executeTransaction(uint64_t transactionId) {
       ownerExists(getMsgSender());
       notExecuted(transactionId);
       require(block.timestamp >= unlockTimes[transactionId], "TRANSACTION_NEED_TO_UNLOCK");
@@ -253,10 +253,10 @@ class MultiSigWalletWithTimelock {
     * @param transactionId Transaction ID.
     * @return Confirmation status.
     */
-   bool isConfirmed(uint256 transactionId) {
-      uint256 count = 0;
+   bool isConfirmed(uint64_t transactionId) {
+      uint64_t count = 0;
 
-      for (uint256 i = 0; i < owners.length; i++) {
+      for (uint64_t i = 0; i < owners.length; i++) {
          if (confirmations[transactionId][owners[i]]) {
             count += 1;
          }
@@ -275,8 +275,8 @@ class MultiSigWalletWithTimelock {
     * @param transactionId Transaction ID.
     * @return count Number of confirmations.
     */
-   uint256 count getConfirmationCount(uint256 transactionId) {
-      for (uint256 i = 0; i < owners.length; i++) {
+   uint64_t count getConfirmationCount(uint64_t transactionId) {
+      for (uint64_t i = 0; i < owners.length; i++) {
          if (confirmations[transactionId][owners[i]]) {
             count += 1;
          }
@@ -288,8 +288,8 @@ class MultiSigWalletWithTimelock {
     * @param executed Include executed transactions.
     * @return count Total number of transactions after filters are applied.
     */
-   uint256 count getTransactionCount(bool pending, bool executed) {
-      for (uint256 i = 0; i < transactionCount; i++) {
+   uint64_t count getTransactionCount(bool pending, bool executed) {
+      for (uint64_t i = 0; i < transactionCount; i++) {
          if ((pending && !transactions[i].executed) || (executed && transactions[i].executed)) {
             count += 1;
          }
@@ -305,10 +305,10 @@ class MultiSigWalletWithTimelock {
     * @param transactionId Transaction ID.
     * @return _confirmations Returns array of owner addresses.
     */
-   address[] _confirmations getConfirmations(uint256 transactionId) {
+   address[] _confirmations getConfirmations(uint64_t transactionId) {
       address[] confirmationsTemp = new address[](owners.length);
-      uint256 count               = 0;
-      uint256 i;
+      uint64_t count               = 0;
+      uint64_t i;
 
       for (i = 0; i < owners.length; i++) {
          if (confirmations[transactionId][owners[i]]) {

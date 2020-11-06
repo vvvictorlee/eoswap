@@ -72,7 +72,7 @@ class DODOZoo : public Ownable {
          zoo_storage._DODO_REGISTER_[baseToken].q2d[quoteToken] = address(0);
       });
 
-      for (uint256 i = 0; i <= zoo_storage._DODOs.size() - 1; i++) {
+      for (uint64_t i = 0; i <= zoo_storage._DODOs.size() - 1; i++) {
          if (zoo_storage._DODOs[i] == _dodo) {
             zoo_storage._DODOs[i] = zoo_storage._DODOs[zoo_storage._DODOs.size() - 1];
             zoo_storage._DODOs.pop_back();
@@ -95,7 +95,7 @@ class DODOZoo : public Ownable {
    // ============ Breed DODO Function ============
    address breedDODO(
        name dodo_name, address maintainer, const extended_symbol& baseToken, const extended_symbol& quoteToken,
-       const extended_symbol& oracle, uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
+       const extended_symbol& oracle, uint64_t lpFeeRate, uint64_t mtFeeRate, uint64_t k, uint64_t gasPriceLimit) {
 
       namesym nbaseToken  = to_namesym(baseToken);
       namesym nquoteToken = to_namesym(quoteToken);

@@ -43,21 +43,20 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    void dodoNotClosed() { require(!stores._CLOSED_, "DODO_CLOSED"); }
 
    // ============ Routine Functions ============
-   uint256 withdrawBase(uint256 amount) { return withdrawBaseTo(getMsgSender(), amount); }
+   uint64_t withdrawBase(uint64_t amount) { return withdrawBaseTo(getMsgSender(), amount); }
 
-   uint256 depositBase(uint256 amount) { return depositBaseTo(getMsgSender(), amount); }
+   uint64_t depositBase(uint64_t amount) { return depositBaseTo(getMsgSender(), amount); }
 
-   uint256 withdrawQuote(uint256 amount) { return withdrawQuoteTo(getMsgSender(), amount); }
+   uint64_t withdrawQuote(uint64_t amount) { return withdrawQuoteTo(getMsgSender(), amount); }
 
-   virtual uint256 depositQuote(uint256 amount) { return depositQuoteTo(getMsgSender(), amount); }
+   virtual uint64_t depositQuote(uint64_t amount) { return depositQuoteTo(getMsgSender(), amount); }
 
-   uint256 withdrawAllBase() { return withdrawAllBaseTo(getMsgSender()); }
+   uint64_t withdrawAllBase() { return withdrawAllBaseTo(getMsgSender()); }
 
-   uint256 withdrawAllQuote() { return withdrawAllQuoteTo(getMsgSender()); }
+   uint64_t withdrawAllQuote() { return withdrawAllQuoteTo(getMsgSender()); }
 
    // ============ Deposit Functions ============
-
-   virtual uint256 depositQuoteTo(address to, uint256 amount) {
+   virtual uint64_t depositQuoteTo(address to, uint64_t amount) {
       preventReentrant();
 
       depositQuoteAllowed();
@@ -85,7 +84,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       return capital;
    }
 
-   uint256 depositBaseTo(address to, uint256 amount) {
+   uint64_t depositBaseTo(address to, uint64_t amount) {
       preventReentrant();
       depositBaseAllowed();
       uint256 baseTarget                = 0;
@@ -113,7 +112,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
 
    // ============ Withdraw Functions ============
 
-   uint256 withdrawQuoteTo(address to, uint256 amount) {
+   uint64_t withdrawQuoteTo(address to, uint64_t amount) {
       preventReentrant();
       dodoNotClosed();
       // calculate capital
@@ -138,7 +137,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       return sub(amount, penalty);
    }
 
-   uint256 withdrawBaseTo(address to, uint256 amount) {
+   uint64_t withdrawBaseTo(address to, uint64_t amount) {
       preventReentrant();
       dodoNotClosed();
       // calculate capital
@@ -164,7 +163,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
 
    // ============ Withdraw all Functions ============
 
-   uint256 withdrawAllQuoteTo(address to) {
+   uint64_t withdrawAllQuoteTo(address to) {
       preventReentrant();
       dodoNotClosed();
       uint256 withdrawAmount = getLpQuoteBalance(getMsgSender());
@@ -183,7 +182,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       return sub(withdrawAmount, penalty);
    }
 
-   uint256 withdrawAllBaseTo(address to) {
+   uint64_t withdrawAllBaseTo(address to) {
       preventReentrant();
       dodoNotClosed();
       uint256 withdrawAmount = getLpBaseBalance(getMsgSender());
@@ -203,24 +202,24 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    }
 
    // ============ Helper Functions ============
-   void _mintBaseCapital(address user, uint256 amount) {
+   void _mintBaseCapital(address user, uint64_t amount) {
       factory.get_lptoken(getMsgSender(),stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
-   void _mintQuoteCapital(address user, uint256 amount) {
+   void _mintQuoteCapital(address user, uint64_t amount) {
       factory.get_lptoken(getMsgSender(),stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.mint(user, amount); });
    }
 
-   void _burnBaseCapital(address user, uint256 amount) {
+   void _burnBaseCapital(address user, uint64_t amount) {
       factory.get_lptoken(getMsgSender(),stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
-   void _burnQuoteCapital(address user, uint256 amount) {
+   void _burnQuoteCapital(address user, uint64_t amount) {
       factory.get_lptoken(getMsgSender(),stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(user, amount); });
    }
 
    // ============ Getter Functions ============
-   uint256 getLpBaseBalance(address lp) {
+   uint64_t getLpBaseBalance(address lp) {
       uint256 lpBalance        = 0;
       uint256 totalBaseCapital = getTotalBaseCapital();
       uint256 baseTarget;
@@ -232,7 +231,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       return lpBalance;
    }
 
-   uint256 getLpQuoteBalance(address lp) {
+   uint64_t getLpQuoteBalance(address lp) {
       uint256 lpBalance                  = 0;
       uint256 totalQuoteCapital          = getTotalQuoteCapital();
       uint256 quoteTarget                = 0;
@@ -244,7 +243,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       return lpBalance;
    }
 
-   uint256 getWithdrawQuotePenalty(uint256 amount) {
+   uint64_t getWithdrawQuotePenalty(uint64_t amount) {
       require(amount <= stores._QUOTE_BALANCE_, "DODO_QUOTE_BALANCE_NOT_ENOUGH");
       if (stores._R_STATUS_ == Types::RStatus::BELOW_ONE) {
          uint256 spareBase  = sub(stores._BASE_BALANCE_, stores._TARGET_BASE_TOKEN_AMOUNT_);
@@ -260,7 +259,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       return 0;
    }
 
-   uint256 getWithdrawBasePenalty(uint256 amount) {
+   uint64_t getWithdrawBasePenalty(uint64_t amount) {
       require(amount <= stores._BASE_BALANCE_, "DODO_BASE_BALANCE_NOT_ENOUGH");
       if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          uint256 spareQuote = sub(stores._QUOTE_BALANCE_, stores._TARGET_QUOTE_TOKEN_AMOUNT_);

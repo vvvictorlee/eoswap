@@ -12,5 +12,5 @@
 class IOracle { 
  public:
 
-    virtual uint256  getPrice() = 0;
+    virtual uint64_t  getPrice() = 0;
 };

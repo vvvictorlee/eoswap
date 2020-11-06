@@ -23,5 +23,5 @@ class NaiveOracle : public Ownable {
       stores.tokenPrice = newPrice;
    }
 
-   uint256 getPrice() { return stores.tokenPrice.quantity.amount; }
+   uint64_t getPrice() { return stores.tokenPrice.quantity.amount; }
 };

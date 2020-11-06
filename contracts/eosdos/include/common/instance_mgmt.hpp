@@ -72,7 +72,7 @@ class instance_mgmt : public IFactory {
    void newDODO(
        name _msg_sender, name dodo_name, address owner, address supervisor, address maintainer,
        const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
-       uint256 lpFeeRate, uint256 mtFeeRate, uint256 k, uint256 gasPriceLimit) {
+       uint64_t lpFeeRate, uint64_t mtFeeRate, uint64_t k, uint64_t gasPriceLimit) {
       DODOStore& dodoStore = _storage_mgmt.newDodoStore(dodo_name);
       DODO       dodo(dodoStore, *this);
       dodo.setMsgSender(_msg_sender);
@@ -96,7 +96,7 @@ class instance_mgmt : public IFactory {
       otoken.setMsgSender(_msg_sender);
       otoken.init(tokenx);
    }
-   static const uint256 MAX_TOTAL_SUPPLY = 1000000000000000;
+   static const uint64_t MAX_TOTAL_SUPPLY = 1000000000000000;
    extended_symbol      newLpToken(name _msg_sender, name dodo_name, const extended_symbol& tokenx) override {
       const symbol&   sym   = tokenx.get_symbol();
       extended_symbol exsym = extended_symbol(sym, dodo_name);

@@ -28,47 +28,47 @@ class WETH9 {
 
    //    void receive() { deposit(); }
 
-   uint256 balanceOf(address owner) {
+   uint64_t balanceOf(address owner) {
       // return stores.balanceOf[owner];
       return transfer_mgmt::get_balance(owner, stores.esymbol);
    }
 
-   uint256 allowance(address owner, address spender) {
-      return uint256(-1);
+   uint64_t allowance(address owner, address spender) {
+      return uint64_t(-1);
       // return stores.allowance[owner].dst2amt[spender];
    }
 
-   void deposit(uint256 msg_value) {
+   void deposit(uint64_t msg_value) {
       // stores.balanceOf[getMsgSender()] += msg_value;
       mint(getMsgSender(), msg_value);
    }
 
-   void withdraw(uint256 wad) {
+   void withdraw(uint64_t wad) {
       require(balanceOf(getMsgSender()) >= wad, "withdraw amount couldn't be more than  the balance");
       //   stores.balanceOf[getMsgSender()] -= wad;
       burn(getMsgSender(), wad);
    }
 
-   uint256 totalSupply() {
+   uint64_t totalSupply() {
       return balanceOf(stores.esymbol.get_contract());
       // return stores.balanceOf[stores.esymbol.get_contract()];
    }
 
-   bool approve(address guy, uint256 wad) {
+   bool approve(address guy, uint64_t wad) {
       //   stores.allowance[getMsgSender()].dst2amt[guy] = wad;
 
       return true;
    }
 
-   bool transfer(address dst, uint256 wad) { return transferFrom(getMsgSender(), dst, wad); }
+   bool transfer(address dst, uint64_t wad) { return transferFrom(getMsgSender(), dst, wad); }
 
-   bool transferFrom(address src, address dst, uint256 wad) {
+   bool transferFrom(address src, address dst, uint64_t wad) {
       require(balanceOf(src) >= wad, "The balance is less than the amount to be transfered");
 
-      //   if (src != getMsgSender() && stores.allowance[src].dst2amt[getMsgSender()] != uint256(-1)) {
+      //   if (src != getMsgSender() && stores.allowance[src].dst2amt[getMsgSender()] != uint64_t(-1)) {
       //      require(
       //          stores.allowance[src].dst2amt[getMsgSender()] >= wad,
-      //          "(src != getMsgSender() && stores.allowance[src].dst2amt[getMsgSender()] != uint256(-1))");
+      //          "(src != getMsgSender() && stores.allowance[src].dst2amt[getMsgSender()] != uint64_t(-1))");
       //      stores.allowance[src].dst2amt[getMsgSender()] -= wad;
       //   }
 
@@ -81,11 +81,11 @@ class WETH9 {
       return true;
    }
 
-   void mint(address account, uint256 amount) {
+   void mint(address account, uint64_t amount) {
       transfer_mgmt::static_issue(account, extended_asset(amount, stores.esymbol));
       // stores.balanceOf[account] = add(stores.balanceOf[account], amount);
    }
-   void burn(address account, uint256 amount) {
+   void burn(address account, uint64_t amount) {
       transfer_mgmt::static_burn(account, extended_asset(amount, stores.esymbol));
       // stores.balanceOf[account] = add(stores.balanceOf[account], amount);
    }

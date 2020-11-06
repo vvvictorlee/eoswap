@@ -12,9 +12,9 @@
 class IDODOLpToken { 
  public:
 
-    virtual void  mint(address user, uint256 value) = 0;
+    virtual void  mint(address user, uint64_t value) = 0;
 
-    virtual uint256  burn(address user, uint256 value) = 0;
+    virtual uint64_t  burn(address user, uint64_t value) = 0;
 
-    virtual uint256  totalSupply() = 0;
+    virtual uint64_t  totalSupply() = 0;
 };

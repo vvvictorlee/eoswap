@@ -17,7 +17,7 @@
 class IDODORewardVault { 
  public:
 
-    virtual void  reward(address to, uint256 amount) = 0;
+    virtual void  reward(address to, uint64_t amount) = 0;
 }
 
 
@@ -31,7 +31,7 @@ class DODORewardVault : public  Ownable {
         dodoToken = _dodoToken;
     }
 
-    void  reward(address to, uint256 amount) {
+    void  reward(address to, uint64_t amount) {
         IERC20(dodoToken).safeTransfer(to, amount);
     }
 };

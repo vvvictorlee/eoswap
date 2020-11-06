@@ -143,8 +143,8 @@ class Settlement : virtual  public Storage {
       quoteAmount = add(quoteAmount,DecimalMath::mul(baseCapital, stores._BASE_CAPITAL_RECEIVE_QUOTE_));
       baseAmount  = add(baseAmount,DecimalMath::mul(quoteCapital, stores._QUOTE_CAPITAL_RECEIVE_BASE_));
 
-      _baseTokenTransferOut(getMsgSender(), extended_asset(baseAmount,stores._BASE_TOKEN_));
-      _quoteTokenTransferOut(getMsgSender(), extended_asset(quoteAmount,stores._QUOTE_TOKEN_));
+      _baseTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(baseAmount),stores._BASE_TOKEN_));
+      _quoteTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(quoteAmount),stores._QUOTE_TOKEN_));
 
       //   IDODOLpToken(stores._BASE_CAPITAL_TOKEN_).burn(getMsgSender(), baseCapital);
       //   IDODOLpToken(stores._QUOTE_CAPITAL_TOKEN_).burn(getMsgSender(), quoteCapital);

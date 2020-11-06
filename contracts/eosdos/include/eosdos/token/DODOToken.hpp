@@ -30,7 +30,7 @@ class DODOToken {
      * @param to The address to transfer to.
      * @param amount The amount to be transferred.
      */
-    bool  transfer(address to, uint256 amount) {
+    bool  transfer(address to, uint64_t amount) {
         require(amount <= balances[getMsgSender()], "BALANCE_NOT_ENOUGH");
 
         balances[getMsgSender()] = balances[getMsgSender()].sub(amount);
@@ -42,9 +42,9 @@ class DODOToken {
     /**
      * @dev Gets the balance of the specified address.
      * @param owner The address to query the the balance of.
-     * @return balance An uint256 representing the amount owned by the passed address.
+     * @return balance An uint64_t representing the amount owned by the passed address.
      */
-    uint256 balance  balanceOf(address owner) {
+    uint64_t balance  balanceOf(address owner) {
         return balances[owner];
     }
 
@@ -52,12 +52,12 @@ class DODOToken {
      * @dev Transfer tokens from one address to another
      * @param from address The address which you want to send tokens from
      * @param to address The address which you want to transfer to
-     * @param amount uint256 the amount of tokens to be transferred
+     * @param amount uint64_t the amount of tokens to be transferred
      */
     bool transferFrom(
         address from,
         address to,
-        uint256 amount
+        uint64_t amount
     ) {
         require(amount <= balances[from], "BALANCE_NOT_ENOUGH");
         require(amount <= allowed[from][getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
@@ -74,7 +74,7 @@ class DODOToken {
      * @param spender The address which will spend the funds.
      * @param amount The amount of tokens to be spent.
      */
-    bool  approve(address spender, uint256 amount) {
+    bool  approve(address spender, uint64_t amount) {
         allowed[getMsgSender()][spender] = amount;
         
         return true;
@@ -84,9 +84,9 @@ class DODOToken {
      * @dev Function to check the amount of tokens that an owner allowed to a spender.
      * @param owner address The address which owns the funds.
      * @param spender address The address which will spend the funds.
-     * @return A uint256 specifying the amount of tokens still available for the spender.
+     * @return A uint64_t specifying the amount of tokens still available for the spender.
      */
-    uint256  allowance(address owner, address spender) {
+    uint64_t  allowance(address owner, address spender) {
         return allowed[owner][spender];
     }
 };

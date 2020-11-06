@@ -33,20 +33,20 @@ class LockedTokenVault : public Ownable {
 
    // ============ Init Functions ============
 
-   LockedTokenVault(address _token, uint256 _startReleaseTime, uint256 _releaseDuration, uint256 _cliffRate) {
+   LockedTokenVault(address _token, uint64_t _startReleaseTime, uint64_t _releaseDuration, uint64_t _cliffRate) {
       _TOKEN_              = _token;
       _START_RELEASE_TIME_ = _startReleaseTime;
       _RELEASE_DURATION_   = _releaseDuration;
       _CLIFF_RATE_         = _cliffRate;
    }
 
-   void deposit(uint256 amount) {
+   void deposit(uint64_t amount) {
       onlyOwner();
       _tokenTransferIn(_OWNER_, amount);
       _UNDISTRIBUTED_AMOUNT_ = _UNDISTRIBUTED_AMOUNT_.add(amount);
    }
 
-   void withdraw(uint256 amount) {
+   void withdraw(uint64_t amount) {
       onlyOwner();
       _UNDISTRIBUTED_AMOUNT_ = _UNDISTRIBUTED_AMOUNT_.sub(amount);
       _tokenTransferOut(_OWNER_, amount);
@@ -59,11 +59,11 @@ class LockedTokenVault : public Ownable {
 
    // ============ For Owner ============
 
-   void grant(address[] holderList, uint256[] amountList) {
+   void grant(address[] holderList, uint64_t[] amountList) {
       onlyOwner();
       require(holderList.length == amountList.length, "batch grant length not match");
-      uint256 amount = 0;
-      for (uint256 i = 0; i < holderList.length; ++i) {
+      uint64_t amount = 0;
+      for (uint64_t i = 0; i < holderList.length; ++i) {
          // for saving gas, no
          amount = amount.add(amountList[i]);
       }
@@ -89,7 +89,7 @@ class LockedTokenVault : public Ownable {
    }
 
    void claim() {
-      uint256 claimableToken = getClaimableBalance(getMsgSender());
+      uint64_t claimableToken = getClaimableBalance(getMsgSender());
       _tokenTransferOut(getMsgSender(), claimableToken);
       claimedBalances[getMsgSender()] = claimedBalances[getMsgSender()].add(claimableToken);
       emit Claim(getMsgSender(), originBalances[getMsgSender()], claimedBalances[getMsgSender()], claimableToken);
@@ -99,27 +99,27 @@ class LockedTokenVault : public Ownable {
 
    bool isReleaseStart() { return block.timestamp >= _START_RELEASE_TIME_; }
 
-   uint256 getOriginBalance(address holder) { return originBalances[holder]; }
+   uint64_t getOriginBalance(address holder) { return originBalances[holder]; }
 
-   uint256 getClaimedBalance(address holder) { return claimedBalances[holder]; }
+   uint64_t getClaimedBalance(address holder) { return claimedBalances[holder]; }
 
-   uint256 getClaimableBalance(address holder) {
-      uint256 remainingToken = getRemainingBalance(holder);
+   uint64_t getClaimableBalance(address holder) {
+      uint64_t remainingToken = getRemainingBalance(holder);
       return originBalances[holder].sub(remainingToken).sub(claimedBalances[holder]);
    }
 
-   uint256 getRemainingBalance(address holder) {
-      uint256 remainingRatio = getRemainingRatio(block.timestamp);
+   uint64_t getRemainingBalance(address holder) {
+      uint64_t remainingRatio = getRemainingRatio(block.timestamp);
       return DecimalMath.mul(originBalances[holder], remainingRatio);
    }
 
-   uint256 getRemainingRatio(uint256 timestamp) {
+   uint64_t getRemainingRatio(uint64_t timestamp) {
       if (timestamp < _START_RELEASE_TIME_) {
          return DecimalMath.ONE;
       }
-      uint256 timePast = timestamp.sub(_START_RELEASE_TIME_);
+      uint64_t timePast = timestamp.sub(_START_RELEASE_TIME_);
       if (timePast < _RELEASE_DURATION_) {
-         uint256 remainingTime = _RELEASE_DURATION_.sub(timePast);
+         uint64_t remainingTime = _RELEASE_DURATION_.sub(timePast);
          return DecimalMath.ONE.sub(_CLIFF_RATE_).mul(remainingTime).div(_RELEASE_DURATION_);
       } else {
          return 0;
@@ -128,10 +128,10 @@ class LockedTokenVault : public Ownable {
 
    // ============ Internal Helper ============
 
-   void _tokenTransferIn(address from, uint256 amount) {
+   void _tokenTransferIn(address from, uint64_t amount) {
       IERC20(_TOKEN_).safeTransferFrom(from, address(this), amount);
    }
 
-   void _tokenTransferOut(address to, uint256 amount) { IERC20(_TOKEN_).safeTransfer(to, amount); }
+   void _tokenTransferOut(address to, uint64_t amount) { IERC20(_TOKEN_).safeTransfer(to, amount); }
 };
 #endif
