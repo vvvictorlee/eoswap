@@ -894,7 +894,7 @@ BOOST_FIXTURE_TEST_CASE(huge_sell_base_token_tests, eosdos_tester) try {
 
    sellbastoken(trader, dodo_stablecoin_name, to_wei_asset(20000, "DAI"), to_asset(0, "MKR"));
    check_balance("DAI", "0.0000");
-   check_balance("MKR", "19912.7339");
+   check_balance("MKR", "19998.0004");
 
    //   it("huge sell trading amount", async () => {
    //       // trader could sell any number of base token
@@ -914,9 +914,9 @@ BOOST_FIXTURE_TEST_CASE(huge_buy_base_token_tests, eosdos_tester) try {
    mint(trader, to_wei_asset(10000, "MKR"));
    LINE_DEBUG;
 
-   buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(9999, "DAI"), to_asset(20000, "MKR"));
-   check_balance("DAI", "19999.0000");
-   check_balance("MKR", "0.7339");
+   buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(9990, "DAI"), to_wei_asset(20000, "MKR"));
+   check_balance("DAI", "19990.0000");
+   check_balance("MKR", "8900.9993");
 
    //     it("huge buy trading amount", async () => {
    //       // could not buy all base balance
@@ -932,7 +932,7 @@ BOOST_FIXTURE_TEST_CASE(huge_buy_base_token_tests, eosdos_tester) try {
    // assert.equal(await ctx.BASE.methods.balanceOf(trader).call(),
    //       decimalStr("19999"))
    // assert.equal(await ctx.QUOTE.methods.balanceOf(trader).call(),
-   //       "9000000119999999900000")
+   //       "9000 00 0119 9999 9990 0000")
    //     })
 }
 FC_LOG_AND_RETHROW()
@@ -940,10 +940,9 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(tiny_withdraw_base_token_tests, eosdos_tester) try {
    stableCoinBefore();
 
-
-   buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(9900, "DAI"), to_asset(10000, "MKR"));
-   check_balance("DAI", "6.0000");
-   check_balance("MKR", "19912.7339");
+   buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(9900, "DAI"), to_wei_asset(10000, "MKR"));
+   check_balance("DAI", "19900.0000");
+   check_balance("MKR", "0.9902");
 
    //     it("tiny withdraw penalty", async () => {
    //       await ctx.DODO.methods.buyBaseToken(decimalStr("9990"), decimalStr("10000"),
