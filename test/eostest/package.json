@@ -4,6 +4,8 @@
   "description": "",
   "main": "updater.js",
   "scripts": {
+    "start": "ts-node src/picture.ts",
+    "dev": "nodemon",
     "test": "node --max_old_space_size=8192 bosoracle_updater.js"
   },
   "author": "Guillaume Babin-Tremblay",
@@ -23,5 +25,11 @@
     "request": "*",
     "sleep": "^6.1.0",
     "ws": "^7.1.2"
+  },
+  "devDependencies": {
+    "decimal.js": "^10.2.1",
+    "nodemon": "^2.0.6",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
   }
 }

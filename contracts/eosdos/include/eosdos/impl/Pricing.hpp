@@ -154,3 +154,5 @@ class Pricing : virtual public Storage {
    //     return DODOMath::_GeneralIntegrate(Q0, Q1, Q2, i, stores._K_);
    // }
 };
+
+

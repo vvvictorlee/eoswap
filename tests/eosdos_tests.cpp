@@ -956,7 +956,7 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(withdraw_dodo_tests, eosdos_tester) try {
    stableCoinBefore();
-   uint64_t mint_amount = 1000000;
+   uint64_t mint_amount = 10000000000;
    mint(lp, to_wei_asset(mint_amount,"DAI"));
    mint(lp, to_wei_asset(mint_amount,"MKR"));
    depositquote(lp, dodo_stablecoin_name, to_wei_asset(mint_amount,"MKR"));
@@ -976,6 +976,7 @@ BOOST_FIXTURE_TEST_CASE(buy_eth_with_token_tests, eosdos_tester) try {
    buyethtoken(trader, to_wei_asset(1, "WETH"), to_wei_asset(200, "MKR"));
 
    auto store = dodos(dodo_ethbase_name);
+//    BOOST_TEST_CHECK(nullptr==store);
    BOOST_TEST_CHECK("89999" == store["_BASE_BALANCE_"].as_string());
    std::string quote_token_name = "MKR";
    auto        sym              = to_sym_from_string(quote_token_name);
