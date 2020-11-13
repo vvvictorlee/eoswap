@@ -23,6 +23,14 @@ struct [[eosio::table("dodo"), eosio::contract("eosdos")]] DODOStorage {
 
 typedef eosio::singleton<"dodo"_n, DODOStorage> DODOStorageSingleton;
 
+struct [[eosio::table, eosio::contract("eosdos")]] dodo_storage {
+   name      dodo;
+   DODOStore dodos;
+   uint64_t  primary_key() const { return dodo.value; }
+};
+
+typedef eosio::multi_index<"dodos"_n, dodo_storage> dodo_storage_table;
+
 struct [[eosio::table("proxy"), eosio::contract("eosdos")]] ProxyStorage {
    DODOEthProxyStore    proxy;
    ReentrancyGuardStore guard;

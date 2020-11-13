@@ -39,6 +39,55 @@ class findx {
    string test;
 };
 
+using std::string;
+using checksum256 = fc::sha256;
+
+template <typename T>
+void push(T&) {}
+
+template <typename Stream, typename T, typename... Types>
+void push(Stream& s, T arg, Types... args) {
+   s << arg;
+   push(s, args...);
+}
+
+template <class... Types>
+checksum256 get_checksum256(const Types&... args) {
+   datastream<size_t> ps;
+   push(ps, args...);
+   size_t size = ps.tellp();
+
+   std::vector<char> result;
+   result.resize(size);
+
+   datastream<char*> ds(result.data(), result.size());
+   push(ds, args...);
+   checksum256 digest = sha256::hash(result.data(), result.size());
+   return digest;
+}
+
+// inline bool is_equal_capi_checksum256( checksum256 a, checksum256 b ){
+//    return std::memcmp( a.hash, b.hash, 32 ) == 0;
+// }
+
+uint64_t get_hash_key(checksum256 hash) {
+uint64_t s1 = hash.data()[0];
+uint64_t s2 = hash.data()[1];
+uint64_t s3 = hash.data()[2];
+uint64_t s4 = hash.data()[3];
+
+   BOOST_TEST_CHECK(s1 == 1);
+   BOOST_TEST_CHECK(s2 == 1);
+   BOOST_TEST_CHECK(s3 == 1);
+   BOOST_TEST_CHECK(s4 == 1);
+   const uint64_t* p64 = reinterpret_cast<const uint64_t*>(hash.data());
+   BOOST_TEST_CHECK(p64[0] == 1);
+   BOOST_TEST_CHECK(p64[1] == 1);
+   BOOST_TEST_CHECK(p64[2] == 1);
+   BOOST_TEST_CHECK(p64[3] == 1);
+   return p64[0] ^ p64[1] ^ p64[2] ^ p64[3];
+}
+
 class eosdos_tester : public tester {
  public:
    eosdos_tester() {
@@ -437,12 +486,9 @@ class eosdos_tester : public tester {
           mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amount", amount)("maxPayQuote", maxPayQuote));
    }
    //////////////////Oracle//////////////
-   action_result neworacle(name msg_sender, const extended_symbol& token) {
-      return push_action(msg_sender, N(neworacle), mvo()("msg_sender", msg_sender)("token", token));
-   }
-
-   action_result setprice(name msg_sender, const extended_asset& amt) {
-      return push_action(msg_sender, N(setprice), mvo()("msg_sender", msg_sender)("amt", amt));
+   action_result setprice(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
+      return push_action(
+          msg_sender, N(setprice), mvo()("msg_sender", msg_sender)("basetoken", basetoken)("quotetoken", quotetoken));
    }
 
    //////////////////TOKEN//////////////
@@ -459,6 +505,7 @@ class eosdos_tester : public tester {
    }
 
    ////////////////get table//////////////
+
    fc::variant get_zoo_store() {
       vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(zoo), N(zoo));
       if (data.empty())
@@ -492,6 +539,51 @@ class eosdos_tester : public tester {
       if (data.empty())
          std::cout << "\nData is empty\n" << std::endl;
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("OracleStorage", data, abi_serializer_max_time);
+   }
+
+   fc::variant get_oracle_table(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
+      uint64_t    key  = get_hash_key(get_checksum256(
+          basetoken.contract.to_uint64_t(), basetoken.sym.value(), quotetoken.contract.to_uint64_t(),
+          quotetoken.sym.value()));
+      const auto& db   = control->db();
+      const auto* t_id = db.find<table_id_object, by_code_scope_table>(
+          boost::make_tuple(N(eosdoseosdos), N(eosdoseosdos), N(oracles)));
+      vector<char> data;
+      BOOST_TEST_CHECK(key == 0);
+      checksum256 s = get_checksum256(
+          basetoken.contract.to_uint64_t(), basetoken.sym.value(), quotetoken.contract.to_uint64_t(),
+          quotetoken.sym.value());
+      BOOST_TEST_CHECK(s.str() == "sha256()");
+      BOOST_TEST_CHECK(s.data() == "sha256()");
+      BOOST_TEST_CHECK(basetoken.contract.to_uint64_t() == 0);
+      BOOST_TEST_CHECK(basetoken.sym.value() == 0);
+      BOOST_TEST_CHECK(quotetoken.contract.to_uint64_t() == 0);
+      BOOST_TEST_CHECK(quotetoken.sym.value() == 0);
+      //   key = 5963134866566690982;
+      // the balance is implied to be 0 if either the table or row does not exist
+      if (t_id) {
+         const auto* obj = db.find<key_value_object, by_scope_primary>(boost::make_tuple(t_id->id, key));
+         BOOST_TEST_CHECK(nullptr == obj);
+         const auto& idx = db.get_index<chain::key_value_index, chain::by_scope_primary>();
+
+         auto itr = idx.upper_bound(boost::make_tuple(t_id->id, std::numeric_limits<uint64_t>::max()));
+         if (itr == idx.begin()) {
+            return fc::variant();
+         }
+         --itr;
+
+         BOOST_TEST_CHECK(itr->t_id == t_id->id);
+         if (itr->t_id != t_id->id) {
+
+            // return fc::variant();
+         }
+
+         data.resize(itr->value.size());
+         memcpy(data.data(), itr->value.data(), data.size());
+      }
+      if (data.empty())
+         std::cout << "\nData is empty\n" << std::endl;
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("oracle_storage", data, abi_serializer_max_time);
    }
 
    fc::variant get_helperstore() {
@@ -557,19 +649,6 @@ class eosdos_tester : public tester {
       return p;
    }
 
-   std::string getPrice(const extended_symbol& oracle) {
-      const auto ps  = get_oracle_store();
-      const auto p   = find_variant(ps["oracles"], ns_to_string(to_namesym(oracle)));
-      const auto amt = p["tokenPrice"]["quantity"];
-      return amt.as_string();
-   }
-
-   fc::variant oracles(const extended_symbol& oracle) {
-      const auto ps = get_oracle_store();
-      const auto p  = find_variant(ps["oracles"], ns_to_string(to_namesym(oracle)));
-      return p;
-   }
-
    uint_eth to_wei(uint_eth value) { return value * pow(10, 4); }
 
    extended_asset to_pl_asset(int64_t value, const std::string& sym, name lp_contract_name) {
@@ -586,7 +665,7 @@ class eosdos_tester : public tester {
       return extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eosdosxtoken"}};
    }
    extended_asset to_wei_asset(uint_eth value, const std::string& sym) {
-      return to_asset(static_cast<int64_t>(to_wei(value)),sym);
+      return to_asset(static_cast<int64_t>(to_wei(value)), sym);
    }
 
    extended_symbol get_core_symbol() { return extended_symbol{symbol{CORE_SYM}, name{"eosio.token"}}; }
@@ -653,17 +732,11 @@ class eosdos_tester : public tester {
       LINE_DEBUG;
    }
 
-   void newOracleBefore() {
-      neworacle(oracleadmin, to_sym("WETH"));
-      neworacle(oracleadmin, to_sym("DAI"));
-      neworacle(oracleadmin, to_sym("MKR"));
-   }
+   void setPriceBaseBefore() { setprice(oracleadmin, to_sym("WETH"), to_wei_asset(100, "MKR")); }
 
-   void setPriceBaseBefore() { setprice(oracleadmin, to_wei_asset(100, "WETH")); }
+   void setPriceQuoteBefore() { setprice(oracleadmin, to_sym("MKR"), to_asset(100, "WETH")); }
 
-   void setPriceQuoteBefore() { setprice(oracleadmin, to_asset(100, "MKR")); }
-
-   void setPriceStableBefore() { setprice(oracleadmin, to_wei_asset(1, "DAI")); }
+   void setPriceStableBefore() { setprice(oracleadmin, to_sym("DAI"), to_wei_asset(1, "MKR")); }
 
    void breedBaseBefore() {
 
@@ -795,7 +868,6 @@ class eosdos_tester : public tester {
       initProxyBefore();
       newTokenBefore();
       mintBefore();
-      newOracleBefore();
       setPriceBaseBefore();
       breedBaseBefore();
       enableBaseBefore();
@@ -808,7 +880,7 @@ class eosdos_tester : public tester {
       initProxyBefore();
       newTokenBefore();
       mintBefore();
-      newOracleBefore();
+
       setPriceQuoteBefore();
       breedQuoteBefore();
       enableQuoteBefore();
@@ -820,7 +892,7 @@ class eosdos_tester : public tester {
    void stableCoinBefore() {
       newTokenBefore();
       mintStableBefore();
-      newOracleBefore();
+
       setPriceStableBefore();
       breedStableBefore();
       enableStableBefore();
@@ -887,7 +959,6 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(huge_sell_base_token_tests, eosdos_tester) try {
    stableCoinBefore();
-
 
    mint(trader, to_wei_asset(10000, "DAI"));
    LINE_DEBUG;
@@ -957,10 +1028,10 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(withdraw_dodo_tests, eosdos_tester) try {
    stableCoinBefore();
    uint64_t mint_amount = 10000000000;
-   mint(lp, to_wei_asset(mint_amount,"DAI"));
-   mint(lp, to_wei_asset(mint_amount,"MKR"));
-   depositquote(lp, dodo_stablecoin_name, to_wei_asset(mint_amount,"MKR"));
-   depositbase(lp, dodo_stablecoin_name, to_wei_asset(mint_amount,"DAI"));
+   mint(lp, to_wei_asset(mint_amount, "DAI"));
+   mint(lp, to_wei_asset(mint_amount, "MKR"));
+   depositquote(lp, dodo_stablecoin_name, to_wei_asset(mint_amount, "MKR"));
+   depositbase(lp, dodo_stablecoin_name, to_wei_asset(mint_amount, "DAI"));
    withdrawbase(lp, dodo_stablecoin_name, to_wei_asset(1000, "DAI"));
    withdrawquote(lp, dodo_stablecoin_name, to_wei_asset(9000, "MKR"));
 
@@ -976,7 +1047,7 @@ BOOST_FIXTURE_TEST_CASE(buy_eth_with_token_tests, eosdos_tester) try {
    buyethtoken(trader, to_wei_asset(1, "WETH"), to_wei_asset(200, "MKR"));
 
    auto store = dodos(dodo_ethbase_name);
-//    BOOST_TEST_CHECK(nullptr==store);
+   //    BOOST_TEST_CHECK(nullptr==store);
    BOOST_TEST_CHECK("89999" == store["_BASE_BALANCE_"].as_string());
    std::string quote_token_name = "MKR";
    auto        sym              = to_sym_from_string(quote_token_name);
@@ -1123,21 +1194,15 @@ BOOST_FIXTURE_TEST_CASE(withdraw_all_eth_as_quote_tests, eosdos_tester) try {
 FC_LOG_AND_RETHROW()
 
 ////////////////oracle////////////////////
-BOOST_FIXTURE_TEST_CASE(neworacle_tests, eosdos_tester) try {
-   neworacle(oracleadmin, to_sym("WETH"));
-   neworacle(oracleadmin, to_sym("DAI"));
-   neworacle(oracleadmin, to_sym("MKR"));
-}
-FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(setprice_tests, eosdos_tester) try {
-   newOracleBefore();
-   extended_asset ea = to_wei_asset(5, "WETH");
-   setprice(oracleadmin, ea);
-   setprice(oracleadmin, to_wei_asset(10, "DAI"));
-   setprice(oracleadmin, to_wei_asset(20, "MKR"));
-   auto b = getPrice(to_sym("WETH"));
-   BOOST_REQUIRE_EQUAL("5.0000 WETH", b);
+
+   extended_asset ea = to_wei_asset(5, "MKR");
+   setprice(oracleadmin, to_sym("WETH"), ea);
+   setprice(oracleadmin, to_sym("DAI"), to_wei_asset(10, "MKR"));
+   setprice(oracleadmin, to_sym("MKR"), to_wei_asset(20, "WETH"));
+   auto b = get_oracle_table(to_sym("WETH"), to_sym("MKR"));
+   BOOST_REQUIRE_EQUAL(nullptr, b);
 }
 FC_LOG_AND_RETHROW()
 
@@ -1159,7 +1224,7 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(extransfer_tests, eosdos_tester) try {
    const std::string     token_name = "POOL";
-   const extended_asset& max_supply = to_asset(1,token_name);
+   const extended_asset& max_supply = to_asset(1, token_name);
    newtoken(tokenissuer, to_maximum_supply(token_name));
    mint(N(alice1111111), max_supply);
    const symbol& sym = max_supply.quantity.get_symbol();

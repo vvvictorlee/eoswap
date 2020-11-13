@@ -15,7 +15,6 @@
 #include <common/storage_mgmt.hpp>
 #include <common/transfer_mgmt.hpp>
 #include <eosdos/dodo.hpp>
-#include <eosdos/helper/MinimumOracle.hpp>
 #include <eosdos/helper/TestERC20.hpp>
 #include <eosdos/helper/TestWETH.hpp>
 #include <eosdos/impl/DODOLpToken.hpp>
@@ -61,13 +60,6 @@ class instance_mgmt : public IFactory {
       func(token);
    }
 
-   template <typename T>
-   void get_oracle(name _msg_sender, const extended_symbol& oracle, T func) {
-      OracleStore&  oracleStore = _storage_mgmt.get_oracle_store(oracle);
-      MinimumOracle minioracle(oracleStore);
-      minioracle.setMsgSender(_msg_sender);
-      func(minioracle);
-   }
 
    void newDODO(
        name _msg_sender, name dodo_name, address owner, address supervisor, address maintainer,
@@ -81,12 +73,6 @@ class instance_mgmt : public IFactory {
           gasPriceLimit);
    }
 
-   void newOracle(name _msg_sender, const extended_symbol& tokenx) {
-      OracleStore&  oracleStore = _storage_mgmt.newOracleStore(tokenx);
-      MinimumOracle minioracle(oracleStore);
-      minioracle.setMsgSender(_msg_sender);
-      minioracle.init();
-   }
 
    template <typename T>
    void newToken(name _msg_sender, const extended_asset& tokenx) {

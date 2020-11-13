@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "async": "^3.1.0",
-    "coingecko-api": "^1.0.6",
     "colors": "*",
     "dotenv": "^6.0.0",
     "eosjs": "^16.0.9",

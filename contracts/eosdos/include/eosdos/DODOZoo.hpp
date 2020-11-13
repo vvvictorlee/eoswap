@@ -11,8 +11,6 @@
 #include <common/storage_mgmt.hpp>
 #include <common/transfer_mgmt.hpp>
 #include <eosdos/dodo.hpp>
-#include <eosdos/helper/CloneFactory.hpp>
-#include <eosdos/helper/MinimumOracle.hpp>
 #include <eosdos/helper/TestERC20.hpp>
 #include <eosdos/helper/TestWETH.hpp>
 #include <eosdos/impl/DODOLpToken.hpp>

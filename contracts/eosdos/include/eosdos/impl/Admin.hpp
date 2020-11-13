@@ -24,11 +24,6 @@ class Admin : virtual  public Storage {
        : stores(_stores)
        , Storage(_stores,_factory){}
        // ============ Params Setting Functions ============
-
-       void setOracle(const extended_symbol&  newOracle) {
-      stores._ORACLE_ = newOracle;
-   }
-
    void setSupervisor(address newSupervisor) { stores._SUPERVISOR_ = newSupervisor; }
 
    void setMaintainer(address newMaintainer) { stores._MAINTAINER_ = newMaintainer; }

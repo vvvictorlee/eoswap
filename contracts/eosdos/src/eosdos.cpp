@@ -294,16 +294,10 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       });
    }
    ////////////////////   Oracle////////////////////////
-   [[eosio::action]] void neworacle(name msg_sender, const extended_symbol& token) {
+   [[eosio::action]] void setprice(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.newOracle(msg_sender, token);
-   }
-
-   [[eosio::action]] void setprice(name msg_sender, const extended_asset& amt) {
-      check(oracle_account == msg_sender, "no oracle admin");
-      proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_oracle(msg_sender, amt.get_extended_symbol(), [&](auto& oracle) { oracle.setPrice(amt); });
+      _instance_mgmt.get_storage_mgmt().save_oracle_price(msg_sender, basetoken,quotetoken);
    }
 
    ////////////////////  TOKEN////////////////////////

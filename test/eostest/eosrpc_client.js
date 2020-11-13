@@ -322,16 +322,7 @@ class EosClient {
         console.log(__line); prettyJson(results);
     }
 
-    async neworacle(msg_sender, token) {
-
-        const results = await pushTransaction(msg_sender, "neworacle", {
-            msg_sender: msg_sender,
-            token: token
-        });
-
-        console.log(__line); prettyJson(results);
-    }
-
+ 
     async setprice(msg_sender, amt) {
         const results = await pushTransaction(msg_sender, "setprice", {
             msg_sender: msg_sender,
@@ -584,11 +575,6 @@ let handlers = {
         await client.mint(lp, to_wei_asset(10000, "MKR"));
         await client.mint(trader, to_wei_asset(10000, "MKR"));
     }),
-    "o": (async function () {
-        await client.neworacle(oracleadmin, to_sym("WETH"));
-        await client.neworacle(oracleadmin, to_sym("DAI"));
-        await client.neworacle(oracleadmin, to_sym("MKR"));
-    }),
     "sp": (async function () {
         await client.setprice(oracleadmin, to_wei_asset(1, "DAI"));
     }),
@@ -599,8 +585,6 @@ let handlers = {
         // newtoken(tokenissuer, to_maximum_supply("MKR"));
         // mint(lp, to_wei_asset(1000,"MKR"));
         // mint(trader, to_wei_asset(1000,"MKR"));
-        // await client.neworacle(oracleadmin, to_sym("WETH"));
-        // await client. neworacle(oracleadmin, to_sym("MKR"));
         //   setprice(oracleadmin, to_asset(1000000,"WETH"));
         await client.setprice(oracleadmin, to_wei_asset(100, "WETH"));
         const msg_sender = admin;
@@ -629,8 +613,6 @@ let handlers = {
         // newtoken(tokenissuer, to_maximum_supply("MKR"));
         // mint(lp, to_wei_asset(1000,"MKR"));
         // mint(trader, to_wei_asset(1000,"MKR"));
-        // await client.neworacle(oracleadmin, to_sym("WETH"));
-        // await client. neworacle(oracleadmin, to_sym("MKR"));
         //   setprice(oracleadmin, to_asset(1000000,"WETH"));
         await client.setprice(oracleadmin, to_asset(100, "MKR"));
 
@@ -659,8 +641,6 @@ let handlers = {
         // newtoken(tokenissuer, to_maximum_supply("MKR"));
         // mint(lp, to_wei_asset(1000,"MKR"));
         // mint(trader, to_wei_asset(1000,"MKR"));
-        // await client.neworacle(oracleadmin, to_sym("WETH"));
-        // await client. neworacle(oracleadmin, to_sym("MKR"));
         //   setprice(oracleadmin, to_asset(1000000,"WETH"));
         await client.setprice(oracleadmin, to_wei_asset(1, "DAI"));
         const msg_sender = admin;
