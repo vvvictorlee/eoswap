@@ -71,20 +71,7 @@ checksum256 get_checksum256(const Types&... args) {
 // }
 
 uint64_t get_hash_key(checksum256 hash) {
-uint64_t s1 = hash.data()[0];
-uint64_t s2 = hash.data()[1];
-uint64_t s3 = hash.data()[2];
-uint64_t s4 = hash.data()[3];
-
-   BOOST_TEST_CHECK(s1 == 1);
-   BOOST_TEST_CHECK(s2 == 1);
-   BOOST_TEST_CHECK(s3 == 1);
-   BOOST_TEST_CHECK(s4 == 1);
-   const uint64_t* p64 = reinterpret_cast<const uint64_t*>(hash.data());
-   BOOST_TEST_CHECK(p64[0] == 1);
-   BOOST_TEST_CHECK(p64[1] == 1);
-   BOOST_TEST_CHECK(p64[2] == 1);
-   BOOST_TEST_CHECK(p64[3] == 1);
+   const uint64_t* p64 = reinterpret_cast<const uint64_t*>(&hash);
    return p64[0] ^ p64[1] ^ p64[2] ^ p64[3];
 }
 
@@ -542,44 +529,20 @@ class eosdos_tester : public tester {
    }
 
    fc::variant get_oracle_table(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
-      uint64_t    key  = get_hash_key(get_checksum256(
+      uint64_t    key = get_hash_key(get_checksum256(
           basetoken.contract.to_uint64_t(), basetoken.sym.value(), quotetoken.contract.to_uint64_t(),
           quotetoken.sym.value()));
-      const auto& db   = control->db();
-      const auto* t_id = db.find<table_id_object, by_code_scope_table>(
+      const auto& db  = control->db();
+      const auto* tbl = db.find<table_id_object, by_code_scope_table>(
           boost::make_tuple(N(eosdoseosdos), N(eosdoseosdos), N(oracles)));
       vector<char> data;
-      BOOST_TEST_CHECK(key == 0);
-      checksum256 s = get_checksum256(
-          basetoken.contract.to_uint64_t(), basetoken.sym.value(), quotetoken.contract.to_uint64_t(),
-          quotetoken.sym.value());
-      BOOST_TEST_CHECK(s.str() == "sha256()");
-      BOOST_TEST_CHECK(s.data() == "sha256()");
-      BOOST_TEST_CHECK(basetoken.contract.to_uint64_t() == 0);
-      BOOST_TEST_CHECK(basetoken.sym.value() == 0);
-      BOOST_TEST_CHECK(quotetoken.contract.to_uint64_t() == 0);
-      BOOST_TEST_CHECK(quotetoken.sym.value() == 0);
-      //   key = 5963134866566690982;
       // the balance is implied to be 0 if either the table or row does not exist
-      if (t_id) {
-         const auto* obj = db.find<key_value_object, by_scope_primary>(boost::make_tuple(t_id->id, key));
-         BOOST_TEST_CHECK(nullptr == obj);
-         const auto& idx = db.get_index<chain::key_value_index, chain::by_scope_primary>();
-
-         auto itr = idx.upper_bound(boost::make_tuple(t_id->id, std::numeric_limits<uint64_t>::max()));
-         if (itr == idx.begin()) {
-            return fc::variant();
+      if (tbl) {
+         const auto* obj = db.find<key_value_object, by_scope_primary>(boost::make_tuple(tbl->id, key));
+         if (obj) {
+            data.resize(obj->value.size());
+            memcpy(data.data(), obj->value.data(), data.size());
          }
-         --itr;
-
-         BOOST_TEST_CHECK(itr->t_id == t_id->id);
-         if (itr->t_id != t_id->id) {
-
-            // return fc::variant();
-         }
-
-         data.resize(itr->value.size());
-         memcpy(data.data(), itr->value.data(), data.size());
       }
       if (data.empty())
          std::cout << "\nData is empty\n" << std::endl;
@@ -1201,8 +1164,37 @@ BOOST_FIXTURE_TEST_CASE(setprice_tests, eosdos_tester) try {
    setprice(oracleadmin, to_sym("WETH"), ea);
    setprice(oracleadmin, to_sym("DAI"), to_wei_asset(10, "MKR"));
    setprice(oracleadmin, to_sym("MKR"), to_wei_asset(20, "WETH"));
-   auto b = get_oracle_table(to_sym("WETH"), to_sym("MKR"));
-   BOOST_REQUIRE_EQUAL(nullptr, b);
+   auto bb  = get_oracle_table(to_sym("WETH"), to_sym("MKR"));
+   {
+      auto a = "4,WETH"; // to_sym("WETH");
+      auto b = bb["basetoken"]["sym"].as_string();
+      BOOST_REQUIRE_EQUAL(b, a);
+   }
+   {
+      auto a = "5.0000 MKR"; // to_sym("WETH");
+      auto b = bb["quotetoken"]["quantity"].as_string();
+      BOOST_REQUIRE_EQUAL(b, a);
+   }
+   // BOOST_TEST_CHECK(b["basetoken"]==to_sym("WETH"));
+   //    REQUIRE_MATCHING_OBJECT( b, mvo()
+   //       ("basetoken", to_sym("WETH"))
+   //       ("quotetoken", to_wei_asset(5,"MKR"))
+   //       ("_OWNER_", "")
+   //       ("_NEW_OWNER_",  "" )
+   //    );
+
+   //  {
+   //   "basetoken": {
+   //     "sym": "4,WETH",
+   //     "contract": "eosdosxtoken"
+   //   },
+   //   "quotetoken": {
+   //     "quantity": "5.0000 MKR",
+   //     "contract": "eosdosxtoken"
+   //   },
+   //   "_OWNER_": "",
+   //   "_NEW_OWNER_": ""
+   // }
 }
 FC_LOG_AND_RETHROW()
 

@@ -102,35 +102,19 @@ class storage_mgmt {
       uint64_t    key = get_hash_key(get_checksum256(
           basetoken.get_contract().value, basetoken.get_symbol().raw(),
           quotetoken.get_extended_symbol().get_contract().value, quotetoken.get_extended_symbol().get_symbol().raw()));
-      checksum256 s   = get_checksum256(
-          basetoken.get_contract().value, basetoken.get_symbol().raw(),
-          quotetoken.get_extended_symbol().get_contract().value, quotetoken.get_extended_symbol().get_symbol().raw());
- uint8_t s1 = (s.data()[0]);
- uint8_t s2 = (s.data()[1]);
- uint8_t s3 = (s.data()[2]);
- uint8_t s4 = (s.data()[3]);
-my_print_f("**** % =%=%=%=%====", s1, s2,s3,s4);     
- const uint64_t* p64 = reinterpret_cast<const uint64_t*>(&s);
-
-      my_print_f("&&&& % =%=%=%=%====", p64[0], p64[1], p64[2], p64[3]);
-
-      my_print_f(
-          "key % =%=%=%=%=%===", key, basetoken.get_contract().value, basetoken.get_symbol().raw(),
-          quotetoken.get_extended_symbol().get_contract().value, quotetoken.get_extended_symbol().get_symbol().raw(),
-          s);
-
-      auto oracle = oracle_table.find(key);
-      if (oracle == oracle_table.end()) {
-         oracle_table.emplace(msg_sender, [&](auto& o) {
-            o.basetoken  = basetoken;
-            o.quotetoken = quotetoken;
-         });
-      } else {
-         oracle_table.modify(oracle, same_payer, [&](auto& o) {
-            o.basetoken  = basetoken;
-            o.quotetoken = quotetoken;
-         });
-      }
+ 
+ auto oracle = oracle_table.find(key);
+ if (oracle == oracle_table.end()) {
+    oracle_table.emplace(msg_sender, [&](auto& o) {
+       o.basetoken  = basetoken;
+       o.quotetoken = quotetoken;
+    });
+ } else {
+    oracle_table.modify(oracle, same_payer, [&](auto& o) {
+       o.basetoken  = basetoken;
+       o.quotetoken = quotetoken;
+    });
+ }
    }
 
    uint64_t get_oracle_price(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
