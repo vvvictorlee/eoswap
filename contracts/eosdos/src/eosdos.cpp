@@ -254,6 +254,19 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { dodo.enableBaseDeposit(); });
    }
 
+   [[eosio::action]] void setparameter(name msg_sender, name dodo_name, name para_name, uint64_t para_value) {
+      check(admin_account == msg_sender, "no  admin");
+      check(para_name == "k"_n || para_name == "feerate"_n, "no  parameter");
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) {
+         if (para_name == "k"_n) {
+            dodo.setK(para_value);
+         } else {
+            dodo.setMaintainerFeeRate(para_value);
+         }
+      });
+   }
+
    ////////////////////  LiquidityProvider dodo////////////////////////
    [[eosio::action]] void depositquote(name msg_sender, name dodo_name, const extended_asset& amt) {
       proxy.setMsgSender(msg_sender);
@@ -265,7 +278,8 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    }
    [[eosio::action]] void withdrawquote(name msg_sender, name dodo_name, const extended_asset& amt) {
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.withdrawQuote(amt.quantity.amount); });
+      _instance_mgmt.get_dodo(
+          msg_sender, dodo_name, [&](auto& dodo) { (void)dodo.withdrawQuote(amt.quantity.amount); });
    }
    [[eosio::action]] void withdrawbase(name msg_sender, name dodo_name, const extended_asset& amt) {
       proxy.setMsgSender(msg_sender);
@@ -294,10 +308,11 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       });
    }
    ////////////////////   Oracle////////////////////////
-   [[eosio::action]] void setprice(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
+   [[eosio::action]] void setprice(
+       name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_storage_mgmt().save_oracle_price(msg_sender, basetoken,quotetoken);
+      _instance_mgmt.get_storage_mgmt().save_oracle_price(msg_sender, basetoken, quotetoken);
    }
 
    ////////////////////  TOKEN////////////////////////
@@ -337,7 +352,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
             auto           paras = transfer_mgmt::parse_string(action_event.param);
             name           pool_name;
             extended_asset balance;
-            uint64_t        denorm;
+            uint64_t       denorm;
             proxy.setMsgSender(action_event.msg_sender);
             // proxy.pool(pool_name, [&](auto& pool) { pool.bind(balance, denorm); });
          }

@@ -28,30 +28,30 @@ static const uint64_t MAX_INT = 0xffffffffffffffff;
 
 class DODO : public Admin, public Trader, virtual public LiquidityProvider {
  private:
-   DODOStore& stores;
-   IFactory&  factory;
+   DODOStore stores;
+   IFactory& factory;
 
  public:
-   DODO(DODOStore& _stores, IFactory& _factory)
+   DODO(const DODOStore& _stores, IFactory& _factory)
        : stores(_stores)
        , factory(_factory)
-       , Admin(_stores, _factory)
-       , Trader(_stores, _factory)
-       , LiquidityProvider(_stores, _factory)
-       , Storage(_stores, _factory)
-       , Pricing(_stores, _factory)
-       , Settlement(_stores, _factory) {
-}
-   void init(name dodo_name,
-       address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
+       , Admin(stores, _factory)
+       , Trader(stores, _factory)
+       , LiquidityProvider(stores, _factory)
+       , Storage(stores, _factory)
+       , Pricing(stores, _factory)
+       , Settlement(stores, _factory) {}
+   ~DODO() { factory.get_storage_mgmt().saveDodo(stores.dodo_name, stores); }
+   void init(
+       name dodo_name, address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint64_t lpFeeRate, uint64_t mtFeeRate,
        uint64_t k, uint64_t gasPriceLimit) {
       require(!stores._INITIALIZED_, "DODO_INITIALIZED");
-      stores.dodo_name =dodo_name;
+      stores.dodo_name     = dodo_name;
       stores._INITIALIZED_ = true;
 
       stores.initownable._OWNER_ = owner;
-      
+
       stores._SUPERVISOR_            = supervisor;
       stores._MAINTAINER_            = maintainer;
       stores._BASE_TOKEN_            = baseToken;
@@ -73,8 +73,8 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
       stores._MT_FEE_RATE_         = mtFeeRate;
       stores._K_                   = k;
       stores._R_STATUS_            = Types::RStatus::ONE;
-      stores._BASE_CAPITAL_TOKEN_  = factory.newLpToken(getMsgSender(),dodo_name,stores._BASE_TOKEN_);
-      stores._QUOTE_CAPITAL_TOKEN_ = factory.newLpToken(getMsgSender(),dodo_name,stores._QUOTE_TOKEN_);
+      stores._BASE_CAPITAL_TOKEN_  = factory.newLpToken(getMsgSender(), dodo_name, stores._BASE_TOKEN_);
+      stores._QUOTE_CAPITAL_TOKEN_ = factory.newLpToken(getMsgSender(), dodo_name, stores._QUOTE_TOKEN_);
 
       _checkDODOParameters();
    }

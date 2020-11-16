@@ -37,7 +37,7 @@ class instance_mgmt : public IFactory {
 
    template <typename T>
    void get_dodo(name _msg_sender, name dodo_name, T func) {
-      DODOStore& dodoStore = _storage_mgmt.get_dodo_store(dodo_name);
+      const DODOStore& dodoStore = _storage_mgmt.get_dodo(dodo_name);
       DODO       dodo(dodoStore, *this);
       dodo.setMsgSender(_msg_sender);
       func(dodo);
@@ -55,35 +55,33 @@ class instance_mgmt : public IFactory {
    template <typename T, typename F>
    void get_token(name _msg_sender, const extended_symbol& _token, F func) {
       TokenStore& tokenStore = _storage_mgmt.get_token_store(_token);
-      T          token(tokenStore);
+      T           token(tokenStore);
       token.setMsgSender(_msg_sender);
       func(token);
    }
-
 
    void newDODO(
        name _msg_sender, name dodo_name, address owner, address supervisor, address maintainer,
        const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
        uint64_t lpFeeRate, uint64_t mtFeeRate, uint64_t k, uint64_t gasPriceLimit) {
-      DODOStore& dodoStore = _storage_mgmt.newDodoStore(dodo_name);
-      DODO       dodo(dodoStore, *this);
+      const DODOStore& dodoStore = _storage_mgmt.newDodo(_msg_sender, dodo_name);
+      DODO             dodo(dodoStore, *this);
       dodo.setMsgSender(_msg_sender);
       dodo.init(
           dodo_name, owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
           gasPriceLimit);
    }
 
-
    template <typename T>
    void newToken(name _msg_sender, const extended_asset& tokenx) {
       const extended_symbol& exsym      = tokenx.get_extended_symbol();
       TokenStore&            tokenStore = _storage_mgmt.newTokenStore(exsym);
-      T              otoken(tokenStore);
+      T                      otoken(tokenStore);
       otoken.setMsgSender(_msg_sender);
       otoken.init(tokenx);
    }
    static const uint64_t MAX_TOTAL_SUPPLY = 1000000000000000;
-   extended_symbol      newLpToken(name _msg_sender, name dodo_name, const extended_symbol& tokenx) override {
+   extended_symbol       newLpToken(name _msg_sender, name dodo_name, const extended_symbol& tokenx) override {
       const symbol&   sym   = tokenx.get_symbol();
       extended_symbol exsym = extended_symbol(sym, dodo_name);
 

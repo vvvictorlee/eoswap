@@ -434,6 +434,12 @@ class eosdos_tester : public tester {
       return push_action(msg_sender, N(enabletradin), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
    }
 
+   action_result setparameter(name msg_sender, name dodo_name, name para_name, uint64_t para_value) {
+      return push_action(
+          msg_sender, N(enablequodep),
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("para_name", para_name)("para_value", para_value));
+   }
+
    //////////////////LiquidityProvider dodo//////////////
    action_result depositquote(name msg_sender, name dodo_name, const extended_asset& amt) {
       return push_action(
@@ -512,6 +518,12 @@ class eosdos_tester : public tester {
       if (data.empty())
          std::cout << "\nData is empty\n" << std::endl;
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("DODOStorage", data, abi_serializer_max_time);
+   }
+
+   fc::variant get_dodo_table(name dodo_name) {
+      name         table_name = N(dodos);
+      vector<char> data       = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), table_name, dodo_name);
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("dodo_storage", data, abi_serializer_max_time);
    }
 
    fc::variant get_token_store() {
@@ -607,9 +619,11 @@ class eosdos_tester : public tester {
    }
 
    fc::variant dodos(name dodo_name) {
-      const auto f = get_dodo_store();
-      const auto p = find_variant(f["dodos"], dodo_name.to_string());
-      return p;
+      const auto f = get_dodo_table(dodo_name);
+      return f["dodos"];
+      //   const auto f = get_dodo_store();
+      //   const auto p = find_variant(f["dodos"], dodo_name.to_string());
+      //   return p;
    }
 
    uint_eth to_wei(uint_eth value) { return value * pow(10, 4); }
@@ -887,7 +901,16 @@ class eosdos_tester : public tester {
 };
 
 BOOST_AUTO_TEST_SUITE(eosdos_tests)
-////////////////zoo////////////////////
+////////////////dodo admin////////////////////
+
+BOOST_FIXTURE_TEST_CASE(setparameter_tests, eosdos_tester) try {
+   stableCoinBefore();
+   name dodo_name = dodo_stablecoin_name;
+   setparameter(admin, dodo_name, N(k), 100);
+   setparameter(admin, dodo_name, N(feerate), 1);
+}
+FC_LOG_AND_RETHROW()
+
 /////////////////////dodo///////////////////////
 BOOST_FIXTURE_TEST_CASE(buy_base_token_tests, eosdos_tester) try {
    stableCoinBefore();
@@ -1164,7 +1187,7 @@ BOOST_FIXTURE_TEST_CASE(setprice_tests, eosdos_tester) try {
    setprice(oracleadmin, to_sym("WETH"), ea);
    setprice(oracleadmin, to_sym("DAI"), to_wei_asset(10, "MKR"));
    setprice(oracleadmin, to_sym("MKR"), to_wei_asset(20, "WETH"));
-   auto bb  = get_oracle_table(to_sym("WETH"), to_sym("MKR"));
+   auto bb = get_oracle_table(to_sym("WETH"), to_sym("MKR"));
    {
       auto a = "4,WETH"; // to_sym("WETH");
       auto b = bb["basetoken"]["sym"].as_string();

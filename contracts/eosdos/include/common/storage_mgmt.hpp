@@ -32,6 +32,7 @@ class storage_mgmt {
    TokenStorageSingleton  token_storage_singleton;
    TokenStorage           token_storage;
    oracle_storage_table   oracle_table;
+   dodo_storage_table     dodo_table;
 
  public:
    storage_mgmt(name _self)
@@ -41,7 +42,8 @@ class storage_mgmt {
        , proxy_storage_singleton(_self, _self.value)
        , helper_storage_singleton(_self, _self.value)
        , token_storage_singleton(_self, _self.value)
-       , oracle_table(_self, _self.value) {
+       , oracle_table(_self, _self.value)
+       , dodo_table(_self, _self.value) {
       zoo_storage    = zoo_storage_singleton.exists() ? zoo_storage_singleton.get() : ZooStorage{};
       dodo_storage   = dodo_storage_singleton.exists() ? dodo_storage_singleton.get() : DODOStorage{};
       proxy_storage  = proxy_storage_singleton.exists() ? proxy_storage_singleton.get() : ProxyStorage{};
@@ -98,23 +100,48 @@ class storage_mgmt {
       return pb.first->second;
    }
 
+   const DODOStore& newDodo(name msg_sender,name dodo_name) {
+      auto t = dodo_table.find(dodo_name.value);
+      bool f = (t == dodo_table.end());
+      require(f, "ALREADY_EXIST_DODO");
+      t = dodo_table.emplace(msg_sender, [&](auto& o) {
+         o.dodo  = dodo_name;
+         o.dodos = DODOStore();
+      });
+      return t->dodos;
+   }
+
+   const DODOStore& get_dodo(name dodo_name) {
+      auto t = dodo_table.find(dodo_name.value);
+      bool f = (t != dodo_table.end());
+      require(f, "NO_DODO");
+      return t->dodos;
+   }
+
+   void saveDodo(name dodo_name,const DODOStore& dodos) {
+      auto t = dodo_table.find(dodo_name.value);
+      bool f = (t != dodo_table.end());
+      require(f, "NO_DODO");
+      dodo_table.modify(t, same_payer, [&](auto& d) { d.dodos = dodos; });
+   }
+
    void save_oracle_price(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
-      uint64_t    key = get_hash_key(get_checksum256(
+      uint64_t key = get_hash_key(get_checksum256(
           basetoken.get_contract().value, basetoken.get_symbol().raw(),
           quotetoken.get_extended_symbol().get_contract().value, quotetoken.get_extended_symbol().get_symbol().raw()));
- 
- auto oracle = oracle_table.find(key);
- if (oracle == oracle_table.end()) {
-    oracle_table.emplace(msg_sender, [&](auto& o) {
-       o.basetoken  = basetoken;
-       o.quotetoken = quotetoken;
-    });
- } else {
-    oracle_table.modify(oracle, same_payer, [&](auto& o) {
-       o.basetoken  = basetoken;
-       o.quotetoken = quotetoken;
-    });
- }
+
+      auto oracle = oracle_table.find(key);
+      if (oracle == oracle_table.end()) {
+         oracle_table.emplace(msg_sender, [&](auto& o) {
+            o.basetoken  = basetoken;
+            o.quotetoken = quotetoken;
+         });
+      } else {
+         oracle_table.modify(oracle, same_payer, [&](auto& o) {
+            o.basetoken  = basetoken;
+            o.quotetoken = quotetoken;
+         });
+      }
    }
 
    uint64_t get_oracle_price(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
