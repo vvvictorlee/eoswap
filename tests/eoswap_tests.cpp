@@ -5,10 +5,10 @@
 
 #include "Runtime/Runtime.h"
 
+#include <algorithm>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <fc/variant_object.hpp>
 #include <sstream>
-
 using namespace eosio::testing;
 using namespace eosio;
 using namespace eosio::chain;
@@ -398,6 +398,12 @@ class eoswap_tester : public tester {
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("BPoolStorage", data, abi_serializer_max_time);
    }
 
+   fc::variant get_pool_table(name pool_name) {
+      name         table_name = N(pools);
+      vector<char> data       = get_row_by_account(N(eoswapeoswap), N(eoswapeoswap), table_name, pool_name);
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("pool_storage", data, abi_serializer_max_time);
+   }
+
    fc::variant get_token_store() {
       vector<char> data = get_row_by_account(N(eoswapeoswap), N(eoswapeoswap), N(tokenstore), N(tokenstore));
       if (data.empty())
@@ -496,11 +502,15 @@ class eoswap_tester : public tester {
 
    extended_symbol to_pool_sym(name pool_name) { return extended_symbol{symbol{4, "BPT"}, pool_name}; }
 
-   extended_asset to_asset(const std::string& sym, int64_t value) {
+   extended_asset to_ext_asset(int64_t value, const std::string& sym) {
       return extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eoswapxtoken"}};
    }
-   extended_asset to_wei_asset(const std::string& sym, uint_eth value) {
-      return to_asset(sym, static_cast<int64_t>(to_wei(value)));
+
+   extended_asset to_asset(int64_t value, const std::string& sym) {
+      return extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eoswapxtoken"}};
+   }
+   extended_asset to_wei_asset(uint_eth value, const std::string& sym) {
+      return to_asset(static_cast<int64_t>(to_wei(value)), sym);
    }
 
    extended_symbol to_sym(const std::string& sym) {
@@ -541,29 +551,29 @@ class eoswap_tester : public tester {
       newtoken(admin, to_maximum_supply("DAI"));
       newtoken(admin, to_maximum_supply("XXX"));
 
-      mint(admin, to_wei_asset("WETH", 50));
-      mint(admin, to_wei_asset("MKR", 20));
-      mint(admin, to_wei_asset("DAI", 10000));
-      mint(admin, to_wei_asset("XXX", 10));
+      mint(admin, to_wei_asset(50, "WETH"));
+      mint(admin, to_wei_asset(20, "MKR"));
+      mint(admin, to_wei_asset(10000, "DAI"));
+      mint(admin, to_wei_asset(10, "XXX"));
 
-      mint(user1, to_wei_asset("WETH", 25));
-      mint(user1, to_wei_asset("MKR", 4));
-      mint(user1, to_wei_asset("DAI", 40000));
-      mint(user1, to_wei_asset("XXX", 10));
+      mint(user1, to_wei_asset(25, "WETH"));
+      mint(user1, to_wei_asset(4, "MKR"));
+      mint(user1, to_wei_asset(40000, "DAI"));
+      mint(user1, to_wei_asset(10, "XXX"));
 
-      mint(user2, to_asset("WETH", 12222200));
-      mint(user2, to_asset("MKR", 1015333));
-      mint(user2, to_asset("DAI", 1));
-      mint(user2, to_wei_asset("XXX", 51));
+      mint(user2, to_asset(12222200, "WETH"));
+      mint(user2, to_asset(1015333, "MKR"));
+      mint(user2, to_asset(1, "DAI"));
+      mint(user2, to_wei_asset(51, "XXX"));
 
-      mint(nonadmin, to_wei_asset("WETH", 1));
-      mint(nonadmin, to_wei_asset("DAI", 200));
+      mint(nonadmin, to_wei_asset(1, "WETH"));
+      mint(nonadmin, to_wei_asset(200, "DAI"));
    }
 
    void bindBefore() {
-      bind(admin, N(pool), to_wei_asset("WETH", 50), to_wei(5));
-      bind(admin, N(pool), to_wei_asset("MKR", 20), to_wei(5));
-      bind(admin, N(pool), to_wei_asset("DAI", 10000), to_wei(5));
+      bind(admin, N(pool), to_wei_asset(50, "WETH"), to_wei(5));
+      bind(admin, N(pool), to_wei_asset(20, "MKR"), to_wei(5));
+      bind(admin, N(pool), to_wei_asset(10000, "DAI"), to_wei(5));
    }
 
    void finalizeBefore() { finalize(admin, N(pool)); }
@@ -587,16 +597,16 @@ class eoswap_tester : public tester {
       newtoken(admin, to_maximum_supply("WETH"));
       newtoken(admin, to_maximum_supply("DAI"));
 
-      mint(admin, to_wei_asset("WETH", 5));
-      mint(admin, to_wei_asset("DAI", 200));
+      mint(admin, to_wei_asset(5, "WETH"));
+      mint(admin, to_wei_asset(200, "DAI"));
 
-      mint(nonadmin, to_wei_asset("WETH", 1));
-      mint(nonadmin, to_wei_asset("DAI", 200));
+      mint(nonadmin, to_wei_asset(1, "WETH"));
+      mint(nonadmin, to_wei_asset(200, "DAI"));
    }
 
    void bindBefore1() {
-      bind(admin, N(pool), to_wei_asset("WETH", 5), to_wei(5));
-      bind(admin, N(pool), to_wei_asset("DAI", 200), to_wei(5));
+      bind(admin, N(pool), to_wei_asset(5, "WETH"), to_wei(5));
+      bind(admin, N(pool), to_wei_asset(200, "DAI"), to_wei(5));
    }
 
    void joinpoolBefore1() {
@@ -614,6 +624,114 @@ class eoswap_tester : public tester {
       exitpoolBefore1();
    }
 
+   /////////////extended token///////////////////////
+   /////////////extended token////////////////////////
+   ////////////extended token///////////////////////
+
+   std::vector<std::string> parse_string(const std::string& source, const std::string& delimiter = " ") {
+      std::vector<std::string> results;
+      // const std::string delimiter = ",";
+      size_t prev = 0;
+      size_t next = 0;
+
+      while ((next = source.find_first_of(delimiter.c_str(), prev)) != std::string::npos) {
+         if (next - prev != 0) {
+            results.push_back(source.substr(prev, next - prev));
+         }
+         prev = next + 1;
+      }
+
+      if (prev < source.size()) {
+         results.push_back(source.substr(prev));
+      }
+
+      return results;
+   }
+
+   uint64_t to_int(const std::string& str) {
+      bool        isOK   = false;
+      const char* nptr   = str.c_str();
+      char*       endptr = NULL;
+      errno              = 0;
+      uint64_t val       = std::strtoull(nptr, &endptr, 10);
+      // error ocur
+      if ((errno == ERANGE && (val == ULLONG_MAX)) || (errno != 0 && val == 0)) {
+
+      }
+      // no digit find
+      else if (endptr == nptr) {
+
+      } else if (*endptr != '\0') {
+         // printf("Further characters after number: %s\n", endptr);
+      } else {
+         isOK = true;
+      }
+
+      return val;
+   }
+
+   extended_asset ext_asset_from_string(const std::string& tokenstr) {
+      std::vector<std::string> strvec = parse_string(tokenstr);
+      const int                len    = strvec.size();
+      BOOST_REQUIRE_EQUAL(len, 2);
+      std::string str = strvec[0];
+      std::string sym = strvec[1];
+      str.erase(std::remove(str.begin(), str.end(), '.'), str.end());
+      int64_t value = static_cast<int64_t>(to_int(str));
+      return extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eoswapeoswap"}};
+   }
+
+   action_result push_extoken_action(const account_name& signer, const action_name& name, const variant_object& data) {
+      string action_type_name = abi_ser.get_action_type(name);
+
+      action act;
+      act.account = N(extendxtoken);
+      act.name    = name;
+      act.data    = abi_ser.variant_to_binary(action_type_name, data, abi_serializer_max_time);
+
+      return base_tester::push_action(std::move(act), signer.to_uint64_t());
+   }
+
+   fc::variant get_stats(const string& symbolname) {
+      auto         symb        = eosio::chain::symbol::from_string(symbolname);
+      auto         symbol_code = symb.to_symbol_code().value;
+      vector<char> data = get_row_by_account(N(extendxtoken), name(symbol_code), N(stat), account_name(symbol_code));
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("currency_stats", data, abi_serializer_max_time);
+   }
+
+   fc::variant get_account(account_name acc, const string& symbolname) {
+      auto         symb        = eosio::chain::symbol::from_string(symbolname);
+      auto         symbol_code = symb.to_symbol_code().value;
+      vector<char> data        = get_row_by_account(N(extendxtoken), acc, N(accounts), account_name(symbol_code));
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("account", data, abi_serializer_max_time);
+   }
+
+   action_result create(account_name issuer, extended_asset maximum_supply) {
+
+      return push_extoken_action(N(extendxtoken), N(create), mvo()("issuer", issuer)("maximum_supply", maximum_supply));
+   }
+
+   action_result issue(account_name issuer, extended_asset quantity, string memo) {
+      return push_extoken_action(issuer, N(issue), mvo()("to", issuer)("quantity", quantity)("memo", memo));
+   }
+
+   action_result retire(account_name issuer, extended_asset quantity, string memo) {
+      return push_extoken_action(issuer, N(retire), mvo()("quantity", quantity)("memo", memo));
+   }
+
+   action_result transfer(account_name from, account_name to, extended_asset quantity, string memo) {
+      return push_extoken_action(from, N(transfer), mvo()("from", from)("to", to)("quantity", quantity)("memo", memo));
+   }
+
+   action_result open(account_name owner, const string& symbolname, account_name ram_payer) {
+      return push_extoken_action(
+          ram_payer, N(open), mvo()("owner", owner)("symbol", symbolname)("ram_payer", ram_payer));
+   }
+
+   action_result close(account_name owner, const string& symbolname) {
+      return push_extoken_action(owner, N(close), mvo()("owner", owner)("symbol", "0,CERO"));
+   }
+   /////////////extended token////////////////////
    bool is_auth_token;
 
    name           admin;
@@ -641,8 +759,8 @@ BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
 
    newpoolBefore();
    mintBefore1();
-   bind(admin, N(pool), to_wei_asset("WETH", 5), to_wei(5));
-   bind(admin, N(pool), to_wei_asset("DAI", 200), to_wei(5));
+   bind(admin, N(pool), to_wei_asset(5, "WETH"), to_wei(5));
+   bind(admin, N(pool), to_wei_asset(200, "DAI"), to_wei(5));
 }
 FC_LOG_AND_RETHROW()
 
@@ -667,6 +785,9 @@ BOOST_FIXTURE_TEST_CASE(joinpool_tests, eoswap_tester) try {
 
    std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
    joinpool(nonadmin, N(pool), to_wei(10), v);
+
+   auto pool = get_pool_store();
+   BOOST_TEST_CHECK(nullptr == pool);
 }
 FC_LOG_AND_RETHROW()
 
@@ -691,15 +812,14 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eoswap_tester) try {
-
    before();
-   swapamtin(user1, N(pool), to_asset("WETH", 2500000), to_wei_asset("DAI", 475), to_wei(200));
+   swapamtin(user1, N(pool), to_asset(2500000, "WETH"), to_wei_asset(475, "DAI"), to_wei(200));
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(swapExactAmountOut_tests, eoswap_tester) try {
    before();
-   swapamtout(user1, N(pool), to_wei_asset("WETH", 3), to_wei_asset("MKR", 1), to_wei(500));
+   swapamtout(user1, N(pool), to_wei_asset(3, "WETH"), to_wei_asset(1, "MKR"), to_wei(500));
 }
 FC_LOG_AND_RETHROW()
 
@@ -708,8 +828,8 @@ BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
    newpool(admin, N(pool));
    newtoken(admin, to_maximum_supply("WETH"));
    newtoken(admin, to_maximum_supply("DAI"));
-   mint(N(alice), to_wei_asset("WETH", 5));
-   mint(N(alice), to_wei_asset("DAI", 200));
+   mint(N(alice), to_wei_asset(5, "WETH"));
+   mint(N(alice), to_wei_asset(200, "DAI"));
 
    const auto ab = balanceOf(to_sym("WETH"), N(alice));
    BOOST_REQUIRE_EQUAL(std::to_string(to_wei(5)), ab);
@@ -718,8 +838,8 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(burn_tests, eoswap_tester) try {
    newtoken(admin, to_maximum_supply("POOL"));
-   mint(admin, to_asset("POOL", 300));
-   burn(admin, to_asset("POOL", 300));
+   mint(admin, to_asset(300, "POOL"));
+   burn(admin, to_asset(300, "POOL"));
 }
 FC_LOG_AND_RETHROW()
 
@@ -731,22 +851,251 @@ BOOST_FIXTURE_TEST_CASE(approve_tests, eoswap_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(transfer_tests, eoswap_tester) try {
+BOOST_FIXTURE_TEST_CASE(swap_transfer_tests, eoswap_tester) try {
    newtoken(admin, to_maximum_supply("POOL"));
-   mint(N(alice), to_asset("POOL", 300));
-   transfer(N(alice), N(bob), to_asset("POOL", 300));
+   mint(N(alice), to_asset(300, "POOL"));
+   transfer(N(alice), N(bob), to_asset(300, "POOL"));
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(extransfer_tests, eoswap_tester) try {
-   const std::string token_name = "POOL";
-   const extended_asset& max_supply= to_asset(token_name, 1); 
+   const std::string     token_name = "POOL";
+   const extended_asset& max_supply = to_asset(1,token_name);
    newtoken(admin, to_maximum_supply(token_name));
    mint(N(alice1111111), max_supply);
-   const symbol&  sym = max_supply.quantity.get_symbol();
+   const symbol& sym = max_supply.quantity.get_symbol();
    extransfer(N(alice1111111), user2, max_supply);
 
-   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 "+token_name), get_balancex(user2, sym));
+   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 " + token_name), get_balancex(user2, sym));
+}
+FC_LOG_AND_RETHROW()
+
+//////////////extened token///////////////////////////////
+//////////////extened token///////////////////////////////
+//////////////extened token///////////////////////////////
+//////////////extened token///////////////////////////////
+//////////////extened token///////////////////////////////
+
+BOOST_FIXTURE_TEST_CASE(create_tests, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("1000.000 TKN"));
+   auto stats = get_stats("3,TKN");
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "0.000 TKN")("max_supply", "1000.000 TKN")("issuer", "alice"));
+   produce_blocks(1);
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(create_negative_max_supply, eoswap_tester) try {
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("max-supply must be positive"), create(N(alice), ext_asset_from_string("-1000.000 TKN")));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(symbol_already_exists, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("100 TKN"));
+   auto stats = get_stats("0,TKN");
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "0 TKN")("max_supply", "100 TKN")("issuer", "alice"));
+   produce_blocks(1);
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("token with symbol already exists"), create(N(alice), ext_asset_from_string("100 TKN")));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(create_max_supply, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("4611686018427387903 TKN"));
+   auto stats = get_stats("0,TKN");
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "0 TKN")("max_supply", "4611686018427387903 TKN")("issuer", "alice"));
+   produce_blocks(1);
+
+   extended_asset max=extended_asset{asset{10, symbol(SY(0, NKT))}, name{"eoswapeoswap"}};//max(10, symbol(SY(0, NKT)));
+   share_type     amount = 4611686018427387904;
+   static_assert(sizeof(share_type) <= sizeof(extended_asset), "extended_asset changed so test is no longer valid");
+   static_assert(std::is_trivially_copyable<extended_asset>::value, "extended_asset is not trivially copyable");
+   memcpy(&max, &amount, sizeof(share_type)); // hack in an invalid amount
+
+   BOOST_CHECK_EXCEPTION(create(N(alice), max), asset_type_exception, [](const asset_type_exception& e) {
+      return expect_assert_message(e, "magnitude of extended_asset amount must be less than 2^62");
+   });
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(create_max_decimals, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("1.000000000000000000 TKN"));
+   auto stats = get_stats("18,TKN");
+   REQUIRE_MATCHING_OBJECT(
+       stats, mvo()("supply", "0.000000000000000000 TKN")("max_supply", "1.000000000000000000 TKN")("issuer", "alice"));
+   produce_blocks(1);
+
+// extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eoswapeoswap"}}
+   extended_asset max=extended_asset{asset{10, symbol(SY(0, NKT))}, name{"eoswapeoswap"}};
+   // 1.0000000000000000000 => 0x8ac7230489e80000L
+   share_type amount = 0x8ac7230489e80000L;
+   static_assert(sizeof(share_type) <= sizeof(extended_asset), "extended_asset changed so test is no longer valid");
+   static_assert(std::is_trivially_copyable<extended_asset>::value, "extended_asset is not trivially copyable");
+   memcpy(&max, &amount, sizeof(share_type)); // hack in an invalid amount
+
+   BOOST_CHECK_EXCEPTION(create(N(alice), max), asset_type_exception, [](const asset_type_exception& e) {
+      return expect_assert_message(e, "magnitude of extended_asset amount must be less than 2^62");
+   });
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(issue_tests, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("1000.000 TKN"));
+   produce_blocks(1);
+
+   issue(N(alice), ext_asset_from_string("500.000 TKN"), "hola");
+
+   auto stats = get_stats("3,TKN");
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "500.000 TKN")("max_supply", "1000.000 TKN")("issuer", "alice"));
+
+   auto alice_balance = get_account(N(alice), "3,TKN");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "500.000 TKN"));
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("quantity exceeds available supply"),
+       issue(N(alice), ext_asset_from_string("500.001 TKN"), "hola"));
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("must issue positive quantity"), issue(N(alice), ext_asset_from_string("-1.000 TKN"), "hola"));
+
+   BOOST_REQUIRE_EQUAL(success(), issue(N(alice), ext_asset_from_string("1.000 TKN"), "hola"));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(retire_tests, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("1000.000 TKN"));
+   produce_blocks(1);
+
+   BOOST_REQUIRE_EQUAL(success(), issue(N(alice), ext_asset_from_string("500.000 TKN"), "hola"));
+
+   auto stats = get_stats("3,TKN");
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "500.000 TKN")("max_supply", "1000.000 TKN")("issuer", "alice"));
+
+   auto alice_balance = get_account(N(alice), "3,TKN");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "500.000 TKN"));
+
+   BOOST_REQUIRE_EQUAL(success(), retire(N(alice), ext_asset_from_string("200.000 TKN"), "hola"));
+   stats = get_stats("3,TKN");
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "300.000 TKN")("max_supply", "1000.000 TKN")("issuer", "alice"));
+   alice_balance = get_account(N(alice), "3,TKN");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "300.000 TKN"));
+
+   // should fail to retire more than current supply
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("overdrawn balance"), retire(N(alice), ext_asset_from_string("500.000 TKN"), "hola"));
+
+   BOOST_REQUIRE_EQUAL(success(), transfer(N(alice), N(bob), ext_asset_from_string("200.000 TKN"), "hola"));
+   // should fail to retire since tokens are not on the issuer's balance
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("overdrawn balance"), retire(N(alice), ext_asset_from_string("300.000 TKN"), "hola"));
+   // transfer tokens back
+   BOOST_REQUIRE_EQUAL(success(), transfer(N(bob), N(alice), ext_asset_from_string("200.000 TKN"), "hola"));
+
+   BOOST_REQUIRE_EQUAL(success(), retire(N(alice), ext_asset_from_string("300.000 TKN"), "hola"));
+   stats = get_stats("3,TKN");
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "0.000 TKN")("max_supply", "1000.000 TKN")("issuer", "alice"));
+   alice_balance = get_account(N(alice), "3,TKN");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "0.000 TKN"));
+
+   // trying to retire tokens with zero supply
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("overdrawn balance"), retire(N(alice), ext_asset_from_string("1.000 TKN"), "hola"));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(transfer_tests, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("1000 CERO"));
+   produce_blocks(1);
+
+   issue(N(alice), ext_asset_from_string("1000 CERO"), "hola");
+
+   auto stats = get_stats("0,CERO");
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "1000 CERO")("max_supply", "1000 CERO")("issuer", "alice"));
+
+   auto alice_balance = get_account(N(alice), "0,CERO");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "1000 CERO"));
+
+   transfer(N(alice), N(bob), ext_asset_from_string("300 CERO"), "hola");
+
+   alice_balance = get_account(N(alice), "0,CERO");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "700 CERO")("frozen", 0)("whitelist", 1));
+
+   auto bob_balance = get_account(N(bob), "0,CERO");
+   REQUIRE_MATCHING_OBJECT(bob_balance, mvo()("balance", "300 CERO")("frozen", 0)("whitelist", 1));
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("overdrawn balance"), transfer(N(alice), N(bob), ext_asset_from_string("701 CERO"), "hola"));
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("must transfer positive quantity"),
+       transfer(N(alice), N(bob), ext_asset_from_string("-1000 CERO"), "hola"));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(open_tests, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("1000 CERO"));
+
+   auto alice_balance = get_account(N(alice), "0,CERO");
+   BOOST_REQUIRE_EQUAL(true, alice_balance.is_null());
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("tokens can only be issued to issuer account"),
+       push_extoken_action(
+           N(alice), N(issue), mvo()("to", "bob")("quantity", ext_asset_from_string("1000 CERO"))("memo", "")));
+   BOOST_REQUIRE_EQUAL(success(), issue(N(alice), ext_asset_from_string("1000 CERO"), "issue"));
+
+   alice_balance = get_account(N(alice), "0,CERO");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "1000 CERO"));
+
+   auto bob_balance = get_account(N(bob), "0,CERO");
+   BOOST_REQUIRE_EQUAL(true, bob_balance.is_null());
+
+   BOOST_REQUIRE_EQUAL(wasm_assert_msg("owner account does not exist"), open(N(nonexistent), "0,CERO", N(alice)));
+   BOOST_REQUIRE_EQUAL(success(), open(N(bob), "0,CERO", N(alice)));
+
+   bob_balance = get_account(N(bob), "0,CERO");
+   REQUIRE_MATCHING_OBJECT(bob_balance, mvo()("balance", "0 CERO"));
+
+   BOOST_REQUIRE_EQUAL(success(), transfer(N(alice), N(bob), ext_asset_from_string("200 CERO"), "hola"));
+
+   bob_balance = get_account(N(bob), "0,CERO");
+   REQUIRE_MATCHING_OBJECT(bob_balance, mvo()("balance", "200 CERO"));
+
+   BOOST_REQUIRE_EQUAL(wasm_assert_msg("symbol does not exist"), open(N(carol), "0,INVALID", N(alice)));
+
+   BOOST_REQUIRE_EQUAL(wasm_assert_msg("symbol precision mismatch"), open(N(carol), "1,CERO", N(alice)));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(close_tests, eoswap_tester) try {
+
+   auto token = create(N(alice), ext_asset_from_string("1000 CERO"));
+
+   auto alice_balance = get_account(N(alice), "0,CERO");
+   BOOST_REQUIRE_EQUAL(true, alice_balance.is_null());
+
+   BOOST_REQUIRE_EQUAL(success(), issue(N(alice), ext_asset_from_string("1000 CERO"), "hola"));
+
+   alice_balance = get_account(N(alice), "0,CERO");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "1000 CERO"));
+
+   BOOST_REQUIRE_EQUAL(success(), transfer(N(alice), N(bob), ext_asset_from_string("1000 CERO"), "hola"));
+
+   alice_balance = get_account(N(alice), "0,CERO");
+   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "0 CERO"));
+
+   BOOST_REQUIRE_EQUAL(success(), close(N(alice), "0,CERO"));
+   alice_balance = get_account(N(alice), "0,CERO");
+   BOOST_REQUIRE_EQUAL(true, alice_balance.is_null());
 }
 FC_LOG_AND_RETHROW()
 

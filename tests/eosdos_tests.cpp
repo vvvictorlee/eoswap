@@ -907,7 +907,8 @@ BOOST_FIXTURE_TEST_CASE(setparameter_tests, eosdos_tester) try {
    stableCoinBefore();
    name dodo_name = dodo_stablecoin_name;
    setparameter(admin, dodo_name, N(k), 100);
-   setparameter(admin, dodo_name, N(feerate), 1);
+   setparameter(admin, dodo_name, N(lpfeerate), 2);
+   setparameter(admin, dodo_name, N(mtfeerate), 2);
 }
 FC_LOG_AND_RETHROW()
 

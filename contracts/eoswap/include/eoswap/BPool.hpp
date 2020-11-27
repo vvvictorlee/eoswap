@@ -22,15 +22,16 @@ class BPool : public BToken<TokenStoreType>, public BMath {
 
  private:
    FactoryType& factory;
-   BPoolStore&  pool_store;
-
+   BPoolStore   pool_store;
+   name pool_name;
  public:
-   BPool(name _self, FactoryType& _factory, PoolStoreType& _pool_store, TokenStoreType& _tokenStore)
+   BPool(name _self, FactoryType& _factory,name _pool_name,const PoolStoreType& _pool_store, TokenStoreType& _tokenStore)
        : factory(_factory)
        , pool_store(_pool_store)
+       , pool_name(_pool_name)
        , BToken<TokenStoreType>(_self, _tokenStore) {}
 
-   ~BPool() {}
+   ~BPool() { factory.get_storage_mgmt().savePool(pool_name, pool_store ); }
 
    class Lock {
       BPoolStore& pool_store;

@@ -22,27 +22,28 @@ class BFactory : public BBronze {
    name             self;
    name             msg_sender;
    storage_mgmt     _storage_mgmt;
-   transfer_mgmt _transfer_mgmt;
+   transfer_mgmt    _transfer_mgmt;
    BFactoryStorage& _factory_storage;
 
  public:
    BFactory(name _self)
        : self(_self)
        , _storage_mgmt(_self)
-       , _transfer_mgmt(_self) 
+       , _transfer_mgmt(_self)
        , _factory_storage(_storage_mgmt.get_factory_store()) {
       _factory_storage.blabs = self;
    }
    ~BFactory() {}
-
-   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
+   storage_mgmt&  get_storage_mgmt() { return _storage_mgmt; }
+   transfer_mgmt& get_transfer_mgmt() { return _transfer_mgmt; }
+   void           setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
 
    bool isBPool(name pool) { return _factory_storage.isBPool[pool]; }
 
    void newBPool(name pool_name) {
-      BPoolStore&  poolStore  = _storage_mgmt.newPoolStore(pool_name);
+     const  BPoolStore&  poolStore  = _storage_mgmt.newPool(msg_sender,pool_name);
       BTokenStore& tokenStore = _storage_mgmt.newTokenStore(to_namesym(extended_symbol(symbol("BPT", 4), pool_name)));
-      BPool        pool(self, *this, poolStore, tokenStore);
+      BPool        pool(self, *this, pool_name,poolStore, tokenStore);
       pool.init();
       pool.auth(msg_sender);
       _factory_storage.isBPool[pool_name] = true;
@@ -50,19 +51,19 @@ class BFactory : public BBronze {
    }
 
    void newToken(const extended_asset& tokenx) {
-      const extended_symbol&  exsym = tokenx.get_extended_symbol();
-      const symbol&  sym = exsym.get_symbol();
-      namesym      token      = to_namesym(exsym);
-      BTokenStore& tokenStore = _storage_mgmt.newTokenStore(token);
-      BToken       otoken(self, tokenStore,exsym.get_contract().to_string(),sym.code().to_string(),sym.precision());
+      const extended_symbol& exsym      = tokenx.get_extended_symbol();
+      const symbol&          sym        = exsym.get_symbol();
+      namesym                token      = to_namesym(exsym);
+      BTokenStore&           tokenStore = _storage_mgmt.newTokenStore(token);
+      BToken otoken(self, tokenStore, exsym.get_contract().to_string(), sym.code().to_string(), sym.precision());
       otoken.auth(msg_sender);
    }
 
    template <typename T>
    void pool(name pool_name, T func) {
-      BPoolStore&  poolStore  = _storage_mgmt.get_pool_store(pool_name);
+      const BPoolStore&  poolStore  = _storage_mgmt.get_pool(pool_name);
       BTokenStore& tokenStore = _storage_mgmt.get_token_store(to_namesym(extended_symbol(symbol("BPT", 4), pool_name)));
-      BPool        pool(self, *this, poolStore, tokenStore);
+      BPool        pool(self, *this, pool_name,poolStore, tokenStore);
       pool.auth(msg_sender);
       func(pool);
    }
@@ -75,9 +76,6 @@ class BFactory : public BBronze {
       func(otoken);
    }
 
-   storage_mgmt& get_storage_mgmt() { return _storage_mgmt; }
-   transfer_mgmt& get_transfer_mgmt() { return _transfer_mgmt; }
-
    name getBLabs() { return _factory_storage.blabs; }
 
    void setBLabs(name blabs) {
@@ -88,9 +86,9 @@ class BFactory : public BBronze {
 
    void collect(name pool_name) {
       require(msg_sender == _factory_storage.blabs, "ERR_NOT_BLABS");
-      BPoolStore&  poolStore  = _storage_mgmt.get_pool_store(pool_name);
+      const BPoolStore&  poolStore  = _storage_mgmt.get_pool(pool_name);
       BTokenStore& tokenStore = _storage_mgmt.get_token_store(to_namesym(extended_symbol(symbol("BPT", 4), pool_name)));
-      BPool        pool(self, *this, poolStore, tokenStore);
+      BPool        pool(self, *this,pool_name, poolStore, tokenStore);
       pool.auth(msg_sender);
       uint collected = pool.balanceOf(self);
       bool xfer      = pool.transfer(_factory_storage.blabs, collected);

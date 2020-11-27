@@ -1,6 +1,8 @@
 #pragma once
 #include <common/BType.hpp>
-#include <common/eosio.token.hpp>
+#include <common/extended_token.hpp>
+using namespace eosio::token;
+using namespace std;
 class transfer_mgmt {
  private:
    name self;
@@ -75,11 +77,11 @@ class transfer_mgmt {
    }
 
    static asset get_balance(const name& owner, const extended_symbol& exsym) {
-      return eosio::token::get_balance(exsym.get_contract(), owner, exsym.get_symbol().code());
+      return transfer_mgmt::get_balance(exsym.get_contract(), owner, exsym.get_symbol().code());
    }
 
    static name get_issuer(const extended_symbol& exsym) {
-      return eosio::token::get_issuer(exsym.get_contract(), exsym.get_symbol().code());
+      return transfer_mgmt::get_issuer(exsym.get_contract(), exsym.get_symbol().code());
    }
 
    /**
@@ -162,6 +164,24 @@ class transfer_mgmt {
       action(
           permission_level{issuer, "active"_n}, quantity.contract, "retire"_n, std::make_tuple(quantity.quantity, memo))
           .send();
+   }
+
+
+   static name get_issuer(const name& token_contract_account, const symbol_code& sym_code) {
+      eosio::token::stats       statstable(token_contract_account, sym_code.raw());
+      const auto& st = statstable.get(sym_code.raw());
+      return st.issuer;
+   }
+   static asset get_supply(const name& token_contract_account, const symbol_code& sym_code) {
+      eosio::token::stats       statstable(token_contract_account, sym_code.raw());
+      const auto& st = statstable.get(sym_code.raw());
+      return st.supply;
+   }
+
+   static asset get_balance(const name& token_contract_account, const name& owner, const symbol_code& sym_code) {
+      eosio::token::accounts    accountstable(token_contract_account, owner.value);
+      const auto& ac = accountstable.get(sym_code.raw());
+      return ac.balance;
    }
 
    static std::vector<std::string> parse_string(const std::string& source, const std::string& delimiter = ",") {

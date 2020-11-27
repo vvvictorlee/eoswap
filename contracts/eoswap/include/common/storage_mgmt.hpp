@@ -25,13 +25,15 @@ class storage_mgmt {
    BPoolStorage             _pool_storage;
    BTokenStorageSingleton   token_storage_singleton;
    BTokenStorage            _token_storage;
+   pool_storage_table       pool_table;
 
  public:
    storage_mgmt(name _self)
        : self(_self)
        , factory_storage_singleton(_self, _self.value)
        , pool_storage_singleton(_self, _self.value)
-       , token_storage_singleton(_self, _self.value) {
+       , token_storage_singleton(_self, _self.value)
+       , pool_table(_self, _self.value) {
       _factory_storage       = factory_storage_singleton.exists() ? factory_storage_singleton.get() : BFactoryStorage{};
       _factory_storage.blabs = _self;
       _pool_storage          = pool_storage_singleton.exists() ? pool_storage_singleton.get() : BPoolStorage{};
@@ -69,6 +71,31 @@ class storage_mgmt {
       require(pb.second, "INSERT_POOL_FAIL");
 
       return pb.first->second;
+   }
+
+   const BPoolStore& newPool(name msg_sender, name pool_name) {
+      auto t = pool_table.find(pool_name.value);
+      bool f = (t == pool_table.end());
+      require(f, "ALREADY_EXIST_POOL");
+      t = pool_table.emplace(msg_sender, [&](auto& o) {
+         o.pool  = pool_name;
+         o.pools = BPoolStore();
+      });
+      return t->pools;
+   }
+
+   const BPoolStore& get_pool(name pool_name) {
+      auto t = pool_table.find(pool_name.value);
+      bool f = (t != pool_table.end());
+      require(f, "NO_POOL");
+      return t->pools;
+   }
+
+   void savePool(name pool_name, const BPoolStore& pools) {
+      auto t = pool_table.find(pool_name.value);
+      bool f = (t != pool_table.end());
+      require(f, "NO_POOL");
+      pool_table.modify(t, same_payer, [&](auto& d) { d.pools = pools; });
    }
 
    BTokenStore& newTokenStore(namesym token) {

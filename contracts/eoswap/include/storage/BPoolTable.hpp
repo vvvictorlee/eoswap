@@ -48,3 +48,13 @@ struct [[eosio::table("poolstore"), eosio::contract("eoswap")]] BPoolStorage {
 };
 
 typedef eosio::singleton<"poolstore"_n, BPoolStorage> BPoolStorageSingleton;
+
+
+struct [[eosio::table, eosio::contract("eoswap")]] pool_storage {
+   name      pool;
+   BPoolStore pools;
+   uint64_t  primary_key() const { return pool.value; }
+};
+
+typedef eosio::multi_index<"pools"_n, pool_storage> pool_storage_table;
+

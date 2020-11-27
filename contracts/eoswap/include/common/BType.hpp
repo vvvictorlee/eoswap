@@ -30,7 +30,8 @@ static const std::string chain_token = "eth";
 static const std::string address_zero = "0";
 
 static const uint8_t current_bridge_version = 1;
-
+// namespace eoswap
+// {
 void require(bool test, const char *cstr) { eosio::check(test, cstr); }
 
 namesym to_namesym(const extended_symbol& exsym)
@@ -39,7 +40,7 @@ namesym to_namesym(const extended_symbol& exsym)
     ns = ns << 64| exsym.get_symbol().raw();
     return ns;
 }
-
+///static compile time
 constexpr double my_pow(double x, int exp) {
   int sign = 1;
   if (exp < 0) {
@@ -86,3 +87,4 @@ static const std::string bind_action_string = "bind";
 static const std::string joinpool_action_string = "joinpool";
 static const std::string swapin_action_string = "swapin";
 static const std::string swapout_action_string = "swapout";
+// }

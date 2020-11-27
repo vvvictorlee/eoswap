@@ -1,4 +1,5 @@
-add_contract(eoswap eoswap ${CMAKE_CURRENT_SOURCE_DIR}/src/eoswap.cpp)
+add_contract(eoswap eoswap ${CMAKE_CURRENT_SOURCE_DIR}/src/eoswap.cpp
+)
 
 target_include_directories(eoswap
    PUBLIC
