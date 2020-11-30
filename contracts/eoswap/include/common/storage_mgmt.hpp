@@ -73,6 +73,24 @@ class storage_mgmt {
       return pb.first->second;
    }
 
+   void copyPoolStore2Table(name msg_sender, name pool_name) {
+      auto p = _pool_storage.pools.find(pool_name);
+      bool f = p != _pool_storage.pools.end();
+      require(f, "NO_POOL");
+      //   return p->second;
+      {
+         auto t = pool_table.find(pool_name.value);
+         bool f = (t == pool_table.end());
+         require(f, "ALREADY_EXIST_POOL");
+         t = pool_table.emplace(msg_sender, [&](auto& o) {
+            o.pool  = pool_name;
+            o.pools = p->second;
+         });
+
+         //   return t->pools;
+      }
+   }
+
    const BPoolStore& newPool(name msg_sender, name pool_name) {
       auto t = pool_table.find(pool_name.value);
       bool f = (t == pool_table.end());

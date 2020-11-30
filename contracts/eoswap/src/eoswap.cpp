@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "extended_token.cpp"
 #include <cmath>
 #include <common/BType.hpp>
 #include <common/extended_token.hpp>
@@ -15,7 +16,6 @@
 #include <storage/BFactoryTable.hpp>
 #include <storage/BPoolTable.hpp>
 #include <storage/BTokenTable.hpp>
-#include "extended_token.cpp"
 
 using eosio::action;
 using eosio::asset;
@@ -25,7 +25,7 @@ using std::string;
 
 class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
  private:
-   BFactory       factory;
+   BFactory                      factory;
    extendedtoken::extended_token extoken;
 
  public:
@@ -130,6 +130,11 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
       factory.pool(pool_name, [&](auto& pool) { pool.swapExactAmountOut(maxAmountIn, tokenAmountOut, maxPrice); });
    }
 
+   ////////////////// TEST pool storage///////////////////////
+   [[eosio::action]] void cppool2table(name msg_sender, name pool_name) {
+      factory.get_storage_mgmt().copyPoolStore2Table(msg_sender, pool_name);
+   }
+
    ////////////////// TEST pool TOKEN////////////////////////
    [[eosio::action]] void extransfer(name from, name to, extended_asset quantity, std::string memo) {
       factory.get_transfer_mgmt().transfer(from, to, quantity, memo);
@@ -141,38 +146,12 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
       factory.get_transfer_mgmt().create(msg_sender, token);
    }
 
-   [[eosio::action]] void approve(name msg_sender, name dst, const extended_asset& amt) {
-      factory.setMsgSender(msg_sender);
-      factory.token(
-          to_namesym(amt.get_extended_symbol()), [&](auto& _token_) { _token_.approve(dst, amt.quantity.amount); });
-   }
-
-   [[eosio::action]] void transfer(name msg_sender, name dst, const extended_asset& amt) {
+   [[eosio::action]] void ttransfer(name msg_sender, name dst, const extended_asset& amt) {
       factory.setMsgSender(msg_sender);
       factory.token(
           to_namesym(amt.get_extended_symbol()), [&](auto& _token_) { _token_.transfer(dst, amt.quantity.amount); });
    }
 
-   [[eosio::action]] void transferfrom(name msg_sender, name src, name dst, const extended_asset& amt) {
-      factory.setMsgSender(msg_sender);
-      factory.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-         _token_.transferFrom(src, dst, amt.quantity.amount);
-      });
-   }
-
-   [[eosio::action]] void incapproval(name msg_sender, name dst, const extended_asset& amt) {
-      factory.setMsgSender(msg_sender);
-      factory.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-         _token_.increaseApproval(dst, amt.quantity.amount);
-      });
-   }
-
-   [[eosio::action]] void decapproval(name msg_sender, name dst, const extended_asset& amt) {
-      factory.setMsgSender(msg_sender);
-      factory.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-         _token_.decreaseApproval(dst, amt.quantity.amount);
-      });
-   }
    /////test interface /////
    [[eosio::action]] void mint(name msg_sender, const extended_asset& amt) {
       factory.setMsgSender(msg_sender);
@@ -190,12 +169,6 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
       });
    }
 
-   [[eosio::action]] void move(name msg_sender, name dst, const extended_asset& amt) {
-      factory.setMsgSender(msg_sender);
-      factory.token(to_namesym(amt.get_extended_symbol()), [&](auto& _token_) {
-         _token_._move(msg_sender, dst, amt.quantity.amount);
-      });
-   }
    ////////////////////extended_token////////////////////
 
    /**
@@ -211,7 +184,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
     * @pre Maximum supply must be positive;
     */
    [[eosio::action]] void create(const name& issuer, const extended_asset& maximum_supply) {
-      extoken.create( issuer,  maximum_supply);
+      extoken.create(issuer, maximum_supply);
    }
    /**
     *  This action issues to `to` account a `quantity` of tokens.
@@ -221,7 +194,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
     * @memo - the memo string that accompanies the token issue transaction.
     */
    [[eosio::action]] void issue(const name& to, const extended_asset& quantity, const string& memo) {
-      extoken.issue( to,  quantity, memo);
+      extoken.issue(to, quantity, memo);
    }
 
    /**
@@ -231,9 +204,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
     * @param quantity - the quantity of tokens to retire,
     * @param memo - the memo string to accompany the transaction.
     */
-   [[eosio::action]] void retire(const extended_asset& quantity, const string& memo) {
-      extoken.retire( quantity,  memo);
-   }
+   [[eosio::action]] void retire(const extended_asset& quantity, const string& memo) { extoken.retire(quantity, memo); }
 
    /**
     * Allows `from` account to transfer to `to` account the `quantity` tokens.
@@ -246,7 +217,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
     */
    [[eosio::action]] void transfer(
        const name& from, const name& to, const extended_asset& quantity, const string& memo) {
-      extoken.transfer( from, to,  quantity,  memo);
+      extoken.transfer(from, to, quantity, memo);
    }
    /**
     * Allows `ram_payer` to create an account `owner` with zero balance for
@@ -260,7 +231,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
     * and [here](https://github.com/EOSIO/eosio.contracts/issues/61).
     */
    [[eosio::action]] void open(const name& owner, const extended_symbol& symbol, const name& ram_payer) {
-      extoken.open(owner, symbol,  ram_payer);
+      extoken.open(owner, symbol, ram_payer);
    }
 
    /**
@@ -273,9 +244,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
     * @pre The pair of owner plus symbol has to exist otherwise no action is executed,
     * @pre If the pair of owner plus symbol exists, the balance has to be zero.
     */
-   [[eosio::action]] void close(const name& owner, const extended_symbol& symbol) {
-      extoken.close( owner,  symbol);
-   }
+   [[eosio::action]] void close(const name& owner, const extended_symbol& symbol) { extoken.close(owner, symbol); }
 
    ////////////////////on_notify////////////////////
    [[eosio::on_notify("eosio.token::transfer")]] void on_transfer(

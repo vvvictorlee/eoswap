@@ -1,10 +1,8 @@
 #include <common/extended_token.hpp>
 
-namespace extendedtoken
-{
+namespace extendedtoken {
 void extended_token::create(const name& issuer, const extended_asset& maximum_supply) {
    require_auth(get_self());
-
    auto sym = maximum_supply.quantity.symbol;
    check(sym.is_valid(), "invalid symbol name");
    check(maximum_supply.quantity.is_valid(), "invalid supply");
@@ -12,7 +10,7 @@ void extended_token::create(const name& issuer, const extended_asset& maximum_su
 
    stats statstable(get_self(), maximum_supply.contract.value);
    auto  existing = statstable.find(sym.code().raw());
-   check(existing == statstable.end(), "extended_token with symbol already exists");
+   check(existing == statstable.end(), "token with symbol already exists");
 
    statstable.emplace(get_self(), [&](auto& s) {
       s.supply.symbol = maximum_supply.quantity.symbol;
@@ -96,7 +94,10 @@ void extended_token::sub_balance(const name& owner, const extended_asset& value)
    //    const auto& from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
    check(from.balance.quantity.amount >= value.quantity.amount, "overdrawn balance");
 
-   from_acnts.modify(from, owner, [&](auto& a) { a.balance -= value; });
+   auto its = from_acnts.find(it->sequence);
+   check(its != from_acnts.end(), "extended_symbol does not exist");
+
+   from_acnts.modify(its, owner, [&](auto& a) { a.balance -= value; });
 }
 
 void extended_token::add_balance(const name& owner, const extended_asset& value, const name& ram_payer) {
@@ -108,7 +109,9 @@ void extended_token::add_balance(const name& owner, const extended_asset& value,
    if (to == idx.end()) {
       to_acnts.emplace(ram_payer, [&](auto& a) { a.balance = value; });
    } else {
-      to_acnts.modify(*to, same_payer, [&](auto& a) { a.balance += value; });
+      auto its = to_acnts.find(to->sequence);
+      check(its != to_acnts.end(), "extended_symbol does not exist");
+      to_acnts.modify(its, same_payer, [&](auto& a) { a.balance += value; });
    }
 }
 
@@ -141,4 +144,4 @@ void extended_token::close(const name& owner, const extended_symbol& symbol) {
    auto its = acnts.find(it->sequence);
    acnts.erase(its);
 }
-}
+} // namespace extendedtoken
