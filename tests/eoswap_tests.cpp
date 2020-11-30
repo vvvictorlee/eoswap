@@ -792,7 +792,6 @@ BOOST_FIXTURE_TEST_CASE(joinpool_tests, eoswap_tester) try {
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(exitpool_tests, eoswap_tester) try {
-
    newpoolBefore();
    mintBefore1();
    bindBefore1();
@@ -813,13 +812,21 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eoswap_tester) try {
    before();
+   auto pool = get_pool_table(N(pool));
+   BOOST_TEST_CHECK(nullptr == pool);
    swapamtin(user1, N(pool), to_asset(2500000, "WETH"), to_wei_asset(475, "DAI"), to_wei(200));
+   pool = get_pool_table(N(pool));
+   BOOST_TEST_CHECK(nullptr == pool);
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(swapExactAmountOut_tests, eoswap_tester) try {
    before();
+   auto pool = get_pool_store();
+   BOOST_TEST_CHECK(nullptr == pool);
    swapamtout(user1, N(pool), to_wei_asset(3, "WETH"), to_wei_asset(1, "MKR"), to_wei(500));
+   pool = get_pool_store();
+   BOOST_TEST_CHECK(nullptr == pool);
 }
 FC_LOG_AND_RETHROW()
 
@@ -860,7 +867,7 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(extransfer_tests, eoswap_tester) try {
    const std::string     token_name = "POOL";
-   const extended_asset& max_supply = to_asset(1,token_name);
+   const extended_asset& max_supply = to_asset(1, token_name);
    newtoken(admin, to_maximum_supply(token_name));
    mint(N(alice1111111), max_supply);
    const symbol& sym = max_supply.quantity.get_symbol();
@@ -911,8 +918,9 @@ BOOST_FIXTURE_TEST_CASE(create_max_supply, eoswap_tester) try {
    REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "0 TKN")("max_supply", "4611686018427387903 TKN")("issuer", "alice"));
    produce_blocks(1);
 
-   extended_asset max=extended_asset{asset{10, symbol(SY(0, NKT))}, name{"eoswapeoswap"}};//max(10, symbol(SY(0, NKT)));
-   share_type     amount = 4611686018427387904;
+   extended_asset max =
+       extended_asset{asset{10, symbol(SY(0, NKT))}, name{"eoswapeoswap"}}; // max(10, symbol(SY(0, NKT)));
+   share_type amount = 4611686018427387904;
    static_assert(sizeof(share_type) <= sizeof(extended_asset), "extended_asset changed so test is no longer valid");
    static_assert(std::is_trivially_copyable<extended_asset>::value, "extended_asset is not trivially copyable");
    memcpy(&max, &amount, sizeof(share_type)); // hack in an invalid amount
@@ -931,8 +939,8 @@ BOOST_FIXTURE_TEST_CASE(create_max_decimals, eoswap_tester) try {
        stats, mvo()("supply", "0.000000000000000000 TKN")("max_supply", "1.000000000000000000 TKN")("issuer", "alice"));
    produce_blocks(1);
 
-// extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eoswapeoswap"}}
-   extended_asset max=extended_asset{asset{10, symbol(SY(0, NKT))}, name{"eoswapeoswap"}};
+   // extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eoswapeoswap"}}
+   extended_asset max = extended_asset{asset{10, symbol(SY(0, NKT))}, name{"eoswapeoswap"}};
    // 1.0000000000000000000 => 0x8ac7230489e80000L
    share_type amount = 0x8ac7230489e80000L;
    static_assert(sizeof(share_type) <= sizeof(extended_asset), "extended_asset changed so test is no longer valid");

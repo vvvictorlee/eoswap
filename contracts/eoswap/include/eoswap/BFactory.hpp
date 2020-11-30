@@ -41,7 +41,7 @@ class BFactory : public BBronze {
    bool isBPool(name pool) { return _factory_storage.isBPool[pool]; }
 
    void newBPool(name pool_name) {
-     const  BPoolStore&  poolStore  = _storage_mgmt.newPool(msg_sender,pool_name);
+      const BPoolStore&  poolStore  = _storage_mgmt.newPool(msg_sender,pool_name);
       BTokenStore& tokenStore = _storage_mgmt.newTokenStore(to_namesym(extended_symbol(symbol("BPT", 4), pool_name)));
       BPool        pool(self, *this, pool_name,poolStore, tokenStore);
       pool.init();
