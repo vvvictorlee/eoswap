@@ -20,7 +20,7 @@ using mvo      = fc::mutable_variant_object;
 using uint_eth = uint64_t;
 using namesym  = eosio::chain::uint128_t;
 
-#define EOSWAP_DEBUG
+// #define EOSWAP_DEBUG
 #ifdef EOSWAP_DEBUG
 #define LINE_DEBUG BOOST_TEST_CHECK(__LINE__ == 0);
 #else
@@ -50,13 +50,17 @@ class eoswap_tester : public tester {
                        N(eosio.saving), N(eosio.names), N(eosio.rex)});
 
       create_accounts({N(alice), N(bob), N(carol), N(eoswapeoswap), N(pool)});
+      create_accounts({N(poolmanagers), N(poolfactorys), N(blabsblabs11), N(tokenissuers)});
       create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(eoswapxtoken)});
       create_accounts({N(extendxtoken)});
       produce_blocks(2);
-      admin    = N(eoswapeoswap);
-      nonadmin = N(alice);
-      user1    = N(bob);
-      user2    = N(carol);
+      admin         = N(eoswapeoswap);
+      nonadmin      = N(alice);
+      user1         = N(bob);
+      user2         = N(carol);
+      tokenissuer   = N(tokenissuers);
+      newcontroller = N(poolmanagers);
+      newblabs      = N(blabsblabs11);
       set_code(N(eoswapeoswap), contracts::swap_wasm());
       set_abi(N(eoswapeoswap), contracts::swap_abi().data());
       produce_blocks(2);
@@ -134,7 +138,10 @@ class eoswap_tester : public tester {
    action_result push_action(const account_name& signer, const action_name& name, const variant_object& data) {
       if (!is_auth_token) {
          is_auth_token = true;
+         push_permission_update_auth_action(N(poolmanagers));
+         push_permission_update_auth_action(N(tokenissuers));
          push_permission_update_auth_action(N(eoswapxtoken));
+         push_permission_update_auth_action(admin);
          push_permission_update_auth_action(nonadmin);
          push_permission_update_auth_action(user1);
          push_permission_update_auth_action(N(alice1111111));
@@ -359,10 +366,10 @@ class eoswap_tester : public tester {
    }
 
    action_result newtoken(account_name msg_sender, const extended_asset& token) {
-      return push_action(msg_sender, N(newtoken), mvo()("msg_sender", msg_sender)("token", token));
+      return push_action(N(eoswapeoswap), N(newtoken), mvo()("msg_sender", msg_sender)("token", token));
    }
-   action_result ttransfer(account_name msg_sender, account_name dst, const extended_asset& amt) {
-      return push_action(msg_sender, N(ttransfer), mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
+   action_result transferex(account_name msg_sender, account_name dst, const extended_asset& amt) {
+      return push_action(msg_sender, N(transferex), mvo()("msg_sender", msg_sender)("dst", dst)("amt", amt));
    }
 
    action_result mint(account_name msg_sender, const extended_asset& amt) {
@@ -382,25 +389,12 @@ class eoswap_tester : public tester {
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("BFactoryStorage", data, abi_serializer_max_time);
    }
 
-   fc::variant get_pool_store() {
-      vector<char> data = get_row_by_account(N(eoswapeoswap), N(eoswapeoswap), N(poolstore), N(poolstore));
-      if (data.empty())
-         std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("BPoolStorage", data, abi_serializer_max_time);
-   }
-
    fc::variant get_pool_table(name pool_name) {
       name         table_name = N(pools);
       vector<char> data       = get_row_by_account(N(eoswapeoswap), N(eoswapeoswap), table_name, pool_name);
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("pool_storage", data, abi_serializer_max_time);
    }
 
-   fc::variant get_token_store() {
-      vector<char> data = get_row_by_account(N(eoswapeoswap), N(eoswapeoswap), N(tokenstore), N(tokenstore));
-      if (data.empty())
-         std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("BTokenStorage", data, abi_serializer_max_time);
-   }
    ///////////////utils///////////////////////////
    void to_kv_helper(const fc::variant& v, std::function<void(const std::string&, const std::string&)>&& append) {
       if (v.is_object()) {
@@ -457,30 +451,15 @@ class eoswap_tester : public tester {
       return p.as<bool>();
    }
 
-   std::string balanceOf(const extended_symbol& token, name account) {
-      const auto s = get_token_store();
-      const auto t = find_variant(s["tokens"], ns_to_string(to_namesym(token)));
-      const auto b = find_value(t["balance"], account.to_string());
-      return b;
-   }
-
-   std::string allowance(const extended_symbol& token, name src, name dst) {
-      const auto s   = get_token_store();
-      const auto t   = find_variant(s["tokens"], ns_to_string(to_namesym(token)));
-      const auto a   = find_variant(t["allowance"], src.to_string());
-      const auto amt = find_value(a["dst2amt"], dst.to_string());
-      return amt;
-   }
-
    fc::variant records(name pool_name, const extended_symbol& token) {
-      const auto ps = get_pool_store();
+      const auto ps = get_pool_table(pool_name);
       const auto p  = find_variant(ps["pools"], pool_name.to_string());
       const auto r  = find_value(p["records"], ns_to_string(to_namesym(token)));
       return r;
    }
 
    fc::variant pools(name pool_name) {
-      const auto ps = get_pool_store();
+      const auto ps = get_pool_table(pool_name);
       const auto p  = find_variant(ps["pools"], pool_name.to_string());
       return p;
    }
@@ -533,14 +512,15 @@ class eoswap_tester : public tester {
 
    void setswapfeeBefore() {
       // await pool.setSwapFee(toWei('0.003'));
-      setswapfee(admin, N(pool), 3000);
+      setcontroler(admin, N(pool), newcontroller);
+      setswapfee(newcontroller, N(pool), 3000);
    }
 
    void mintBefore() {
-      newtoken(admin, to_maximum_supply("WETH"));
-      newtoken(admin, to_maximum_supply("MKR"));
-      newtoken(admin, to_maximum_supply("DAI"));
-      newtoken(admin, to_maximum_supply("XXX"));
+      newtoken(tokenissuer, to_maximum_supply("WETH"));
+      newtoken(tokenissuer, to_maximum_supply("MKR"));
+      newtoken(tokenissuer, to_maximum_supply("DAI"));
+      newtoken(tokenissuer, to_maximum_supply("XXX"));
 
       mint(admin, to_wei_asset(50, "WETH"));
       mint(admin, to_wei_asset(20, "MKR"));
@@ -562,12 +542,12 @@ class eoswap_tester : public tester {
    }
 
    void bindBefore() {
-      bind(admin, N(pool), to_wei_asset(50, "WETH"), to_wei(5));
-      bind(admin, N(pool), to_wei_asset(20, "MKR"), to_wei(5));
-      bind(admin, N(pool), to_wei_asset(10000, "DAI"), to_wei(5));
+      bind(newcontroller, N(pool), to_wei_asset(50, "WETH"), to_wei(5));
+      bind(newcontroller, N(pool), to_wei_asset(20, "MKR"), to_wei(5));
+      bind(newcontroller, N(pool), to_wei_asset(10000, "DAI"), to_wei(5));
    }
 
-   void finalizeBefore() { finalize(admin, N(pool)); }
+   void finalizeBefore() { finalize(newcontroller, N(pool)); }
 
    void joinpoolBefore() {
       std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1), uint_eth(-1)};
@@ -585,8 +565,8 @@ class eoswap_tester : public tester {
 
    void mintBefore1() {
 
-      newtoken(admin, to_maximum_supply("WETH"));
-      newtoken(admin, to_maximum_supply("DAI"));
+      newtoken(tokenissuer, to_maximum_supply("WETH"));
+      newtoken(tokenissuer, to_maximum_supply("DAI"));
 
       mint(admin, to_wei_asset(5, "WETH"));
       mint(admin, to_wei_asset(200, "DAI"));
@@ -596,8 +576,8 @@ class eoswap_tester : public tester {
    }
 
    void bindBefore1() {
-      bind(admin, N(pool), to_wei_asset(5, "WETH"), to_wei(5));
-      bind(admin, N(pool), to_wei_asset(200, "DAI"), to_wei(5));
+      bind(newcontroller, N(pool), to_wei_asset(5, "WETH"), to_wei(5));
+      bind(newcontroller, N(pool), to_wei_asset(200, "DAI"), to_wei(5));
    }
 
    void joinpoolBefore1() {
@@ -675,7 +655,18 @@ class eoswap_tester : public tester {
 
       str.erase(std::remove(str.begin(), str.end(), '.'), str.end());
       int64_t value = static_cast<int64_t>(to_int(str));
-      return extended_asset{asset{value, symbol{decmils, sym.c_str()}}, name{"extendxtoken"}};
+      return extended_asset{asset{value, symbol{decmils, sym.c_str()}}, N(extendxtoken)};
+   }
+
+   extended_symbol ext_sym_from_string(const std::string& tokenstr) {
+      std::vector<std::string> strvec = parse_string(tokenstr, ",");
+      const int                len    = strvec.size();
+      BOOST_REQUIRE_EQUAL(len, 2);
+      std::string str     = strvec[0];
+      std::string sym     = strvec[1];
+      uint8_t     decmils = static_cast<uint8_t>(to_int(str));
+
+      return extended_symbol{symbol{decmils, sym.c_str()}, N(extendxtoken)};
    }
 
    std::string to_symbol_code_string(const std::string& tokenstr) {
@@ -781,16 +772,19 @@ class eoswap_tester : public tester {
       return push_action(from, N(transfer), mvo()("from", from)("to", to)("quantity", quantity)("memo", memo));
    }
 
-   action_result open(account_name owner, const string& symbolname, account_name ram_payer) {
-      return push_action(ram_payer, N(open), mvo()("owner", owner)("symbol", symbolname)("ram_payer", ram_payer));
+   action_result open(account_name owner, const extended_symbol& symbol, account_name ram_payer) {
+      return push_action(ram_payer, N(open), mvo()("owner", owner)("symbol", symbol)("ram_payer", ram_payer));
    }
 
-   action_result close(account_name owner, const string& symbolname) {
-      return push_action(owner, N(close), mvo()("owner", owner)("symbol", "0,CERO"));
+   action_result close(account_name owner, const extended_symbol& symbol) {
+      return push_action(owner, N(close), mvo()("owner", owner)("symbol", symbol));
    }
    /////////////extended token////////////////////
    bool is_auth_token;
 
+   name           tokenissuer;
+   name           newcontroller;
+   name           newblabs;
    name           admin;
    name           nonadmin;
    name           user1;
@@ -816,8 +810,8 @@ BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
 
    newpoolBefore();
    mintBefore1();
-   bind(admin, N(pool), to_wei_asset(5, "WETH"), to_wei(5));
-   bind(admin, N(pool), to_wei_asset(200, "DAI"), to_wei(5));
+   bind(newcontroller, N(pool), to_wei_asset(5, "WETH"), to_wei(5));
+   bind(newcontroller, N(pool), to_wei_asset(200, "DAI"), to_wei(5));
 }
 FC_LOG_AND_RETHROW()
 
@@ -827,7 +821,7 @@ BOOST_FIXTURE_TEST_CASE(finalize_tests, eoswap_tester) try {
    mintBefore1();
    bindBefore1();
 
-   finalize(admin, N(pool));
+   finalize(newcontroller, N(pool));
    bool flag = pools(N(pool))["finalized"].as<bool>();
    BOOST_REQUIRE_EQUAL(true, flag);
 }
@@ -843,8 +837,8 @@ BOOST_FIXTURE_TEST_CASE(joinpool_tests, eoswap_tester) try {
    std::vector<uint_eth> v{uint_eth(-1), uint_eth(-1)};
    joinpool(nonadmin, N(pool), to_wei(10), v);
 
-   auto pool = get_pool_store();
-   BOOST_TEST_CHECK(nullptr == pool);
+   //    auto pool = get_pool_store();
+   //    BOOST_TEST_CHECK(nullptr == pool);-+----
 }
 FC_LOG_AND_RETHROW()
 
@@ -862,62 +856,62 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
 
    before1();
    collect(admin, N(pool));
-   const auto ab = balanceOf(to_pool_sym(N(pool)), admin);
+   const auto ab = get_account(admin,"4,BPT",N(pool));
    BOOST_REQUIRE_EQUAL(std::to_string(to_wei(100)), ab);
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eoswap_tester) try {
    before();
-   auto pool = get_pool_table(N(pool));
-   BOOST_TEST_CHECK(nullptr == pool);
+   //    auto pool = get_pool_table(N(pool));
+   //    BOOST_TEST_CHECK(nullptr == pool);
    swapamtin(user1, N(pool), to_asset(2500000, "WETH"), to_wei_asset(475, "DAI"), to_wei(200));
-   pool = get_pool_table(N(pool));
-   BOOST_TEST_CHECK(nullptr == pool);
+   //    pool = get_pool_table(N(pool));
+   //    BOOST_TEST_CHECK(nullptr == pool);
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(swapExactAmountOut_tests, eoswap_tester) try {
    before();
-   auto pool = get_pool_store();
-   BOOST_TEST_CHECK(nullptr == pool);
+   //    auto pool = get_pool_table(N(pool));
+   //    BOOST_TEST_CHECK(nullptr == pool);
    swapamtout(user1, N(pool), to_wei_asset(3, "WETH"), to_wei_asset(1, "MKR"), to_wei(500));
-   pool = get_pool_store();
-   BOOST_TEST_CHECK(nullptr == pool);
+   //    auto pool = get_pool_table(N(pool));
+   //    BOOST_TEST_CHECK(nullptr == pool);
 }
 FC_LOG_AND_RETHROW()
 
 ////////////////token////////////////////
 BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
    newpool(admin, N(pool));
-   newtoken(admin, to_maximum_supply("WETH"));
-   newtoken(admin, to_maximum_supply("DAI"));
+   newtoken(tokenissuer, to_maximum_supply("WETH"));
+   newtoken(tokenissuer, to_maximum_supply("DAI"));
    mint(N(alice), to_wei_asset(5, "WETH"));
    mint(N(alice), to_wei_asset(200, "DAI"));
 
-   const auto ab = balanceOf(to_sym("WETH"), N(alice));
+   const auto ab = get_account(N(alice),"4,WETH",N(pool));
    BOOST_REQUIRE_EQUAL(std::to_string(to_wei(5)), ab);
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(burn_tests, eoswap_tester) try {
-   newtoken(admin, to_maximum_supply("POOL"));
+   newtoken(tokenissuer, to_maximum_supply("POOL"));
    mint(admin, to_asset(300, "POOL"));
    burn(admin, to_asset(300, "POOL"));
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(swap_transfer_tests, eoswap_tester) try {
-   newtoken(admin, to_maximum_supply("POOL"));
+   newtoken(tokenissuer, to_maximum_supply("POOL"));
    mint(N(alice), to_asset(300, "POOL"));
-   ttransfer(N(alice), N(bob), to_asset(300, "POOL"));
+   transferex(N(alice), N(bob), to_asset(300, "POOL"));
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(extransfer_tests, eoswap_tester) try {
    const std::string     token_name = "POOL";
    const extended_asset& max_supply = to_asset(1, token_name);
-   newtoken(admin, to_maximum_supply(token_name));
+   newtoken(tokenissuer, to_maximum_supply(token_name));
    mint(N(alice1111111), max_supply);
    const symbol& sym = max_supply.quantity.get_symbol();
    extransfer(N(alice1111111), user2, max_supply);
@@ -929,10 +923,10 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(cppool2table_tests, eoswap_tester) try {
    before();
    auto pool = get_pool_table(N(pool));
-   BOOST_TEST_CHECK(nullptr == pool);
+   //    BOOST_TEST_CHECK(nullptr == pool);
    cppool2table(admin, N(pool));
    pool = get_pool_table(N(pool));
-   BOOST_TEST_CHECK(nullptr == pool);
+   //    BOOST_TEST_CHECK(nullptr == pool);
 }
 FC_LOG_AND_RETHROW()
 
@@ -1132,9 +1126,10 @@ BOOST_FIXTURE_TEST_CASE(open_tests, eoswap_tester) try {
 
    auto alice_balance = get_account(N(alice), "0,CERO");
    BOOST_REQUIRE_EQUAL(true, alice_balance.is_null());
-   BOOST_REQUIRE_EQUAL(
-       wasm_assert_msg("tokens can only be issued to issuer account"),
-       push_action(N(alice), N(issue), mvo()("to", "bob")("quantity", ext_asset_from_string("1000 CERO"))("memo", "")));
+   //    BOOST_REQUIRE_EQUAL(
+   //        wasm_assert_msg("tokens can only be issued to issuer account"),
+   //        push_action(N(alice), N(issue), mvo()("to", "bob")("quantity", ext_asset_from_string("1000 CERO"))("memo",
+   //        "")));
    BOOST_REQUIRE_EQUAL(success(), issue(N(alice), ext_asset_from_string("1000 CERO"), "issue"));
 
    alice_balance = get_account(N(alice), "0,CERO");
@@ -1144,8 +1139,9 @@ BOOST_FIXTURE_TEST_CASE(open_tests, eoswap_tester) try {
    auto bob_balance = get_account(N(bob), "0,CERO");
    BOOST_REQUIRE_EQUAL(true, bob_balance.is_null());
 
-   BOOST_REQUIRE_EQUAL(wasm_assert_msg("owner account does not exist"), open(N(nonexistent), "0,CERO", N(alice)));
-   BOOST_REQUIRE_EQUAL(success(), open(N(bob), "0,CERO", N(alice)));
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("owner account does not exist"), open(N(nonexistent), ext_sym_from_string("0,CERO"), N(alice)));
+   BOOST_REQUIRE_EQUAL(success(), open(N(bob), ext_sym_from_string("0,CERO"), N(alice)));
 
    bob_balance = get_account(N(bob), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(bob_balance, mvo()("balance", "0 CERO"));
@@ -1157,9 +1153,11 @@ BOOST_FIXTURE_TEST_CASE(open_tests, eoswap_tester) try {
    //    REQUIRE_MATCHING_OBJECT(bob_balance, mvo()("balance", "200 CERO"));
    BOOST_REQUIRE_EQUAL(bob_balance["quantity"], "200 CERO");
 
-   BOOST_REQUIRE_EQUAL(wasm_assert_msg("symbol does not exist"), open(N(carol), "0,INVALID", N(alice)));
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("symbol does not exist"), open(N(carol), ext_sym_from_string("0,INVALID"), N(alice)));
 
-   BOOST_REQUIRE_EQUAL(wasm_assert_msg("symbol precision mismatch"), open(N(carol), "1,CERO", N(alice)));
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("symbol precision mismatch"), open(N(carol), ext_sym_from_string("1,CERO"), N(alice)));
 }
 FC_LOG_AND_RETHROW()
 
@@ -1173,7 +1171,7 @@ BOOST_FIXTURE_TEST_CASE(close_tests, eoswap_tester) try {
    BOOST_REQUIRE_EQUAL(success(), issue(N(alice), ext_asset_from_string("1000 CERO"), "hola"));
 
    alice_balance = get_account(N(alice), "0,CERO");
-   REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "1000 CERO"));
+   //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "1000 CERO"));
    BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "1000 CERO");
 
    BOOST_REQUIRE_EQUAL(success(), transfer(N(alice), N(bob), ext_asset_from_string("1000 CERO"), "hola"));
@@ -1182,7 +1180,7 @@ BOOST_FIXTURE_TEST_CASE(close_tests, eoswap_tester) try {
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "0 CERO"));
    BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "0 CERO");
 
-   BOOST_REQUIRE_EQUAL(success(), close(N(alice), "0,CERO"));
+   BOOST_REQUIRE_EQUAL(success(), close(N(alice), ext_sym_from_string("0,CERO")));
    alice_balance = get_account(N(alice), "0,CERO");
    BOOST_REQUIRE_EQUAL(true, alice_balance.is_null());
 }

@@ -5,27 +5,7 @@
 #include <eosio/eosio.hpp>
 
 #include <string>
-namespace eosio::token
-{
- struct [[eosio::table]] account {
-            asset    balance;
 
-            uint64_t primary_key()const { return balance.symbol.code().raw(); }
-         };
-
-         struct [[eosio::table]] currency_stats {
-            asset    supply;
-            asset    max_supply;
-            name     issuer;
-
-            uint64_t primary_key()const { return supply.symbol.code().raw(); }
-         };
-
-         typedef eosio::multi_index< "accounts"_n, account > accounts;
-         typedef eosio::multi_index< "stat"_n, currency_stats > stats;
-}
-namespace extendedtoken
-{
 struct [[eosio::table, eosio::contract("eoswap")]] account {
    uint64_t       sequence;
    extended_asset balance;
@@ -46,8 +26,6 @@ typedef eosio::multi_index<
     "accounts"_n, account, indexed_by<"byextasset"_n, const_mem_fun<account, uint128_t, &account::by_extended_asset>>>
                                                      accounts;
 typedef eosio::multi_index<"stat"_n, currency_stats> stats;
-
-
 
 // namespace eosiosystem {
 //    class system_contract;
@@ -80,7 +58,7 @@ class extended_token {
     * @pre maximum_supply has to be smaller than the maximum supply allowed by the system: 1^62 - 1.
     * @pre Maximum supply must be positive;
     */
-   void create(const name& issuer, const extended_asset & maximum_supply);
+   void create(const name& issuer, const extended_asset& maximum_supply);
    /**
     *  This action issues to `to` account a `quantity` of tokens.
     *
@@ -88,7 +66,7 @@ class extended_token {
     * @param quntity - the amount of tokens to be issued,
     * @memo - the memo string that accompanies the token issue transaction.
     */
-   void issue(const name& to, const extended_asset & quantity, const string& memo);
+   void issue(const name& to, const extended_asset& quantity, const string& memo);
 
    /**
     * The opposite for create action, if all validations succeed,
@@ -97,7 +75,7 @@ class extended_token {
     * @param quantity - the quantity of tokens to retire,
     * @param memo - the memo string to accompany the transaction.
     */
-   void retire(const extended_asset & quantity, const string& memo);
+   void retire(const extended_asset& quantity, const string& memo);
 
    /**
     * Allows `from` account to transfer to `to` account the `quantity` tokens.
@@ -108,7 +86,7 @@ class extended_token {
     * @param quantity - the quantity of tokens to be transferred,
     * @param memo - the memo string to accompany the transaction.
     */
-   void transfer(const name& from, const name& to, const extended_asset & quantity, const string& memo);
+   void transfer(const name& from, const name& to, const extended_asset& quantity, const string& memo);
    /**
     * Allows `ram_payer` to create an account `owner` with zero balance for
     * token `symbol` at the expense of `ram_payer`.
@@ -134,23 +112,23 @@ class extended_token {
     */
    void close(const name& owner, const extended_symbol& symbol);
 
-   static asset get_supply(const name& token_contract_account, const symbol_code& sym_code) {
-      stats       statstable(token_contract_account, token_contract_account.value);
-      const auto& st = statstable.get(sym_code.raw());
+   static asset get_supply(const name& token_contract_account, const extended_symbol& ext_sym) {
+      stats       statstable(token_contract_account, ext_sym.get_contract().value);
+      const auto& st = statstable.get(ext_sym.get_symbol().code().raw());
       return st.supply;
    }
 
-   static name get_issuer(const name& token_contract_account, const symbol_code& sym_code) {
-      stats       statstable(token_contract_account, token_contract_account.value);
-      const auto& st = statstable.get(sym_code.raw());
+   static name get_issuer(const name& token_contract_account, const extended_symbol& ext_sym) {
+      stats       statstable(token_contract_account, ext_sym.get_contract().value);
+      const auto& st = statstable.get(ext_sym.get_symbol().code().raw());
       return st.issuer;
    }
 
    static asset get_balance(const name& token_contract_account, const name& owner, const extended_symbol& ext_sym) {
       accounts    accountstable(token_contract_account, owner.value);
-   auto     idx = accountstable.get_index<"byextasset"_n>();
-   auto     from  = idx.find(to_namesym(ext_sym));
-      const auto& ac = accountstable.get(ext_sym.get_symbol().code().raw());
+      auto        idx  = accountstable.get_index<"byextasset"_n>();
+      auto        from = idx.find(to_namesym(ext_sym));
+      const auto& ac   = accountstable.get(ext_sym.get_symbol().code().raw());
       return ac.balance.quantity;
    }
 
@@ -166,5 +144,3 @@ class extended_token {
    void sub_balance(const name& owner, const extended_asset& value);
    void add_balance(const name& owner, const extended_asset& value, const name& ram_payer);
 };
-
-}

@@ -7,9 +7,9 @@
 #include <eosio/symbol.hpp>
 #include <eosio/system.hpp>
 
-#define IS_DEBUG true
+#define EOSWAP_CONTRACT_DEBUG
 
-#if IS_DEBUG
+#ifdef EOSWAP_CONTRACT_DEBUG
 #define debug(args...) print(" | ", ##args)
 #else
 #define debug(args...)
@@ -20,6 +20,7 @@ using namespace eosio;
 using bytes = std::vector<char>;
 
 using address = name;
+using uint256m = uint128_t;
 using uint = uint64_t;
 using uint8 = uint8_t;
 using namesym =uint128_t;
@@ -30,6 +31,20 @@ static const std::string chain_token = "eth";
 static const std::string address_zero = "0";
 
 static const uint8_t current_bridge_version = 1;
+
+
+template <typename Arg, typename... Args>
+inline void my_print_f(const char* s, Arg val, Args... rest) {
+#ifdef EOSWAP_CONTRACT_DEBUG
+   print_f(s, val, rest...);
+#endif
+}
+
+inline void my_print_f(const char* s) {
+#ifdef EOSWAP_CONTRACT_DEBUG
+   print(s);
+#endif
+}
 
 void require(bool test, const char *cstr) { eosio::check(test, cstr); }
 

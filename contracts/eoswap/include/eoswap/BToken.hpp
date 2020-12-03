@@ -13,32 +13,33 @@
 
 #pragma once
 #include <common/BType.hpp>
+#include <common/extended_token.hpp>
 #include <eoswap/BNum.hpp>
 #include <storage/BTokenTable.hpp>
-
 // Highly opinionated token implementation
 
 class IERC20 {
  public:
-   virtual uint totalSupply()                 = 0;
-   virtual uint balanceOf(name whom)          = 0;
-   virtual uint allowance(name src, name dst) = 0;
+   virtual uint totalSupply()        = 0;
+   virtual uint balanceOf(name whom) = 0;
 
-   virtual bool approve(name dst, uint amt)                = 0;
    virtual bool transfer(name dst, uint amt)               = 0;
    virtual bool transferFrom(name src, name dst, uint amt) = 0;
 };
 
-template <typename TokenStoreType>
 class BTokenBase : public BNum {
  private:
-   name         self;
-   name         msg_sender;
-   BTokenStore& token_store;
+   name            self;
+   name            msg_sender;
+   extended_symbol ext_symbol;
+   BTokenStore&    token_store;
+   extended_token  _extended_token;
 
  public:
-   BTokenBase(name _self, TokenStoreType& _token_store)
+   BTokenBase(name _self, const extended_symbol& _ext_symbol, BTokenStore& _token_store)
        : self(_self)
+       , ext_symbol(_ext_symbol)
+       , _extended_token(_self)
        , token_store(_token_store) {}
    ~BTokenBase() {}
 
@@ -47,24 +48,30 @@ class BTokenBase : public BNum {
       msg_sender = _msg_sender;
    }
 
-   name         get_self() { return self; }
-   name         get_msg_sender() { return msg_sender; }
-   BTokenStore& get_token_store() { return token_store; }
-   void         _mint(uint amt) {
-      token_store.balance[msg_sender] = badd(token_store.balance[msg_sender], amt);
-      token_store.totalSupply         = badd(token_store.totalSupply, amt);
+   name            get_self() { return self; }
+   name            get_msg_sender() { return msg_sender; }
+   extended_symbol get_ext_symbol() { return ext_symbol; }
+   extended_token  get_ext_token() { return _extended_token; }
+   BTokenStore&    get_token_store() { return token_store; }
+   void            init(extended_asset max_supply) { _extended_token.create(msg_sender, max_supply); }
+   void            _mint(uint amt) {
+      //   token_store.balance[msg_sender] = badd(token_store.balance[msg_sender], amt);
+      //   token_store.totalSupply         = badd(token_store.totalSupply, amt);
+      _extended_token.issue(msg_sender, extended_asset(amt, ext_symbol), "");
    }
 
    void _burn(uint amt) {
-      require(token_store.balance[msg_sender] >= amt, "ERR_INSUFFICIENT_BAL");
-      token_store.balance[msg_sender] = bsub(token_store.balance[msg_sender], amt);
-      token_store.totalSupply         = bsub(token_store.totalSupply, amt);
+      //   require(token_store.balance[msg_sender] >= amt, "ERR_INSUFFICIENT_BAL");
+      //   token_store.balance[msg_sender] = bsub(token_store.balance[msg_sender], amt);
+      //   token_store.totalSupply         = bsub(token_store.totalSupply, amt);
+      _extended_token.retire(extended_asset(amt, ext_symbol), "");
    }
 
    void _move(name src, name dst, uint amt) {
-      require(token_store.balance[src] >= amt, "ERR_INSUFFICIENT_BAL");
-      token_store.balance[src] = bsub(token_store.balance[src], amt);
-      token_store.balance[dst] = badd(token_store.balance[dst], amt);
+      //   require(token_store.balance[src] >= amt, "ERR_INSUFFICIENT_BAL");
+      //   token_store.balance[src] = bsub(token_store.balance[src], amt);
+      //   token_store.balance[dst] = badd(token_store.balance[dst], amt);
+      _extended_token.transfer(src, dst, extended_asset(amt, ext_symbol), "");
    }
 
    void _push(name to, uint amt) { _move(msg_sender, to, amt); }
@@ -72,89 +79,43 @@ class BTokenBase : public BNum {
    void _pull(name from, uint amt) { _move(from, msg_sender, amt); }
 };
 
-template <typename TokenStoreType>
-class BToken : public BTokenBase<TokenStoreType>, public IERC20 {
+class BToken : public BTokenBase, public IERC20 {
  public:
-   BToken(name _self, TokenStoreType& token_store,const std::string& _name="Balancer Pool Token",const std::string& _symbol="BPT",uint8 _decimals=18)
-       : BTokenBase<TokenStoreType>(_self, token_store) {
-      BTokenBase<TokenStoreType>::get_token_store().names     = _name;
-      BTokenBase<TokenStoreType>::get_token_store().symbol   = _symbol;
-      BTokenBase<TokenStoreType>::get_token_store().decimals = _decimals;
+   BToken(name _self, const extended_symbol& _ext_symbol, BTokenStore& token_store)
+       : BTokenBase(_self, _ext_symbol, token_store) {
+      //   get_token_store().names    = _ext_symbol.get_contract().to_string();
+      //   get_token_store().symbol   = _ext_symbol.get_symbol().code().to_string();
+      //   get_token_store().decimals = _ext_symbol.get_symbol().precision();
    }
 
-   std::string namestring() { return BTokenBase<TokenStoreType>::get_token_store().names; }
+   std::string namestring() { return get_ext_symbol().get_contract().to_string(); }
 
-   std::string symbol() { return BTokenBase<TokenStoreType>::get_token_store().symbol; }
+   std::string symbol() { return get_ext_symbol().get_symbol().code().to_string(); }
 
-   uint8 decimals() { return BTokenBase<TokenStoreType>::get_token_store().decimals; }
+   uint8 decimals() { return get_ext_symbol().get_symbol().precision(); }
 
-   virtual uint allowance(name src, name dst) override {
-      return BTokenBase<TokenStoreType>::get_token_store().allowance[src].dst2amt[dst];
+   virtual uint balanceOf(name whom) override {
+      return get_ext_token().get_balance(get_self(), whom, get_ext_symbol()).amount;
    }
 
-   virtual uint balanceOf(name whom) override { return BTokenBase<TokenStoreType>::get_token_store().balance[whom]; }
-
-   virtual uint totalSupply() override { return BTokenBase<TokenStoreType>::get_token_store().totalSupply; }
-
-   virtual bool approve(name dst, uint amt) override {
-      BTokenBase<TokenStoreType>::get_token_store()
-          .allowance[BTokenBase<TokenStoreType>::get_msg_sender()]
-          .dst2amt[dst] = amt;
-      return true;
-   }
-
-   bool increaseApproval(name dst, uint amt) {
-      BTokenBase<TokenStoreType>::get_token_store()
-          .allowance[BTokenBase<TokenStoreType>::get_msg_sender()]
-          .dst2amt[dst] = BTokenBase<TokenStoreType>::badd(
-          BTokenBase<TokenStoreType>::get_token_store()
-              .allowance[BTokenBase<TokenStoreType>::get_msg_sender()]
-              .dst2amt[dst],
-          amt);
-      return true;
-   }
-
-   bool decreaseApproval(name dst, uint amt) {
-      uint oldValue = BTokenBase<TokenStoreType>::get_token_store()
-                          .allowance[BTokenBase<TokenStoreType>::get_msg_sender()]
-                          .dst2amt[dst];
-      if (amt > oldValue) {
-         BTokenBase<TokenStoreType>::get_token_store()
-             .allowance[BTokenBase<TokenStoreType>::get_msg_sender()]
-             .dst2amt[dst] = 0;
-      } else {
-         BTokenBase<TokenStoreType>::get_token_store()
-             .allowance[BTokenBase<TokenStoreType>::get_msg_sender()]
-             .dst2amt[dst] = BTokenBase<TokenStoreType>::bsub(oldValue, amt);
-      }
-      return true;
-   }
+   virtual uint totalSupply() override { return get_ext_token().get_supply(get_self(), get_ext_symbol()).amount; }
 
    virtual bool transfer(name dst, uint amt) override {
-      BTokenBase<TokenStoreType>::_move(BTokenBase<TokenStoreType>::get_msg_sender(), dst, amt);
+      _move(get_msg_sender(), dst, amt);
       return true;
    }
 
    virtual bool transferFrom(name src, name dst, uint amt) override {
-      require(
-          BTokenBase<TokenStoreType>::get_msg_sender() == src ||
-              amt <= BTokenBase<TokenStoreType>::get_token_store()
-                         .allowance[src]
-                         .dst2amt[BTokenBase<TokenStoreType>::get_msg_sender()],
-          "ERR_BTOKEN_BAD_CALLER");
-      BTokenBase<TokenStoreType>::_move(src, dst, amt);
-      if (BTokenBase<TokenStoreType>::get_msg_sender() != src &&
-          BTokenBase<TokenStoreType>::get_token_store()
-                  .allowance[src]
-                  .dst2amt[BTokenBase<TokenStoreType>::get_msg_sender()] != uint(-1)) {
-         BTokenBase<TokenStoreType>::get_token_store()
-             .allowance[src]
-             .dst2amt[BTokenBase<TokenStoreType>::get_msg_sender()] = BTokenBase<TokenStoreType>::bsub(
-             BTokenBase<TokenStoreType>::get_token_store()
-                 .allowance[src]
-                 .dst2amt[BTokenBase<TokenStoreType>::get_msg_sender()],
-             amt);
-      }
+      //   require(
+      //       get_msg_sender() == src || amt <= get_token_store().allowance[src].dst2amt[get_msg_sender()],
+      //       "ERR_BTOKEN_BAD_CALLER");
+      //   _move(src, dst, amt);
+      //   if (get_msg_sender() != src && get_token_store().allowance[src].dst2amt[get_msg_sender()] != uint(-1)) {
+      //      get_token_store().allowance[src].dst2amt[get_msg_sender()] =
+      //          bsub(get_token_store().allowance[src].dst2amt[get_msg_sender()], amt);
+      //   }
+      _move(src, dst, amt);
+
       return true;
    }
 };

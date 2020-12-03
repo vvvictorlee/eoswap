@@ -256,14 +256,14 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void setparameter(name msg_sender, name dodo_name, name para_name, uint64_t para_value) {
       check(admin_account == msg_sender, "no  admin");
-      check(para_name == "k"_n || para_name == "lpfeerate"_n|| para_name == "mtfeerate"_n, "no  parameter");
+      check(para_name == "k"_n || para_name == "lpfeerate"_n || para_name == "mtfeerate"_n, "no  parameter");
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) {
          if (para_name == "k"_n) {
             dodo.setK(para_value);
-         } else  if (para_name == "lpfeerate"_n) {
+         } else if (para_name == "lpfeerate"_n) {
             dodo.setLiquidityProviderFeeRate(para_value);
-         }else{
+         } else {
             dodo.setMaintainerFeeRate(para_value);
          }
       });
@@ -315,6 +315,12 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_storage_mgmt().save_oracle_price(msg_sender, basetoken, quotetoken);
+   }
+
+   [[eosio::action]] void moveoracle(name msg_sender) {
+      check(oracle_account == msg_sender, "no oracle admin");
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_storage_mgmt().move_oracle_price(msg_sender);
    }
 
    ////////////////////  TOKEN////////////////////////

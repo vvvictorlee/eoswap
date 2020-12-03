@@ -484,6 +484,10 @@ class eosdos_tester : public tester {
           msg_sender, N(setprice), mvo()("msg_sender", msg_sender)("basetoken", basetoken)("quotetoken", quotetoken));
    }
 
+   action_result moveoracle(name msg_sender) {
+      return push_action(msg_sender, N(moveoracle), mvo()("msg_sender", msg_sender));
+   }
+
    //////////////////TOKEN//////////////
    action_result extransfer(name from, name to, const extended_asset& quantity, const std::string& memo = "") {
       return push_action(from, N(extransfer), mvo()("from", from)("to", to)("quantity", quantity)("memo", memo));
@@ -545,8 +549,8 @@ class eosdos_tester : public tester {
           basetoken.contract.to_uint64_t(), basetoken.sym.value(), quotetoken.contract.to_uint64_t(),
           quotetoken.sym.value()));
       const auto& db  = control->db();
-      const auto* tbl = db.find<table_id_object, by_code_scope_table>(
-          boost::make_tuple(N(eosdoseosdos), N(eosdoseosdos), N(oracles)));
+      const auto* tbl =
+          db.find<table_id_object, by_code_scope_table>(boost::make_tuple(N(eosdoseosdos), name(key), N(oracles)));
       vector<char> data;
       // the balance is implied to be 0 if either the table or row does not exist
       if (tbl) {
@@ -1199,26 +1203,8 @@ BOOST_FIXTURE_TEST_CASE(setprice_tests, eosdos_tester) try {
       auto b = bb["quotetoken"]["quantity"].as_string();
       BOOST_REQUIRE_EQUAL(b, a);
    }
-   // BOOST_TEST_CHECK(b["basetoken"]==to_sym("WETH"));
-   //    REQUIRE_MATCHING_OBJECT( b, mvo()
-   //       ("basetoken", to_sym("WETH"))
-   //       ("quotetoken", to_wei_asset(5,"MKR"))
-   //       ("_OWNER_", "")
-   //       ("_NEW_OWNER_",  "" )
-   //    );
 
-   //  {
-   //   "basetoken": {
-   //     "sym": "4,WETH",
-   //     "contract": "eosdosxtoken"
-   //   },
-   //   "quotetoken": {
-   //     "quantity": "5.0000 MKR",
-   //     "contract": "eosdosxtoken"
-   //   },
-   //   "_OWNER_": "",
-   //   "_NEW_OWNER_": ""
-   // }
+   moveoracle(oracleadmin);
 }
 FC_LOG_AND_RETHROW()
 

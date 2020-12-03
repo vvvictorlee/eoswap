@@ -1,6 +1,5 @@
 #include <common/extended_token.hpp>
 
-namespace extendedtoken {
 void extended_token::create(const name& issuer, const extended_asset& maximum_supply) {
    require_auth(get_self());
    auto sym = maximum_supply.quantity.symbol;
@@ -28,7 +27,7 @@ void extended_token::issue(const name& to, const extended_asset& quantity, const
    auto  existing = statstable.find(sym.code().raw());
    check(existing != statstable.end(), "extended_token with symbol does not exist, create extended_token before issue");
    const auto& st = *existing;
-   check(to == st.issuer, "tokens can only be issued to issuer account");
+//    check(to == st.issuer, "tokens can only be issued to issuer account");
 
    require_auth(st.issuer);
    check(quantity.quantity.is_valid(), "invalid quantity");
@@ -144,4 +143,3 @@ void extended_token::close(const name& owner, const extended_symbol& symbol) {
    auto its = acnts.find(it->sequence);
    acnts.erase(its);
 }
-} // namespace extendedtoken
