@@ -44,19 +44,19 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 
    //////////////////factory////////////////////////
    [[eosio::action]] void setblabs(name msg_sender, name blabs) {
-      check(admin_account == msg_sender, "no admin");
+    
       factory.setMsgSender(msg_sender);
       factory.setBLabs(blabs);
    }
 
    [[eosio::action]] void collect(name msg_sender, name pool_name) {
-      check(admin_account == msg_sender, "no admin");
+    
       factory.setMsgSender(msg_sender);
       factory.collect(pool_name);
    }
 
    [[eosio::action]] void newpool(name msg_sender, name pool_name) {
-      check(admin_account == msg_sender, "no admin");
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.newBPool(pool_name);
       factory.setMsgSender(msg_sender);
@@ -64,45 +64,45 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    }
 
    //////////////////POOL////////////////////////
-   [[eosio::action]] void setswapfee(name msg_sender, name pool_name, uint swapFee) {
-      check(admin_account == msg_sender, "no admin");
+   [[eosio::action]] void setswapfee(name msg_sender, name pool_name, uint64_t swapFee) {
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.setSwapFee(swapFee); });
    }
 
    [[eosio::action]] void setcontroler(name msg_sender, name pool_name, name manager) {
-      check(admin_account == msg_sender, "no admin");
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.setController(manager); });
    }
 
    [[eosio::action]] void setpubswap(name msg_sender, name pool_name, bool public_) {
-      check(admin_account == msg_sender, "no admin");
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.setPublicSwap(public_); });
    }
 
    [[eosio::action]] void finalize(name msg_sender, name pool_name) {
-      check(admin_account == msg_sender, "no admin");
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.finalize(); });
    }
    // _lock_  Bind does not lock because it jumps to `rebind`, which does
 
-   [[eosio::action]] void bind(name msg_sender, name pool_name, const extended_asset& balance, uint denorm) {
-      check(admin_account == msg_sender, "no admin");
+   [[eosio::action]] void bind(name msg_sender, name pool_name, const extended_asset& balance, uint64_t denorm) {
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.bind(balance, denorm); });
    }
 
-   [[eosio::action]] void rebind(name msg_sender, name pool_name, const extended_asset& balance, uint denorm) {
-      check(admin_account == msg_sender, "no admin");
+   [[eosio::action]] void rebind(name msg_sender, name pool_name, const extended_asset& balance, uint64_t denorm) {
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.rebind(balance, denorm); });
    }
 
    [[eosio::action]] void unbind(name msg_sender, name pool_name, const extended_symbol& token) {
-      check(admin_account == msg_sender, "no admin");
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.unbind(token); });
    }
@@ -110,26 +110,26 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    // Absorb any _token_ that have been sent to this contract into the pool
 
    [[eosio::action]] void gulp(name msg_sender, name pool_name, const extended_symbol& token) {
-      check(admin_account == msg_sender, "no admin");
+    
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.gulp(token); });
    }
 
    [[eosio::action]] void joinpool(
-       name msg_sender, name pool_name, uint poolAmountOut, std::vector<uint> maxAmountsIn) {
+       name msg_sender, name pool_name, uint64_t poolAmountOut, std::vector<uint64_t> maxAmountsIn) {
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.joinPool(poolAmountOut, maxAmountsIn); });
    }
 
    [[eosio::action]] void exitpool(
-       name msg_sender, name pool_name, uint poolAmountIn, std::vector<uint> minAmountsOut) {
+       name msg_sender, name pool_name, uint64_t poolAmountIn, std::vector<uint64_t> minAmountsOut) {
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.exitPool(poolAmountIn, minAmountsOut); });
    }
 
    [[eosio::action]] void swapamtin(
        name msg_sender, name pool_name, const extended_asset& tokenAmountIn, const extended_asset& minAmountOut,
-       uint maxPrice) {
+       uint64_t maxPrice) {
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(
           pool_name, [&](auto& pool) { pool.swapExactAmountIn(tokenAmountIn, minAmountOut, maxPrice); });
@@ -137,7 +137,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 
    [[eosio::action]] void swapamtout(
        name msg_sender, name pool_name, const extended_asset& maxAmountIn, const extended_asset& tokenAmountOut,
-       uint maxPrice) {
+       uint64_t maxPrice) {
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(
           pool_name, [&](auto& pool) { pool.swapExactAmountOut(maxAmountIn, tokenAmountOut, maxPrice); });
@@ -156,15 +156,20 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 
    [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
       check(tokenissuer_account == msg_sender, "no token issuer");
-      _instance_mgmt.setMsgSender(msg_sender);
-      _instance_mgmt.newToken(token);
       _instance_mgmt.get_transfer_mgmt().create(msg_sender, token);
    }
 
+   [[eosio::action]] void newtokenex(name msg_sender, const extended_asset& token) {
+      check(tokenissuer_account == msg_sender, "no token issuer");
+         BToken       otoken(_self,token.get_extended_symbol());
+        otoken.setMsgSender(msg_sender);
+        otoken.create(msg_sender,token);
+    }
+
    [[eosio::action]] void transferex(name msg_sender, name dst, const extended_asset& amt) {
-      _instance_mgmt.setMsgSender(msg_sender);
-      _instance_mgmt.token(
-          amt.get_extended_symbol(), [&](auto& _token_) { _token_.transfer(dst, amt.quantity.amount); });
+      BToken token(_self, amt.get_extended_symbol());
+      token.setMsgSender(msg_sender);
+      token.transfer(dst, amt.quantity.amount);
    }
 
    /////test interface /////
@@ -173,8 +178,9 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    }
 
    [[eosio::action]] void mintex(name msg_sender, const extended_asset& amt) {
-      _instance_mgmt.setMsgSender(msg_sender);
-      _instance_mgmt.token(amt.get_extended_symbol(), [&](auto& _token_) { _token_._mint(amt.quantity.amount); });
+      BToken token(_self, amt.get_extended_symbol());
+      token.setMsgSender(msg_sender);
+      token._mint(amt.quantity.amount);
    }
 
    [[eosio::action]] void burn(name msg_sender, const extended_asset& amt) {
@@ -184,10 +190,9 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 
    [[eosio::action]] void burnex(name msg_sender, const extended_asset& amt) {
       check(tokenissuer_account == msg_sender, "no token issuer");
-      _instance_mgmt.setMsgSender(msg_sender);
-      _instance_mgmt.token(amt.get_extended_symbol(), [&](auto& _token_) {
-         _token_._burn(amt.quantity.amount);
-      });
+      BToken token(_self, amt.get_extended_symbol());
+      token.setMsgSender(msg_sender);
+      token._burn(amt.quantity.amount);
    }
 
    ////////////////////extended_token////////////////////
@@ -281,7 +286,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
             auto           paras = transfer_mgmt::parse_string(action_event.param);
             name           pool_name;
             extended_asset balance;
-            uint           denorm;
+            uint64_t       denorm;
             _instance_mgmt.setMsgSender(action_event.msg_sender);
             _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.bind(balance, denorm); });
          }

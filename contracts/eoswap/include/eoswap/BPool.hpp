@@ -25,13 +25,11 @@ class BPool : public BToken, public BMath {
    name       pool_name;
 
  public:
-   BPool(
-       name _self, const extended_symbol& tokenx, IFactory& _ifactory, name _pool_name, const BPoolStore& _pool_store,
-       BTokenStore& _tokenStore)
+   BPool(name _self, const extended_symbol& tokenx, IFactory& _ifactory, name _pool_name, const BPoolStore& _pool_store)
        : ifactory(_ifactory)
        , pool_store(_pool_store)
        , pool_name(_pool_name)
-       , BToken(_self, tokenx, _tokenStore) {}
+       , BToken(_self, tokenx, false) {}
 
    ~BPool() { ifactory.get_storage_mgmt().savePool(pool_name, pool_store); }
 
@@ -53,6 +51,7 @@ class BPool : public BToken, public BMath {
       pool_store.swapFee    = MIN_FEE;
       pool_store.publicSwap = false;
       pool_store.finalized  = false;
+      createtoken();
    }
 
    bool isPublicSwap() { return pool_store.publicSwap; }
@@ -61,7 +60,7 @@ class BPool : public BToken, public BMath {
 
    bool isBound(namesym t) { return pool_store.records[t].bound; }
 
-   uint getNumTokens() { return pool_store.tokens.size(); }
+   uint64_t getNumTokens() { return pool_store.tokens.size(); }
 
    std::vector<namesym> getCurrentTokens() { return pool_store.tokens; }
 
@@ -70,32 +69,32 @@ class BPool : public BToken, public BMath {
       return pool_store.tokens;
    }
 
-   uint getDenormalizedWeight(const extended_symbol& tokenx) {
+   uint64_t getDenormalizedWeight(const extended_symbol& tokenx) {
       namesym token = to_namesym(tokenx);
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
       return pool_store.records[token].denorm;
    }
 
-   uint getTotalDenormalizedWeight() { return pool_store.totalWeight; }
+   uint64_t getTotalDenormalizedWeight() { return pool_store.totalWeight; }
 
-   uint getNormalizedWeight(const extended_symbol& tokenx) {
+   uint64_t getNormalizedWeight(const extended_symbol& tokenx) {
       namesym token = to_namesym(tokenx);
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
-      uint denorm = pool_store.records[token].denorm;
+      uint64_t denorm = pool_store.records[token].denorm;
       return BMath::bdiv(denorm, pool_store.totalWeight);
    }
 
-   uint getBalance(const extended_symbol& tokenx) {
+   uint64_t getBalance(const extended_symbol& tokenx) {
       namesym token = to_namesym(tokenx);
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
       return pool_store.records[token].balance;
    }
 
-   uint getSwapFee() { return pool_store.swapFee; }
+   uint64_t getSwapFee() { return pool_store.swapFee; }
 
    name getController() { return pool_store.controller; }
 
-   void setSwapFee(uint swapFee) {
+   void setSwapFee(uint64_t swapFee) {
       require(!pool_store.finalized, "ERR_IS_FINALIZED");
       require(get_msg_sender() == pool_store.controller, "ERR_NOT_CONTROLLER");
       require(swapFee >= MIN_FEE, "ERR_MIN_FEE");
@@ -126,11 +125,11 @@ class BPool : public BToken, public BMath {
       _pushPoolShare(get_msg_sender(), INIT_POOL_SUPPLY);
    }
 
-   void bind(const extended_asset& balancex, uint denorm)
+   void bind(const extended_asset& balancex, uint64_t denorm)
    // _lock_  Bind does not lock because it jumps to `rebind`, which does
    {
-      namesym token   = to_namesym(balancex.get_extended_symbol());
-      uint    balance = balancex.quantity.amount;
+      namesym  token   = to_namesym(balancex.get_extended_symbol());
+      uint64_t balance = balancex.quantity.amount;
       require(get_msg_sender() == pool_store.controller, "ERR_NOT_CONTROLLER");
       require(!pool_store.records[token].bound, "ERR_IS_BOUND");
       require(!pool_store.finalized, "ERR_IS_FINALIZED");
@@ -146,9 +145,9 @@ class BPool : public BToken, public BMath {
       rebind(balancex, denorm);
    }
 
-   void rebind(const extended_asset& balancex, uint denorm) {
-      namesym token   = to_namesym(balancex.get_extended_symbol());
-      uint    balance = balancex.quantity.amount;
+   void rebind(const extended_asset& balancex, uint64_t denorm) {
+      namesym  token   = to_namesym(balancex.get_extended_symbol());
+      uint64_t balance = balancex.quantity.amount;
       require(get_msg_sender() == pool_store.controller, "ERR_NOT_CONTROLLER");
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
       require(!pool_store.finalized, "ERR_IS_FINALIZED");
@@ -158,7 +157,7 @@ class BPool : public BToken, public BMath {
       require(balance >= MIN_BALANCE, "ERR_MIN_BALANCE");
 
       // Adjust the denorm and totalWeight
-      uint oldWeight = pool_store.records[token].denorm;
+      uint64_t oldWeight = pool_store.records[token].denorm;
       if (denorm > oldWeight) {
          pool_store.totalWeight = BMath::badd(pool_store.totalWeight, BMath::bsub(denorm, oldWeight));
          require(pool_store.totalWeight <= MAX_TOTAL_WEIGHT, "ERR_MAX_TOTAL_WEIGHT");
@@ -168,7 +167,7 @@ class BPool : public BToken, public BMath {
       pool_store.records[token].denorm = denorm;
 
       // Adjust the balance record and actual token balance
-      uint oldBalance                   = pool_store.records[token].balance;
+      uint64_t oldBalance               = pool_store.records[token].balance;
       pool_store.records[token].balance = balance;
       pool_store.records[token].exsym   = balancex.get_extended_symbol();
       const extended_symbol& exsym      = pool_store.records[token].exsym;
@@ -176,8 +175,8 @@ class BPool : public BToken, public BMath {
          _pullUnderlying(get_msg_sender(), extended_asset(BMath::bsub(balance, oldBalance), exsym));
       } else if (balance < oldBalance) {
          // In this case liquidity is being withdrawn, so charge EXIT_FEE
-         uint tokenBalanceWithdrawn = BMath::bsub(oldBalance, balance);
-         uint tokenExitFee          = BMath::bmul(tokenBalanceWithdrawn, EXIT_FEE);
+         uint64_t tokenBalanceWithdrawn = BMath::bsub(oldBalance, balance);
+         uint64_t tokenExitFee          = BMath::bmul(tokenBalanceWithdrawn, EXIT_FEE);
          _pushUnderlying(get_msg_sender(), extended_asset(BMath::bsub(tokenBalanceWithdrawn, tokenExitFee), exsym));
          _pushUnderlying(pool_store.factory, extended_asset(tokenExitFee, exsym));
       }
@@ -189,15 +188,15 @@ class BPool : public BToken, public BMath {
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
       require(!pool_store.finalized, "ERR_IS_FINALIZED");
 
-      uint tokenBalance = pool_store.records[token].balance;
-      uint tokenExitFee = BMath::bmul(tokenBalance, EXIT_FEE);
+      uint64_t tokenBalance = pool_store.records[token].balance;
+      uint64_t tokenExitFee = BMath::bmul(tokenBalance, EXIT_FEE);
 
       pool_store.totalWeight = BMath::bsub(pool_store.totalWeight, pool_store.records[token].denorm);
 
       // Swap the token-to-unbind with the last token,
       // then delete the last token
-      uint index                                         = pool_store.records[token].index;
-      uint last                                          = pool_store.tokens.size() - 1;
+      uint64_t index                                     = pool_store.records[token].index;
+      uint64_t last                                      = pool_store.tokens.size() - 1;
       pool_store.tokens[index]                           = pool_store.tokens[last];
       pool_store.records[pool_store.tokens[index]].index = index;
       pool_store.tokens.pop_back();
@@ -211,10 +210,10 @@ class BPool : public BToken, public BMath {
    void gulp(const extended_symbol& tokenx) {
       namesym token = to_namesym(tokenx);
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
-      pool_store.records[token].balance = transfer_mgmt::get_balance(get_self(), pool_store.records[token].exsym);
+      pool_store.records[token].balance = transfer_mgmt::get_balance(pool_name, pool_store.records[token].exsym);
    }
 
-   uint getSpotPrice(const extended_symbol& tokenInx, const extended_symbol& tokenOutx) {
+   uint64_t getSpotPrice(const extended_symbol& tokenInx, const extended_symbol& tokenOutx) {
       namesym tokenIn  = to_namesym(tokenInx);
       namesym tokenOut = to_namesym(tokenOutx);
       require(pool_store.records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -224,7 +223,7 @@ class BPool : public BToken, public BMath {
       return calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
    }
 
-   uint getSpotPriceSansFee(const extended_symbol& tokenInx, const extended_symbol& tokenOutx) {
+   uint64_t getSpotPriceSansFee(const extended_symbol& tokenInx, const extended_symbol& tokenOutx) {
       namesym tokenIn  = to_namesym(tokenInx);
       namesym tokenOut = to_namesym(tokenOutx);
       require(pool_store.records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -234,17 +233,17 @@ class BPool : public BToken, public BMath {
       return calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, 0);
    }
 
-   void joinPool(uint poolAmountOut, std::vector<uint> maxAmountsIn) {
+   void joinPool(uint64_t poolAmountOut, std::vector<uint64_t> maxAmountsIn) {
       require(pool_store.finalized, "ERR_NOT_FINALIZED");
 
-      uint poolTotal = totalSupply();
-      uint ratio     = BMath::bdiv(poolAmountOut, poolTotal);
+      uint64_t poolTotal = totalSupply();
+      uint64_t ratio     = BMath::bdiv(poolAmountOut, poolTotal);
       require(ratio != 0, "ERR_MATH_APPROX");
 
-      for (uint i = 0; i < pool_store.tokens.size(); i++) {
-         namesym t             = pool_store.tokens[i];
-         uint    bal           = pool_store.records[t].balance;
-         uint    tokenAmountIn = BMath::bmul(ratio, bal);
+      for (uint64_t i = 0; i < pool_store.tokens.size(); i++) {
+         namesym  t             = pool_store.tokens[i];
+         uint64_t bal           = pool_store.records[t].balance;
+         uint64_t tokenAmountIn = BMath::bmul(ratio, bal);
 
          require(tokenAmountIn != 0, "ERR_MATH_APPROX");
          require(tokenAmountIn <= maxAmountsIn[i], "ERR_LIMIT_IN joinPool");
@@ -255,23 +254,23 @@ class BPool : public BToken, public BMath {
       _pushPoolShare(get_msg_sender(), poolAmountOut);
    }
 
-   void exitPool(uint poolAmountIn, std::vector<uint> minAmountsOut) {
+   void exitPool(uint64_t poolAmountIn, std::vector<uint64_t> minAmountsOut) {
       require(pool_store.finalized, "ERR_NOT_FINALIZED");
 
-      uint poolTotal       = totalSupply();
-      uint exitFee         = BMath::bmul(poolAmountIn, EXIT_FEE);
-      uint pAiAfterExitFee = BMath::bsub(poolAmountIn, exitFee);
-      uint ratio           = BMath::bdiv(pAiAfterExitFee, poolTotal);
+      uint64_t poolTotal       = totalSupply();
+      uint64_t exitFee         = BMath::bmul(poolAmountIn, EXIT_FEE);
+      uint64_t pAiAfterExitFee = BMath::bsub(poolAmountIn, exitFee);
+      uint64_t ratio           = BMath::bdiv(pAiAfterExitFee, poolTotal);
       require(ratio != 0, "ERR_MATH_APPROX");
 
       _pullPoolShare(get_msg_sender(), poolAmountIn);
       _pushPoolShare(pool_store.factory, exitFee);
       _burnPoolShare(pAiAfterExitFee);
 
-      for (uint i = 0; i < pool_store.tokens.size(); i++) {
-         namesym t              = pool_store.tokens[i];
-         uint    bal            = pool_store.records[t].balance;
-         uint    tokenAmountOut = BMath::bmul(ratio, bal);
+      for (uint64_t i = 0; i < pool_store.tokens.size(); i++) {
+         namesym  t              = pool_store.tokens[i];
+         uint64_t bal            = pool_store.records[t].balance;
+         uint64_t tokenAmountOut = BMath::bmul(ratio, bal);
          require(tokenAmountOut != 0, "ERR_MATH_APPROX");
          require(tokenAmountOut >= minAmountsOut[i], "ERR_LIMIT_OUT");
          pool_store.records[t].balance = BMath::bsub(pool_store.records[t].balance, tokenAmountOut);
@@ -279,13 +278,12 @@ class BPool : public BToken, public BMath {
       }
    }
 
-   std::pair<uint, uint>
-   swapExactAmountIn(const extended_asset& tokenAmountInx, const extended_asset& minAmountOutx, uint maxPrice) {
-
-      namesym tokenIn       = to_namesym(tokenAmountInx.get_extended_symbol());
-      uint    tokenAmountIn = tokenAmountInx.quantity.amount;
-      namesym tokenOut      = to_namesym(minAmountOutx.get_extended_symbol());
-      uint    minAmountOut  = minAmountOutx.quantity.amount;
+   std::pair<uint64_t, uint64_t>
+   swapExactAmountIn(const extended_asset& tokenAmountInx, const extended_asset& minAmountOutx, uint64_t maxPrice) {
+      namesym  tokenIn       = to_namesym(tokenAmountInx.get_extended_symbol());
+      uint64_t tokenAmountIn = tokenAmountInx.quantity.amount;
+      namesym  tokenOut      = to_namesym(minAmountOutx.get_extended_symbol());
+      uint64_t minAmountOut  = minAmountOutx.quantity.amount;
 
       require(pool_store.records[tokenIn].bound, "ERR_NOT_BOUND");
       require(pool_store.records[tokenOut].bound, "ERR_NOT_BOUND");
@@ -294,25 +292,24 @@ class BPool : public BToken, public BMath {
       Record& inRecord  = pool_store.records[tokenIn];
       Record& outRecord = pool_store.records[tokenOut];
 
-      require(tokenAmountIn <= BMath::bmul(inRecord.balance, MAX_IN_RATIO), "ERR_MAX_IN_RATIO");
+      check(tokenAmountIn <= BMath::bmul(inRecord.balance, MAX_IN_RATIO), "ERR_MAX_IN_RATIO:MAX_IN_RATIO="+std::to_string(static_cast<uint64_t>(MAX_IN_RATIO))+":inRecord.balance="+std::to_string(inRecord.balance)+":BMath::bmul(inRecord.balance, MAX_IN_RATIO)="+std::to_string(static_cast<uint64_t>(BMath::bmul(inRecord.balance, MAX_IN_RATIO))));
 
-      uint spotPriceBefore =
+      uint64_t spotPriceBefore =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
-      require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
+      check(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE:spotPriceBefore=" + std::to_string(spotPriceBefore));
 
-      uint tokenAmountOut = calcOutGivenIn(
+      uint64_t tokenAmountOut = calcOutGivenIn(
           inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountIn, pool_store.swapFee);
-      print("===tokenAmountOut===", tokenAmountOut, "==minAmountOut===", minAmountOut);
-      require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
+ check(tokenAmountOut <= minAmountOut, "ERR_LIMIT_OUT:tokenAmountOut=" + std::to_string(tokenAmountOut));
 
       inRecord.balance  = BMath::badd(inRecord.balance, tokenAmountIn);
       outRecord.balance = BMath::bsub(outRecord.balance, tokenAmountOut);
 
-      uint spotPriceAfter =
+      uint64_t spotPriceAfter =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
-      require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
-      require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
-      require(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut), "ERR_MATH_APPROX");
+     check(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX:spotPriceAfter="+std::to_string(spotPriceAfter)+":spotPriceBefore="+std::to_string(spotPriceBefore));
+      check(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE:spotPriceAfter=" + std::to_string(spotPriceAfter));
+      check(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut), "ERR_MATH_APPROX:tokenAmountIn="+std::to_string(tokenAmountIn)+":tokenAmountOut="+std::to_string(tokenAmountOut)+":spotPriceBefore="+std::to_string(spotPriceBefore));
 
       _pullUnderlying(get_msg_sender(), tokenAmountInx);
       _pushUnderlying(get_msg_sender(), extended_asset(tokenAmountOut, minAmountOutx.get_extended_symbol()));
@@ -320,12 +317,12 @@ class BPool : public BToken, public BMath {
       return std::make_pair(tokenAmountOut, spotPriceAfter);
    }
 
-   std::pair<uint, uint>
-   swapExactAmountOut(const extended_asset& maxAmountInx, const extended_asset& tokenAmountOutx, uint maxPrice) {
-      namesym tokenIn        = to_namesym(maxAmountInx.get_extended_symbol());
-      uint    maxAmountIn    = maxAmountInx.quantity.amount;
-      namesym tokenOut       = to_namesym(tokenAmountOutx.get_extended_symbol());
-      uint    tokenAmountOut = tokenAmountOutx.quantity.amount;
+   std::pair<uint64_t, uint64_t>
+   swapExactAmountOut(const extended_asset& maxAmountInx, const extended_asset& tokenAmountOutx, uint64_t maxPrice) {
+      namesym  tokenIn        = to_namesym(maxAmountInx.get_extended_symbol());
+      uint64_t maxAmountIn    = maxAmountInx.quantity.amount;
+      namesym  tokenOut       = to_namesym(tokenAmountOutx.get_extended_symbol());
+      uint64_t tokenAmountOut = tokenAmountOutx.quantity.amount;
 
       require(pool_store.records[tokenIn].bound, "ERR_NOT_BOUND");
       require(pool_store.records[tokenOut].bound, "ERR_NOT_BOUND");
@@ -334,24 +331,24 @@ class BPool : public BToken, public BMath {
       Record& inRecord  = pool_store.records[tokenIn];
       Record& outRecord = pool_store.records[tokenOut];
 
-      require(tokenAmountOut <= BMath::bmul(outRecord.balance, MAX_OUT_RATIO), "ERR_MAX_OUT_RATIO");
+      check(tokenAmountOut <= BMath::bmul(outRecord.balance, MAX_OUT_RATIO), "ERR_MAX_OUT_RATIO:MAX_OUT_RATIO="+std::to_string(static_cast<uint64_t>(MAX_OUT_RATIO))+":outRecord.balance="+std::to_string(outRecord.balance)+":BMath::bmul(outRecord.balance, MAX_OUT_RATIO)="+std::to_string(static_cast<uint64_t>(BMath::bmul(outRecord.balance, MAX_OUT_RATIO))));
 
-      uint spotPriceBefore =
+      uint64_t spotPriceBefore =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
-      require(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE");
+      check(spotPriceBefore <= maxPrice, "ERR_BAD_LIMIT_PRICE:spotPriceBefore=" + std::to_string(spotPriceBefore));
 
-      uint tokenAmountIn = calcInGivenOut(
+      uint64_t tokenAmountIn = calcInGivenOut(
           inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountOut, pool_store.swapFee);
-      require(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN");
+      check(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN:tokenAmountIn=" + std::to_string(tokenAmountIn));
 
       inRecord.balance  = BMath::badd(inRecord.balance, tokenAmountIn);
       outRecord.balance = BMath::bsub(outRecord.balance, tokenAmountOut);
 
-      uint spotPriceAfter =
+      uint64_t spotPriceAfter =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
-      require(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX");
-      require(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE");
-      require(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut), "ERR_MATH_APPROX");
+      check(spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX:spotPriceAfter="+std::to_string(spotPriceAfter)+":spotPriceBefore="+std::to_string(spotPriceBefore));
+      check(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE:spotPriceAfter=" + std::to_string(spotPriceAfter));
+      check(spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut), "ERR_MATH_APPROX:tokenAmountIn="+std::to_string(tokenAmountIn)+":tokenAmountOut="+std::to_string(tokenAmountOut)+":spotPriceBefore="+std::to_string(spotPriceBefore));
 
       _pullUnderlying(get_msg_sender(), extended_asset(tokenAmountIn, maxAmountInx.get_extended_symbol()));
       _pushUnderlying(get_msg_sender(), tokenAmountOutx);
@@ -359,9 +356,9 @@ class BPool : public BToken, public BMath {
       return std::make_pair(tokenAmountIn, spotPriceAfter);
    }
 
-   uint joinswapExternAmountIn(const extended_asset& tokenAmountInx, uint minPoolAmountOut) {
-      namesym tokenIn       = to_namesym(tokenAmountInx.get_extended_symbol());
-      uint    tokenAmountIn = tokenAmountInx.quantity.amount;
+   uint64_t joinswapExternAmountIn(const extended_asset& tokenAmountInx, uint64_t minPoolAmountOut) {
+      namesym  tokenIn       = to_namesym(tokenAmountInx.get_extended_symbol());
+      uint64_t tokenAmountIn = tokenAmountInx.quantity.amount;
 
       require(pool_store.finalized, "ERR_NOT_FINALIZED");
       require(pool_store.records[tokenIn].bound, "ERR_NOT_BOUND");
@@ -369,7 +366,7 @@ class BPool : public BToken, public BMath {
 
       Record& inRecord = pool_store.records[tokenIn];
 
-      uint poolAmountOut = calcPoolOutGivenSingleIn(
+      uint64_t poolAmountOut = calcPoolOutGivenSingleIn(
           inRecord.balance, inRecord.denorm, totalSupply(), pool_store.totalWeight, tokenAmountIn, pool_store.swapFee);
 
       require(poolAmountOut >= minPoolAmountOut, "ERR_LIMIT_OUT");
@@ -383,16 +380,16 @@ class BPool : public BToken, public BMath {
       return poolAmountOut;
    }
 
-   uint joinswapPoolAmountOut(uint poolAmountOut, const extended_asset& maxAmountInx) {
-      namesym tokenIn     = to_namesym(maxAmountInx.get_extended_symbol());
-      uint    maxAmountIn = maxAmountInx.quantity.amount;
+   uint64_t joinswapPoolAmountOut(uint64_t poolAmountOut, const extended_asset& maxAmountInx) {
+      namesym  tokenIn     = to_namesym(maxAmountInx.get_extended_symbol());
+      uint64_t maxAmountIn = maxAmountInx.quantity.amount;
 
       require(pool_store.finalized, "ERR_NOT_FINALIZED");
       require(pool_store.records[tokenIn].bound, "ERR_NOT_BOUND");
 
       Record& inRecord = pool_store.records[tokenIn];
 
-      uint tokenAmountIn = calcSingleInGivenPoolOut(
+      uint64_t tokenAmountIn = calcSingleInGivenPoolOut(
           inRecord.balance, inRecord.denorm, totalSupply(), pool_store.totalWeight, poolAmountOut, pool_store.swapFee);
 
       require(tokenAmountIn != 0, "ERR_MATH_APPROX");
@@ -409,16 +406,16 @@ class BPool : public BToken, public BMath {
       return tokenAmountIn;
    }
 
-   uint exitswapPoolAmountIn(uint poolAmountIn, const extended_asset& minAmountOutx) {
-      namesym tokenOut     = to_namesym(minAmountOutx.get_extended_symbol());
-      uint    minAmountOut = minAmountOutx.quantity.amount;
+   uint64_t exitswapPoolAmountIn(uint64_t poolAmountIn, const extended_asset& minAmountOutx) {
+      namesym  tokenOut     = to_namesym(minAmountOutx.get_extended_symbol());
+      uint64_t minAmountOut = minAmountOutx.quantity.amount;
 
       require(pool_store.finalized, "ERR_NOT_FINALIZED");
       require(pool_store.records[tokenOut].bound, "ERR_NOT_BOUND");
 
       Record& outRecord = pool_store.records[tokenOut];
 
-      uint tokenAmountOut = calcSingleOutGivenPoolIn(
+      uint64_t tokenAmountOut = calcSingleOutGivenPoolIn(
           outRecord.balance, outRecord.denorm, totalSupply(), pool_store.totalWeight, poolAmountIn, pool_store.swapFee);
 
       require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
@@ -427,7 +424,7 @@ class BPool : public BToken, public BMath {
 
       outRecord.balance = BMath::bsub(outRecord.balance, tokenAmountOut);
 
-      uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
+      uint64_t exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
 
       _pullPoolShare(get_msg_sender(), poolAmountIn);
       _burnPoolShare(BMath::bsub(poolAmountIn, exitFee));
@@ -438,9 +435,9 @@ class BPool : public BToken, public BMath {
       return tokenAmountOut;
    }
 
-   uint exitswapExternAmountOut(const extended_asset& tokenAmountOutx, uint maxPoolAmountIn) {
-      namesym tokenOut       = to_namesym(tokenAmountOutx.get_extended_symbol());
-      uint    tokenAmountOut = tokenAmountOutx.quantity.amount;
+   uint64_t exitswapExternAmountOut(const extended_asset& tokenAmountOutx, uint64_t maxPoolAmountIn) {
+      namesym  tokenOut       = to_namesym(tokenAmountOutx.get_extended_symbol());
+      uint64_t tokenAmountOut = tokenAmountOutx.quantity.amount;
 
       require(pool_store.finalized, "ERR_NOT_FINALIZED");
       require(pool_store.records[tokenOut].bound, "ERR_NOT_BOUND");
@@ -448,7 +445,7 @@ class BPool : public BToken, public BMath {
 
       Record& outRecord = pool_store.records[tokenOut];
 
-      uint poolAmountIn = calcPoolInGivenSingleOut(
+      uint64_t poolAmountIn = calcPoolInGivenSingleOut(
           outRecord.balance, outRecord.denorm, totalSupply(), pool_store.totalWeight, tokenAmountOut,
           pool_store.swapFee);
 
@@ -457,7 +454,7 @@ class BPool : public BToken, public BMath {
 
       outRecord.balance = BMath::bsub(outRecord.balance, tokenAmountOut);
 
-      uint exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
+      uint64_t exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
 
       _pullPoolShare(get_msg_sender(), poolAmountIn);
       _burnPoolShare(BMath::bsub(poolAmountIn, exitFee));
@@ -472,18 +469,54 @@ class BPool : public BToken, public BMath {
    // locked You must `_lock_` or otherwise ensure reentry-safety
    void _pullUnderlying(name from, const extended_asset& amountx) {
       /// transfer memo implementation
-      ifactory.get_transfer_mgmt().transfer(from, get_self(), amountx, "");
+      my_print_f("_pullUnderlying======= %,%,%==", from, pool_name, amountx);
+      if (0 == amountx.quantity.amount) {
+         return;
+      }
+      ifactory.get_transfer_mgmt().transfer(from, pool_name, amountx, "");
    }
 
    void _pushUnderlying(name to, const extended_asset& amountx) {
-      ifactory.get_transfer_mgmt().transfer(get_self(), to, amountx, "");
+      my_print_f("_pushUnderlying=======%,%,%==", pool_name, to, amountx);
+      if (0 == amountx.quantity.amount) {
+         return;
+      }
+      ifactory.get_transfer_mgmt().transfer(pool_name, to, amountx, "");
    }
 
-   void _pullPoolShare(name from, uint amount) { _pull(from, amount); }
+   void _pullPoolShare(name from, uint64_t amount) {
+      my_print_f("_pullPoolShare======= %,%,%==", from, pool_name, amount);
+      if (0 == amount) {
+         return;
+      }
+      set_caller(pool_name);
+      _pull(from, amount);
+   }
 
-   void _pushPoolShare(name to, uint amount) { _push(to, amount); }
+   void _pushPoolShare(name to, uint64_t amount) {
+      my_print_f("_pushPoolShare======= %,%,%==", to, pool_name, amount);
+      if (0 == amount) {
+         return;
+      }
+      set_caller(pool_name);
+      _push(to, amount);
+   }
 
-   void _mintPoolShare(uint amount) { _mint(amount); }
+   void _mintPoolShare(uint64_t amount) {
+      my_print_f("_mintPoolShare======= %,%==", pool_name, amount);
+      if (0 == amount) {
+         return;
+      }
+      set_caller(pool_name);
+      _mint(amount);
+   }
 
-   void _burnPoolShare(uint amount) { _burn(amount); }
+   void _burnPoolShare(uint64_t amount) {
+      my_print_f("_burnPoolShare=======%, %,==", pool_name, amount);
+      if (0 == amount) {
+         return;
+      }
+      set_caller(pool_name);
+      _burn(amount);
+   }
 };

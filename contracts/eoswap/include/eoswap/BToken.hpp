@@ -20,100 +20,94 @@
 
 class IERC20 {
  public:
-   virtual uint totalSupply()        = 0;
-   virtual uint balanceOf(name whom) = 0;
+   virtual uint64_t totalSupply()        = 0;
+   virtual uint64_t balanceOf(name whom) = 0;
 
-   virtual bool transfer(name dst, uint amt)               = 0;
-   virtual bool transferFrom(name src, name dst, uint amt) = 0;
+   virtual bool transfer(name dst, uint64_t amt)               = 0;
+   virtual bool transferFrom(name src, name dst, uint64_t amt) = 0;
 };
 
 class BTokenBase : public BNum {
  private:
    name            self;
+   name            caller;
    name            msg_sender;
    extended_symbol ext_symbol;
-   BTokenStore&    token_store;
    extended_token  _extended_token;
 
  public:
-   BTokenBase(name _self, const extended_symbol& _ext_symbol, BTokenStore& _token_store)
+   BTokenBase(name _self, const extended_symbol& _ext_symbol, bool _auth_mode = true)
        : self(_self)
        , ext_symbol(_ext_symbol)
-       , _extended_token(_self)
-       , token_store(_token_store) {}
+       , _extended_token(_self, _auth_mode) {}
    ~BTokenBase() {}
 
    void auth(name _msg_sender) {
       require_auth(_msg_sender);
       msg_sender = _msg_sender;
+      caller     = _msg_sender;
    }
 
+   void            setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
+   void            set_caller(name _caller) { caller = _caller; }
+   name            get_caller() { return caller; }
    name            get_self() { return self; }
    name            get_msg_sender() { return msg_sender; }
    extended_symbol get_ext_symbol() { return ext_symbol; }
    extended_token  get_ext_token() { return _extended_token; }
-   BTokenStore&    get_token_store() { return token_store; }
-   void            init(extended_asset max_supply) { _extended_token.create(msg_sender, max_supply); }
-   void            _mint(uint amt) {
+   void            createtoken() {
+      static const uint64_t MAX_TOTAL_SUPPLY = 1000000000000000;
+      _extended_token.create(ext_symbol.get_contract(), extended_asset{MAX_TOTAL_SUPPLY, ext_symbol});
+   }
+   void create(name issuer, const extended_asset& max_supply) { _extended_token.create(issuer, max_supply); }
+   void _mint(uint64_t amt) {
       //   token_store.balance[msg_sender] = badd(token_store.balance[msg_sender], amt);
       //   token_store.totalSupply         = badd(token_store.totalSupply, amt);
-      _extended_token.issue(msg_sender, extended_asset(amt, ext_symbol), "");
+      _extended_token.issue(caller, extended_asset(amt, ext_symbol), "");
    }
 
-   void _burn(uint amt) {
+   void _burn(uint64_t amt) {
       //   require(token_store.balance[msg_sender] >= amt, "ERR_INSUFFICIENT_BAL");
       //   token_store.balance[msg_sender] = bsub(token_store.balance[msg_sender], amt);
       //   token_store.totalSupply         = bsub(token_store.totalSupply, amt);
       _extended_token.retire(extended_asset(amt, ext_symbol), "");
    }
 
-   void _move(name src, name dst, uint amt) {
+   void _move(name src, name dst, uint64_t amt) {
       //   require(token_store.balance[src] >= amt, "ERR_INSUFFICIENT_BAL");
       //   token_store.balance[src] = bsub(token_store.balance[src], amt);
       //   token_store.balance[dst] = badd(token_store.balance[dst], amt);
       _extended_token.transfer(src, dst, extended_asset(amt, ext_symbol), "");
    }
 
-   void _push(name to, uint amt) { _move(msg_sender, to, amt); }
+   void _push(name to, uint64_t amt) { _move(caller, to, amt); }
 
-   void _pull(name from, uint amt) { _move(from, msg_sender, amt); }
+   void _pull(name from, uint64_t amt) { _move(from, caller, amt); }
 };
 
 class BToken : public BTokenBase, public IERC20 {
  public:
-   BToken(name _self, const extended_symbol& _ext_symbol, BTokenStore& token_store)
-       : BTokenBase(_self, _ext_symbol, token_store) {
-      //   get_token_store().names    = _ext_symbol.get_contract().to_string();
-      //   get_token_store().symbol   = _ext_symbol.get_symbol().code().to_string();
-      //   get_token_store().decimals = _ext_symbol.get_symbol().precision();
-   }
+   BToken(name _self, const extended_symbol& _ext_symbol, bool _auth_mode = true)
+       : BTokenBase(_self, _ext_symbol, _auth_mode) {}
 
    std::string namestring() { return get_ext_symbol().get_contract().to_string(); }
 
    std::string symbol() { return get_ext_symbol().get_symbol().code().to_string(); }
 
-   uint8 decimals() { return get_ext_symbol().get_symbol().precision(); }
+   uint8_t decimals() { return get_ext_symbol().get_symbol().precision(); }
 
-   virtual uint balanceOf(name whom) override {
+   virtual uint64_t balanceOf(name whom) override {
       return get_ext_token().get_balance(get_self(), whom, get_ext_symbol()).amount;
    }
 
-   virtual uint totalSupply() override { return get_ext_token().get_supply(get_self(), get_ext_symbol()).amount; }
+   virtual uint64_t totalSupply() override { return get_ext_token().get_supply(get_self(), get_ext_symbol()).amount; }
 
-   virtual bool transfer(name dst, uint amt) override {
-      _move(get_msg_sender(), dst, amt);
+   virtual bool transfer(name dst, uint64_t amt) override {
+      _move(get_caller(), dst, amt);
       return true;
    }
 
-   virtual bool transferFrom(name src, name dst, uint amt) override {
-      //   require(
-      //       get_msg_sender() == src || amt <= get_token_store().allowance[src].dst2amt[get_msg_sender()],
-      //       "ERR_BTOKEN_BAD_CALLER");
-      //   _move(src, dst, amt);
-      //   if (get_msg_sender() != src && get_token_store().allowance[src].dst2amt[get_msg_sender()] != uint(-1)) {
-      //      get_token_store().allowance[src].dst2amt[get_msg_sender()] =
-      //          bsub(get_token_store().allowance[src].dst2amt[get_msg_sender()], amt);
-      //   }
+   virtual bool transferFrom(name src, name dst, uint64_t amt) override {
       _move(src, dst, amt);
 
       return true;

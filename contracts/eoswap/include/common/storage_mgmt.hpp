@@ -54,15 +54,7 @@ class storage_mgmt {
       return p->second;
    }
 
-   BTokenStore& get_token_store(namesym token) {
-      auto t = _token_storage.tokens.find(token);
-      bool f = (t != _token_storage.tokens.end());
-
-      require(f, "NO_TOKEN");
-      return t->second;
-   }
-
-   BPoolStore& newPoolStore(name pool_name) {
+    BPoolStore& newPoolStore(name pool_name) {
       auto p = _pool_storage.pools.find(pool_name);
       bool f = (p == _pool_storage.pools.end());
       require(f, "ALREADY_EXIST_POOL");
@@ -116,14 +108,4 @@ class storage_mgmt {
       pool_table.modify(t, same_payer, [&](auto& d) { d.pools = pools; });
    }
 
-   BTokenStore& newTokenStore(namesym token) {
-      auto t = _token_storage.tokens.find(token);
-
-      bool f = (t == _token_storage.tokens.end());
-      require(f, "ALREADY_EXIST_TOKEN");
-
-      auto pb = _token_storage.tokens.insert(std::map<namesym, BTokenStore>::value_type(token, BTokenStore()));
-
-      return pb.first->second;
-   }
 };
