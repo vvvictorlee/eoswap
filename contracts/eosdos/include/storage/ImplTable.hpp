@@ -37,7 +37,7 @@ struct DODOStore {
    uint64_t _MT_FEE_RATE_;
    uint64_t _K_;
 
-   uint8   _R_STATUS_;
+   uint8_t   _R_STATUS_;
    uint64_t _TARGET_BASE_TOKEN_AMOUNT_;
    uint64_t _TARGET_QUOTE_TOKEN_AMOUNT_;
    uint64_t _BASE_BALANCE_;

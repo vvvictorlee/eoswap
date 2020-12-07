@@ -517,7 +517,7 @@
                 },
                 {
                     "name": "revision",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 }
             ]
         },
@@ -997,7 +997,7 @@
             "fields": [
                 {
                     "name": "version",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "owner",
@@ -1027,7 +1027,7 @@
             "fields": [
                 {
                     "name": "version",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "owner",
@@ -1045,7 +1045,7 @@
             "fields": [
                 {
                     "name": "version",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "from",
@@ -1083,7 +1083,7 @@
             "fields": [
                 {
                     "name": "version",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "owner",
@@ -1117,7 +1117,7 @@
             "fields": [
                 {
                     "name": "version",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "total_lent",
@@ -1155,7 +1155,7 @@
             "fields": [
                 {
                     "name": "version",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "return_buckets",
@@ -1169,7 +1169,7 @@
             "fields": [
                 {
                     "name": "version",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "last_dist_time",
@@ -1337,11 +1337,11 @@
                 },
                 {
                     "name": "vmtype",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "vmversion",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 },
                 {
                     "name": "code",
@@ -1387,7 +1387,7 @@
                 },
                 {
                     "name": "is_priv",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 }
             ]
         },
@@ -1531,7 +1531,7 @@
             "fields": [
                 {
                     "name": "revision",
-                    "type": "uint8"
+                    "type": "uint8_t"
                 }
             ]
         },

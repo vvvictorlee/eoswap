@@ -15,9 +15,9 @@
 
 struct Record {
   bool bound;  // is token bound to pool
-  uint index;  // private
-  uint denorm; // denormalized weight
-  uint balance;
+  uint64_t index;  // private
+  uint64_t denorm; // denormalized weight
+  uint64_t balance;
   extended_symbol exsym;
   EOSLIB_SERIALIZE(Record, (bound)(index)(denorm)(balance)(exsym))
 };
@@ -31,12 +31,12 @@ struct  BPoolStore {
 
   // `setSwapFee` and `finalize` require CONTROL
   // `finalize` sets `PUBLIC can SWAP`, `PUBLIC can JOIN`
-  uint swapFee;
+  uint64_t swapFee;
   bool finalized;
 
   std::vector<namesym> tokens;
   std::map<namesym, Record> records;
-  uint totalWeight;
+  uint64_t totalWeight;
 
   EOSLIB_SERIALIZE(BPoolStore, (mutex)(factory)(controller)(publicSwap)(swapFee)(finalized)(tokens)(records)(totalWeight))
 };

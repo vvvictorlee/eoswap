@@ -53,7 +53,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256 receiveQuote;
       uint256 lpFeeQuote;
       uint256 mtFeeQuote;
-      uint8   newRStatus;
+      uint8_t   newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget) =
@@ -95,7 +95,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256 payQuote;
       uint256 lpFeeBase;
       uint256 mtFeeBase;
-      uint8   newRStatus;
+      uint8_t   newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget) = _queryBuyBaseToken(amount);
@@ -143,11 +143,11 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       return payQuote;
    }
 
-   std::tuple<uint256, uint256, uint256, uint8, uint256, uint256> _querySellBaseToken(uint256 amount) {
+   std::tuple<uint256, uint256, uint256, uint8_t, uint256, uint256> _querySellBaseToken(uint256 amount) {
       uint256 receiveQuote;
       uint256 lpFeeQuote;
       uint256 mtFeeQuote;
-      uint8   newRStatus;
+      uint8_t   newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
@@ -199,13 +199,13 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
 
-   std::tuple<uint256, uint256, uint256, uint8, uint256, uint256> _queryBuyBaseToken(uint256 amount)
+   std::tuple<uint256, uint256, uint256, uint8_t, uint256, uint256> _queryBuyBaseToken(uint256 amount)
 
    {
       uint256 payQuote;
       uint256 lpFeeBase;
       uint256 mtFeeBase;
-      uint8   newRStatus;
+      uint8_t   newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();

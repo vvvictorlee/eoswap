@@ -15,7 +15,7 @@
 #include <common/BType.hpp>
 
 struct Account2Amt {
-  std::map<name, uint> dst2amt; // is token bound to pool
+  std::map<name, uint64_t> dst2amt; // is token bound to pool
 
   EOSLIB_SERIALIZE(Account2Amt, (dst2amt))
 };
@@ -23,10 +23,10 @@ struct Account2Amt {
 struct BTokenStore {
   std::string names;
   std::string symbol ;
-  uint8 decimals ;
-  std::map<name, uint> balance;
+  uint8_t decimals ;
+  std::map<name, uint64_t> balance;
   std::map<name, Account2Amt> allowance;
-  uint totalSupply;
+  uint64_t totalSupply;
   EOSLIB_SERIALIZE(BTokenStore, (names)(symbol)(decimals)(balance)(allowance)(totalSupply))
 };
 

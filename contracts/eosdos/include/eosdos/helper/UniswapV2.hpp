@@ -24,7 +24,7 @@ class IUniswapV2Pair {
    virtual uint64_t nonces(address owner) = 0;
 
    virtual void
-   permit(address owner, address spender, uint64_t value, uint64_t deadline, uint8 v, bytes32 r, bytes32 s) = 0;
+   permit(address owner, address spender, uint64_t value, uint64_t deadline, uint8_t v, bytes32 r, bytes32 s) = 0;
 
    virtual uint64_t price0CumulativeLast() = 0;
 
@@ -61,7 +61,7 @@ class IUniswapV2ERC20 {
    virtual uint64_t nonces(address owner) = 0;
 
    virtual void
-   permit(address owner, address spender, uint64_t value, uint64_t deadline, uint8 v, bytes32 r, bytes32 s) = 0;
+   permit(address owner, address spender, uint64_t value, uint64_t deadline, uint8_t v, bytes32 r, bytes32 s) = 0;
 };
 
 // File: contracts/libraries/SafeMath.sol
@@ -120,7 +120,7 @@ class UniswapV2ERC20 {
       return true;
    }
 
-   void permit(address owner, address spender, uint64_t value, uint64_t deadline, uint8 v, bytes32 r, bytes32 s) {
+   void permit(address owner, address spender, uint64_t value, uint64_t deadline, uint8_t v, bytes32 r, bytes32 s) {
       require(deadline >= block.timestamp, "UniswapV2: EXPIRED");
       bytes32 digest           = keccak256(abi.encodePacked(
           "\x19\x01", DOMAIN_SEPARATOR,

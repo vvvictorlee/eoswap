@@ -24,7 +24,7 @@ using bytes32 = std::vector<char>;
 using address = name;
 using uint256 = uint128_t;
 using uint112 = uint64_t;
-using uint8   = uint8_t;
+using uint8_t   = uint8_t;
 using uint32  = uint32_t;
 using namesym = uint128_t;
 

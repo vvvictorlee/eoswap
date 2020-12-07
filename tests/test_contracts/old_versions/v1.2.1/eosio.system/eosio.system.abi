@@ -83,8 +83,8 @@
       "base": "",
       "fields": [
         {"name":"account",   "type":"account_name"},
-        {"name":"vmtype",    "type":"uint8"},
-        {"name":"vmversion", "type":"uint8"},
+        {"name":"vmtype",    "type":"uint8_t"},
+        {"name":"vmversion", "type":"uint8_t"},
         {"name":"code",      "type":"bytes"}
       ]
     },{
@@ -255,7 +255,7 @@
          {"name":"last_ram_increase",   "type":"block_timestamp_type"},
          {"name":"last_block_num",      "type":"block_timestamp_type"},
          {"name":"reserved",            "type":"float64"},
-         {"name":"revision",            "type":"uint8"}
+         {"name":"revision",            "type":"uint8_t"}
       ]
     },{
       "name": "eosio_global_state",

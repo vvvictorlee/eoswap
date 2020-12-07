@@ -21,8 +21,6 @@ using bytes = std::vector<char>;
 
 using address = name;
 using uint256m = uint128_t;
-using uint = uint64_t;
-using uint8 = uint8_t;
 using namesym =uint128_t;
 
 static const std::string default_core_symbol = "BPT";

@@ -14,7 +14,7 @@ class IERC20 {
     /**
      * @dev Returns the amount of tokens in existence.
      */
-    virtual uint8  totalSupply() = 0;
+    virtual uint8_t  totalSupply() = 0;
 
     virtual std::string   name() = 0;
 

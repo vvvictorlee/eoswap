@@ -20,7 +20,7 @@ using mvo      = fc::mutable_variant_object;
 using uint256m = uint64_t;
 using namesym  = eosio::chain::uint128_t;
 
-#define EOSWAP_DEBUG
+// #define EOSWAP_DEBUG
 #ifdef EOSWAP_DEBUG
 #define LINE_DEBUG BOOST_TEST_CHECK(__LINE__ == 0);
 #else
@@ -78,9 +78,9 @@ class eoswap_tester : public tester {
                                                         get_balance(N(eosio.ram)));
 
       create_currency(
-          N(eosio.token), config::system_account_name, eosio::chain::asset::from_string("10000000000.000000 EOS"));
+          N(eosio.token), config::system_account_name, eosio::chain::asset::from_string("1000000.000000000 EOS"));
 
-      issue(config::system_account_name, eosio::chain::asset::from_string("1000000000.000000 EOS"));
+      issue(config::system_account_name, eosio::chain::asset::from_string("1000000.000000000 EOS"));
 
       set_code(config::system_account_name, contracts::system_wasm());
       set_abi(config::system_account_name, contracts::system_abi().data());
@@ -103,11 +103,11 @@ class eoswap_tester : public tester {
       std::vector<name>   taccounts = {N(alice), N(bob), N(eoswapeoswap)};
       std::vector<string> tokens    = {"WETH", "DAI", "MKR", "XXX"};
       int                 j         = 0;
-      std::string         amt       = "100000.000000 ";
+      std::string         amt       = "100000.000000000";
       std::string         memo      = "";
       //   for (auto& acc_name : accounts) {
       //      std::string token     = tokens[j++];
-      //      std::string amount    = "10000000000.000000 " + token;
+      //      std::string amount    = "100000000.000000000" + token;
       //      std::string tamount   = amt + token;
       //      asset       maxsupply = eosio::chain::asset::from_string(amount.c_str());
       //      name        acc       = name(acc_name.c_str());
@@ -764,12 +764,13 @@ class eoswap_tester : public tester {
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("currency_stats", data, abi_serializer_max_time);
    }
 
-   fc::variant get_account(account_name acc, const string& symbolname, name contract_name = N(extendxtoken)) {
+   std::string get_account(account_name acc, const string& symbolname, name contract_name = N(extendxtoken)) {
       //   auto         symb        = eosio::chain::symbol::from_string(symbolname);
       //   auto         symbol_code = symb.to_symbol_code().value;
       //   vector<char> data        = get_row_by_account(N(eoswapeoswap), acc, N(accounts), account_name(symbol_code));
       //   return data.empty() ? fc::variant() : abi_ser.binary_to_variant("account", data, abi_serializer_max_time);
-      return get_accountx(acc, symbolname);
+      auto a = get_accountx(acc, symbolname);
+      return (a.is_null() ? "" : a.as_string());
    }
 
    fc::variant get_accountx(account_name acc, const string& symbolname) {
@@ -918,11 +919,11 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
    before1();
    collect(admin, N(dai2mkr11111));
    const auto ab = get_account(admin, TOKEN_DECIMALS_STR + "BPT", N(dai2mkr11111));
-   BOOST_REQUIRE_EQUAL("100.000000 BPT", ab.as_string());
+   BOOST_REQUIRE_EQUAL("100.000000000 BPT", ab);
 
    //  std::string token_name = "BPT";
    //    const auto ab = get_balancex(admin, sym_from_string("4," + token_name), N(dai2mkr11111));
-   //    BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("100.000000 " + token_name), ab);
+   //    BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("100.000000000 " + token_name), ab);
 }
 FC_LOG_AND_RETHROW()
 
@@ -945,10 +946,10 @@ BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eoswap_tester) try {
    //        "balance": "5499947502",
    //           "exsym": {
    //             "sym": "9,WETH",
-// 5499947502
-// 52498
-// 5500052508
-// 5500000000
+   // 5499947502
+   // 52498
+   // 5500052508
+   // 5500000000
 }
 FC_LOG_AND_RETHROW()
 
@@ -984,7 +985,7 @@ BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
    mint(N(alice), to_wei_asset(200, "DAI"));
 
    const auto ab = get_balancex(N(alice), sym_from_string(TOKEN_DECIMALS_STR + token_name));
-   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("5.000000 " + token_name), ab);
+   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("5.000000000 " + token_name), ab);
 }
 FC_LOG_AND_RETHROW()
 
@@ -1011,7 +1012,7 @@ BOOST_FIXTURE_TEST_CASE(extransfer_tests, eoswap_tester) try {
    const symbol& sym = max_supply.quantity.get_symbol();
    extransfer(N(alice1111111), user2, max_supply);
 
-   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.0001 " + token_name), get_balancex(user2, sym));
+   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.000000001 " + token_name), get_balancex(user2, sym));
 }
 FC_LOG_AND_RETHROW()
 
@@ -1114,7 +1115,7 @@ BOOST_FIXTURE_TEST_CASE(issue_tests, eoswap_tester) try {
    LINE_DEBUG;
    auto alice_balance = get_account(N(alice), "3,TKN");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("quantity", "500.000 TKN"));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "500.000 TKN");
+   BOOST_REQUIRE_EQUAL(alice_balance, "500.000 TKN");
    LINE_DEBUG;
    BOOST_REQUIRE_EQUAL(
        wasm_assert_msg("quantity exceeds available supply"),
@@ -1140,7 +1141,7 @@ BOOST_FIXTURE_TEST_CASE(retire_tests, eoswap_tester) try {
    LINE_DEBUG;
    auto alice_balance = get_account(N(alice), "3,TKN");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "500.000 TKN"));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "500.000 TKN");
+   BOOST_REQUIRE_EQUAL(alice_balance, "500.000 TKN");
    LINE_DEBUG;
    BOOST_REQUIRE_EQUAL(success(), retire(N(alice), ext_asset_from_string("200.000 TKN"), "hola"));
    LINE_DEBUG;
@@ -1149,7 +1150,7 @@ BOOST_FIXTURE_TEST_CASE(retire_tests, eoswap_tester) try {
    LINE_DEBUG;
    alice_balance = get_account(N(alice), "3,TKN");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "300.000 TKN"));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "300.000 TKN");
+   BOOST_REQUIRE_EQUAL(alice_balance, "300.000 TKN");
    LINE_DEBUG;
    // should fail to retire more than current supply
    BOOST_REQUIRE_EQUAL(
@@ -1172,7 +1173,7 @@ BOOST_FIXTURE_TEST_CASE(retire_tests, eoswap_tester) try {
    LINE_DEBUG;
    alice_balance = get_account(N(alice), "3,TKN");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "0.000 TKN"));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "0.000 TKN");
+   BOOST_REQUIRE_EQUAL(alice_balance, "0.000 TKN");
    LINE_DEBUG;
    // trying to retire tokens with zero supply
    BOOST_REQUIRE_EQUAL(
@@ -1193,17 +1194,17 @@ BOOST_FIXTURE_TEST_CASE(transfer_tests, eoswap_tester) try {
    LINE_DEBUG;
    auto alice_balance = get_account(N(alice), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "1000 CERO"));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "1000 CERO");
+   BOOST_REQUIRE_EQUAL(alice_balance, "1000 CERO");
    LINE_DEBUG;
    transfer(N(alice), N(bob), ext_asset_from_string("300 CERO"), "hola");
    LINE_DEBUG;
    alice_balance = get_account(N(alice), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "700 CERO")("frozen", 0)("whitelist", 1));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "700 CERO");
+   BOOST_REQUIRE_EQUAL(alice_balance, "700 CERO");
    LINE_DEBUG;
    auto bob_balance = get_account(N(bob), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(bob_balance, mvo()("balance", "300 CERO")("frozen", 0)("whitelist", 1));
-   BOOST_REQUIRE_EQUAL(bob_balance["quantity"], "300 CERO");
+   BOOST_REQUIRE_EQUAL(bob_balance, "300 CERO");
    LINE_DEBUG;
    BOOST_REQUIRE_EQUAL(
        wasm_assert_msg("overdrawn balance"), transfer(N(alice), N(bob), ext_asset_from_string("701 CERO"), "hola"));
@@ -1220,7 +1221,7 @@ BOOST_FIXTURE_TEST_CASE(open_tests, eoswap_tester) try {
    auto token = create(N(alice), ext_asset_from_string("1000 CERO"));
 
    auto alice_balance = get_account(N(alice), "0,CERO");
-   BOOST_REQUIRE_EQUAL(true, alice_balance.is_null());
+   BOOST_REQUIRE_EQUAL("", alice_balance);
    //    BOOST_REQUIRE_EQUAL(
    //        wasm_assert_msg("tokens can only be issued to issuer account"),
    //        push_action(N(alice), N(issue), mvo()("to", "bob")("quantity", ext_asset_from_string("1000 CERO"))("memo",
@@ -1229,10 +1230,10 @@ BOOST_FIXTURE_TEST_CASE(open_tests, eoswap_tester) try {
 
    alice_balance = get_account(N(alice), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "1000 CERO"));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "1000 CERO");
+   BOOST_REQUIRE_EQUAL(alice_balance, "1000 CERO");
 
    auto bob_balance = get_account(N(bob), "0,CERO");
-   BOOST_REQUIRE_EQUAL(true, bob_balance.is_null());
+   BOOST_REQUIRE_EQUAL("", bob_balance);
 
    BOOST_REQUIRE_EQUAL(
        wasm_assert_msg("owner account does not exist"), open(N(nonexistent), ext_sym_from_string("0,CERO"), N(alice)));
@@ -1240,13 +1241,13 @@ BOOST_FIXTURE_TEST_CASE(open_tests, eoswap_tester) try {
 
    bob_balance = get_account(N(bob), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(bob_balance, mvo()("balance", "0 CERO"));
-   BOOST_REQUIRE_EQUAL(bob_balance["quantity"], "0 CERO");
+   BOOST_REQUIRE_EQUAL(bob_balance, "0 CERO");
 
    BOOST_REQUIRE_EQUAL(success(), transfer(N(alice), N(bob), ext_asset_from_string("200 CERO"), "hola"));
 
    bob_balance = get_account(N(bob), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(bob_balance, mvo()("balance", "200 CERO"));
-   BOOST_REQUIRE_EQUAL(bob_balance["quantity"], "200 CERO");
+   BOOST_REQUIRE_EQUAL(bob_balance, "200 CERO");
 
    BOOST_REQUIRE_EQUAL(
        wasm_assert_msg("symbol does not exist"), open(N(carol), ext_sym_from_string("0,INVALID"), N(alice)));
@@ -1261,23 +1262,23 @@ BOOST_FIXTURE_TEST_CASE(close_tests, eoswap_tester) try {
    auto token = create(N(alice), ext_asset_from_string("1000 CERO"));
 
    auto alice_balance = get_account(N(alice), "0,CERO");
-   BOOST_REQUIRE_EQUAL(true, alice_balance.is_null());
+   BOOST_REQUIRE_EQUAL("", alice_balance);
 
    BOOST_REQUIRE_EQUAL(success(), issue(N(alice), ext_asset_from_string("1000 CERO"), "hola"));
 
    alice_balance = get_account(N(alice), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "1000 CERO"));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "1000 CERO");
+   BOOST_REQUIRE_EQUAL(alice_balance, "1000 CERO");
 
    BOOST_REQUIRE_EQUAL(success(), transfer(N(alice), N(bob), ext_asset_from_string("1000 CERO"), "hola"));
 
    alice_balance = get_account(N(alice), "0,CERO");
    //    REQUIRE_MATCHING_OBJECT(alice_balance, mvo()("balance", "0 CERO"));
-   BOOST_REQUIRE_EQUAL(alice_balance["quantity"], "0 CERO");
+   BOOST_REQUIRE_EQUAL(alice_balance, "0 CERO");
 
    BOOST_REQUIRE_EQUAL(success(), close(N(alice), ext_sym_from_string("0,CERO")));
    alice_balance = get_account(N(alice), "0,CERO");
-   BOOST_REQUIRE_EQUAL(true, alice_balance.is_null());
+   BOOST_REQUIRE_EQUAL("", alice_balance);
 }
 FC_LOG_AND_RETHROW()
 

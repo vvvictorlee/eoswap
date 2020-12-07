@@ -53,7 +53,7 @@ class BFactory : public BBronze {
       extended_symbol   bpt       = extended_symbol(symbol("BPT", 4), pool_name);
       BPool             pool(self, bpt, factory, pool_name, poolStore);
       pool.auth(msg_sender);
-      uint collected = pool.balanceOf(self);
+      uint64_t collected = pool.balanceOf(self);
       pool.set_caller(self);
       if (collected > 0) {
          bool xfer = pool.transfer(_factory_storage.blabs, collected);

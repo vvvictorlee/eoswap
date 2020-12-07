@@ -50,7 +50,7 @@ class DODOLpToken : public Ownable {
    std::string            symbol() { return stores.esymbol.get_symbol().code().to_string(); };
    const extended_symbol& originToken() { return stores.originToken; };
 
-   uint8   decimals() { return stores.esymbol.get_symbol().precision(); }
+   uint8_t   decimals() { return stores.esymbol.get_symbol().precision(); }
    uint64_t totalSupply() {
       return transfer_mgmt::get_supply(stores.esymbol);
       // return stores.totalSupply;
