@@ -54,7 +54,7 @@ class Storage : public InitializableOwnable, public ReentrancyGuard {
    }
 
    uint256 getOraclePrice() {
-      return factory.get_storage_mgmt().get_oracle_price(stores._BASE_TOKEN_, stores._QUOTE_TOKEN_);
+      return factory.get_storage_mgmt().get_oracle_prices(stores._BASE_TOKEN_, stores._QUOTE_TOKEN_);
       // return IOracle(_ORACLE_).getPrice();
    }
 

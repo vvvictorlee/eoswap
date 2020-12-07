@@ -123,3 +123,16 @@ struct [[eosio::table, eosio::contract("eosdos")]] oracle_storage {
 };
 
 typedef eosio::multi_index<"oracles"_n, oracle_storage> oracle_storage_table;
+
+struct [[eosio::table, eosio::contract("eosdos")]] oracle_prices {
+   uint64_t        pair_token_hash_key;
+   extended_symbol basetoken;
+   extended_asset  quotetoken;
+   address         _OWNER_;
+   address         _NEW_OWNER_;
+   uint64_t        primary_key() const {
+      return pair_token_hash_key;
+   }
+};
+
+typedef eosio::multi_index<"oracleprices"_n, oracle_prices> oracle_prices_table;

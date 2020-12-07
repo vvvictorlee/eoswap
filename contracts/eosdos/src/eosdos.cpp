@@ -314,7 +314,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
       check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
-      _instance_mgmt.get_storage_mgmt().save_oracle_price(msg_sender, basetoken, quotetoken);
+      _instance_mgmt.get_storage_mgmt().save_oracle_prices(msg_sender, basetoken, quotetoken);
    }
 
    [[eosio::action]] void moveoracle(name msg_sender) {

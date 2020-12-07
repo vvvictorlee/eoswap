@@ -16,16 +16,16 @@
 
 class BConst : public  BBronze {
 public:
-    static  constexpr uint256m  BONE              = my_pow(10,4);
+    static  constexpr uint256m  BONE              = my_pow(10,9);
 
     static constexpr uint256m  MIN_BOUND_TOKENS  = 2;
     static constexpr uint256m  MAX_BOUND_TOKENS  = 8;
 
-    static constexpr uint256m  MIN_FEE           = BONE / my_pow(10,4);//6
+    static constexpr uint256m  MIN_FEE           = BONE / my_pow(10,9);//6
     static constexpr uint256m  MAX_FEE           = BONE / 10;
     static constexpr uint256m  EXIT_FEE          = 0;
 
-    static constexpr uint256m  MIN_WEIGHT        = BONE;
+    static constexpr uint256m  MIN_WEIGHT        = BONE / my_pow(10,5);//6;
     static constexpr uint256m  MAX_WEIGHT        = BONE * 50;
     static constexpr uint256m  MAX_TOTAL_WEIGHT  = BONE * 50;
     static constexpr uint256m  MIN_BALANCE       = BONE / my_pow(10,4);//12

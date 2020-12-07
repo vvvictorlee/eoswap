@@ -21,7 +21,7 @@
 
 namespace DecimalMath {
     
-    uint256  ONE = my_pow(10,4);//18;
+    uint256  ONE = my_pow(10,6);//18;
 
     uint256  mul(uint256 target, uint256 d) {
         return SafeMath::mul(target,d) / ONE;

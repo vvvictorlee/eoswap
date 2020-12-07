@@ -162,4 +162,37 @@ class storage_mgmt {
          ot.emplace(msg_sender, [&](auto& o) { o = *it; });
       }
    }
+
+   void save_oracle_prices(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
+      uint64_t             key = get_hash_key(get_checksum256(
+          basetoken.get_contract().value, basetoken.get_symbol().raw(),
+          quotetoken.get_extended_symbol().get_contract().value, quotetoken.get_extended_symbol().get_symbol().raw()));
+      oracle_prices_table oraclepricestable(self, self.value);
+
+      auto oracle = oraclepricestable.find(key);
+      if (oracle == oraclepricestable.end()) {
+         oraclepricestable.emplace(msg_sender, [&](auto& o) {
+            o.pair_token_hash_key=key;
+            o.basetoken  = basetoken;
+            o.quotetoken = quotetoken;
+         });
+      } else {
+         oraclepricestable.modify(oracle, same_payer, [&](auto& o) {
+            o.basetoken  = basetoken;
+            o.quotetoken = quotetoken;
+         });
+      }
+   }
+
+   uint64_t get_oracle_prices(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
+      uint64_t             key = get_hash_key(get_checksum256(
+          basetoken.get_contract().value, basetoken.get_symbol().raw(), quotetoken.get_contract().value,
+          quotetoken.get_symbol().raw()));
+      oracle_prices_table oraclepricestable(self, self.value);
+
+      auto oracle = oraclepricestable.find(key);
+      check(oracle != oraclepricestable.end(), "no oracle");
+      return oracle->quotetoken.quantity.amount;
+   }
+
 };
