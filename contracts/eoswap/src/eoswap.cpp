@@ -90,15 +90,15 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    // _lock_  Bind does not lock because it jumps to `rebind`, which does
 
    [[eosio::action]] void bind(name msg_sender, name pool_name, const extended_asset& balance, uint64_t denorm) {
-    
+     extended_asset balances = convert_one_decimals(balance);
       _instance_mgmt.setMsgSender(msg_sender);
-      _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.bind(balance, denorm); });
+      _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.bind(balances, denorm); });
    }
 
    [[eosio::action]] void rebind(name msg_sender, name pool_name, const extended_asset& balance, uint64_t denorm) {
-    
+      extended_asset balances = convert_one_decimals(balance);
       _instance_mgmt.setMsgSender(msg_sender);
-      _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.rebind(balance, denorm); });
+      _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.rebind(balances, denorm); });
    }
 
    [[eosio::action]] void unbind(name msg_sender, name pool_name, const extended_symbol& token) {
@@ -130,17 +130,22 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    [[eosio::action]] void swapamtin(
        name msg_sender, name pool_name, const extended_asset& tokenAmountIn, const extended_asset& minAmountOut,
        uint64_t maxPrice) {
+     extended_asset tokenAmountIns = convert_one_decimals(tokenAmountIn);
+     extended_asset minAmountOuts = convert_one_decimals(minAmountOut);
+
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(
-          pool_name, [&](auto& pool) { pool.swapExactAmountIn(tokenAmountIn, minAmountOut, maxPrice); });
+          pool_name, [&](auto& pool) { pool.swapExactAmountIn(tokenAmountIns, minAmountOuts, maxPrice); });
    }
 
    [[eosio::action]] void swapamtout(
        name msg_sender, name pool_name, const extended_asset& maxAmountIn, const extended_asset& tokenAmountOut,
        uint64_t maxPrice) {
+ extended_asset maxAmountIns = convert_one_decimals(maxAmountIn);
+     extended_asset tokenAmountOuts = convert_one_decimals(tokenAmountOut);
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(
-          pool_name, [&](auto& pool) { pool.swapExactAmountOut(maxAmountIn, tokenAmountOut, maxPrice); });
+          pool_name, [&](auto& pool) { pool.swapExactAmountOut(maxAmountIns, tokenAmountOuts, maxPrice); });
    }
 
    ////////////////// TEST pool storage///////////////////////

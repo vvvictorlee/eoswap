@@ -26,8 +26,12 @@ using namesym  = eosio::chain::uint128_t;
 #else
 #define LINE_DEBUG
 #endif
-const std::string TOKEN_DECIMALS_STR = "9,";
-const int         TOKEN_DECIMALS     = 9;
+const std::string TOKEN_DECIMALS_STR = "6,";
+const int         TOKEN_DECIMALS     = 6;
+const std::string LP_TOKEN_DECIMALS_STR = "6,";
+const int         LP_TOKEN_DECIMALS     = 6;
+const char* const  default_lp_symbol_str = "BPT";
+const std::string   default_lp_symbol = "BPT";
 
 class findx {
  public:
@@ -78,9 +82,9 @@ class eoswap_tester : public tester {
                                                         get_balance(N(eosio.ram)));
 
       create_currency(
-          N(eosio.token), config::system_account_name, eosio::chain::asset::from_string("1000000.000000000 EOS"));
+          N(eosio.token), config::system_account_name, eosio::chain::asset::from_string("1000000.000000 EOS"));
 
-      issue(config::system_account_name, eosio::chain::asset::from_string("1000000.000000000 EOS"));
+      issue(config::system_account_name, eosio::chain::asset::from_string("1000000.000000 EOS"));
 
       set_code(config::system_account_name, contracts::system_wasm());
       set_abi(config::system_account_name, contracts::system_abi().data());
@@ -482,10 +486,10 @@ class eoswap_tester : public tester {
    uint256m to_wei(uint256m value) { return value * pow(10, TOKEN_DECIMALS); }
 
    extended_asset to_pool_asset(name pool_name, int64_t value) {
-      return extended_asset{asset{value, symbol{TOKEN_DECIMALS, "BPT"}}, pool_name};
+      return extended_asset{asset{value, symbol{LP_TOKEN_DECIMALS, default_lp_symbol_str}}, pool_name};
    }
 
-   extended_symbol to_pool_sym(name pool_name) { return extended_symbol{symbol{TOKEN_DECIMALS, "BPT"}, pool_name}; }
+   extended_symbol to_pool_sym(name pool_name) { return extended_symbol{symbol{LP_TOKEN_DECIMALS, default_lp_symbol_str}, pool_name}; }
 
    extended_asset to_ext_asset(int64_t value, const std::string& sym) {
       return extended_asset{asset{value, symbol{TOKEN_DECIMALS, sym.c_str()}}, name{"eoswapxtoken"}};
@@ -918,12 +922,12 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
    before1();
    collect(admin, N(dai2mkr11111));
-   const auto ab = get_account(newcontroller, TOKEN_DECIMALS_STR + "BPT", N(dai2mkr11111));
-   BOOST_REQUIRE_EQUAL("100.000000000 BPT", ab);
+   const auto ab = get_account(newcontroller, LP_TOKEN_DECIMALS_STR + default_lp_symbol, N(dai2mkr11111));
+   BOOST_REQUIRE_EQUAL("100000.000000 "+default_lp_symbol, ab);
 
    //  std::string token_name = "BPT";
    //    const auto ab = get_balancex(admin, sym_from_string("4," + token_name), N(dai2mkr11111));
-   //    BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("100.000000000 " + token_name), ab);
+   //    BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("100.000000 " + token_name), ab);
 }
 FC_LOG_AND_RETHROW()
 
@@ -937,7 +941,7 @@ BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eoswap_tester) try {
    //  "balance": "5500000000",
    //           "exsym": {
    //             "sym": "9,WETH",
-   swapamtin(user1, N(dai2mkr11111), to_asset(2100000, "DAI"), to_asset(2500, "WETH"), to_wei(50));
+   swapamtin(user1, N(dai2mkr11111), to_asset(2100000, "DAI"), to_asset(2500, "WETH"), to_wei(50000));
    //    pool = get_pool_table(N(dai2mkr11111));
    //    BOOST_TEST_CHECK(nullptr == pool);
    //    "balance": "220002100000",
@@ -985,13 +989,21 @@ BOOST_FIXTURE_TEST_CASE(mint_tests, eoswap_tester) try {
    mint(N(alice), to_wei_asset(200, "DAI"));
 
    const auto ab = get_balancex(N(alice), sym_from_string(TOKEN_DECIMALS_STR + token_name));
-   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("5.000000000 " + token_name), ab);
+   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("5.000000 " + token_name), ab);
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(burn_tests, eoswap_tester) try {
+ LINE_DEBUG;
    newtokenex(tokenissuer, to_maximum_supply("POOL"));
-   mintex(N(alice), to_asset(300, "POOL"));
+ auto stats = get_stats(TOKEN_DECIMALS_STR +"POOL",N(eoswapxtoken));
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "0.000000 POOL")("max_supply", "1000000000.000000 POOL")("issuer", tokenissuer));
+  
+ LINE_DEBUG;
+   mintex(tokenissuer, to_asset(300, "POOL"));
+   auto alice_balance = get_account(tokenissuer, TOKEN_DECIMALS_STR + "POOL", N(eoswapxtoken));
+   BOOST_REQUIRE_EQUAL(alice_balance, "0.000300 POOL");
+ LINE_DEBUG;
    burnex(tokenissuer, to_asset(300, "POOL"));
 }
 FC_LOG_AND_RETHROW()
@@ -1001,17 +1013,17 @@ BOOST_FIXTURE_TEST_CASE(swap_transfer_tests, eoswap_tester) try {
    LINE_DEBUG;
    newtokenex(tokenissuer, to_maximum_supply("POOL"));
  auto stats = get_stats(TOKEN_DECIMALS_STR +"POOL",N(eoswapxtoken));
-   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "0.000000000 POOL")("max_supply", "1000000.000000000 POOL")("issuer", tokenissuer));
+   REQUIRE_MATCHING_OBJECT(stats, mvo()("supply", "0.000000 POOL")("max_supply", "1000000000.000000 POOL")("issuer", tokenissuer));
   
    LINE_DEBUG;
    mintex(N(alice), to_asset(300, "POOL"));
    auto alice_balance = get_account(N(alice), TOKEN_DECIMALS_STR + "POOL", N(eoswapxtoken));
-   BOOST_REQUIRE_EQUAL(alice_balance, "0.000000300 POOL");
+   BOOST_REQUIRE_EQUAL(alice_balance, "0.000300 POOL");
 
    LINE_DEBUG;
    transferex(N(alice), N(bob), to_asset(300, "POOL"));
    auto bob_balance = get_account(N(bob), TOKEN_DECIMALS_STR + "POOL", N(eoswapxtoken));
-   BOOST_REQUIRE_EQUAL(bob_balance, "0.000000300 POOL");
+   BOOST_REQUIRE_EQUAL(bob_balance, "0.000300 POOL");
 
    LINE_DEBUG;
 }
@@ -1025,7 +1037,7 @@ BOOST_FIXTURE_TEST_CASE(extransfer_tests, eoswap_tester) try {
    const symbol& sym = max_supply.quantity.get_symbol();
    extransfer(N(alice1111111), user2, max_supply);
 
-   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.000000001 " + token_name), get_balancex(user2, sym));
+   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("0.000001 " + token_name), get_balancex(user2, sym));
 }
 FC_LOG_AND_RETHROW()
 
@@ -1096,10 +1108,10 @@ FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(create_max_decimals, eoswap_tester) try {
 
-   auto token = create(N(alice), ext_asset_from_string("1.000000000000000000 TKN"));
+   auto token = create(N(alice), ext_asset_from_string("1.0000000000000000 TKN"));
    auto stats = get_stats("18,TKN");
    REQUIRE_MATCHING_OBJECT(
-       stats, mvo()("supply", "0.000000000000000000 TKN")("max_supply", "1.000000000000000000 TKN")("issuer", "alice"));
+       stats, mvo()("supply", "0.0000000000000000 TKN")("max_supply", "1.0000000000000000 TKN")("issuer", "alice"));
    produce_blocks(1);
 
    // extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eoswapeoswap"}}

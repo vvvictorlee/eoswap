@@ -56,7 +56,7 @@ void extended_token::retire(const extended_asset& quantity, const string& memo) 
 
    stats statstable(get_self(), quantity.contract.value);
    auto  existing = statstable.find(sym.code().raw());
-   check(existing != statstable.end(), "extended_token with symbol does not exist");
+   check(existing != statstable.end(), "token with symbol does not exist");
    const auto& st = *existing;
    if (auth_mode) {
       require_auth(st.issuer);

@@ -210,7 +210,8 @@ class BPool : public BToken, public BMath {
    void gulp(const extended_symbol& tokenx) {
       namesym token = to_namesym(tokenx);
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
-      pool_store.records[token].balance = transfer_mgmt::get_balance(pool_name, pool_store.records[token].exsym);
+      pool_store.records[token].balance = transfer_mgmt::get_balance_one(pool_name, pool_store.records[token].exsym);
+      ;
    }
 
    uint64_t getSpotPrice(const extended_symbol& tokenInx, const extended_symbol& tokenOutx) {
@@ -238,15 +239,20 @@ class BPool : public BToken, public BMath {
 
       uint64_t poolTotal = totalSupply();
       uint64_t ratio     = BMath::bdiv(poolAmountOut, poolTotal);
-      check(ratio != 0, "ERR_MATH_APPROX joinPool: poolAmountOut:"+std::to_string(poolAmountOut)+ "poolTotal:"+std::to_string(poolTotal));
+      check(
+          ratio != 0, "ERR_MATH_APPROX joinPool: poolAmountOut:" + std::to_string(poolAmountOut) +
+                          "poolTotal:" + std::to_string(poolTotal));
 
       for (uint64_t i = 0; i < pool_store.tokens.size(); i++) {
          namesym  t             = pool_store.tokens[i];
          uint64_t bal           = pool_store.records[t].balance;
          uint64_t tokenAmountIn = BMath::bmul(ratio, bal);
 
-         check(tokenAmountIn != 0, "ERR_MATH_APPROX joinPool: ratio:"+std::to_string(ratio)+ "bal:"+std::to_string(bal)+ " i:"+std::to_string(i));
-         check(tokenAmountIn <= maxAmountsIn[i], "ERR_LIMIT_IN joinPool: tokenAmountIn:"+std::to_string(tokenAmountIn));
+         check(
+             tokenAmountIn != 0, "ERR_MATH_APPROX joinPool: ratio:" + std::to_string(ratio) +
+                                     "bal:" + std::to_string(bal) + " i:" + std::to_string(i));
+         check(
+             tokenAmountIn <= maxAmountsIn[i], "ERR_LIMIT_IN joinPool: tokenAmountIn:" + std::to_string(tokenAmountIn));
          pool_store.records[t].balance = BMath::badd(pool_store.records[t].balance, tokenAmountIn);
          _pullUnderlying(get_msg_sender(), extended_asset(tokenAmountIn, pool_store.records[t].exsym));
       }
@@ -284,7 +290,7 @@ class BPool : public BToken, public BMath {
       uint64_t tokenAmountIn = tokenAmountInx.quantity.amount;
       namesym  tokenOut      = to_namesym(minAmountOutx.get_extended_symbol());
       uint64_t minAmountOut  = minAmountOutx.quantity.amount;
-my_print_f("===minAmountOut==%==",minAmountOut);
+      my_print_f("===minAmountOut==%==", minAmountOut);
       require(pool_store.records[tokenIn].bound, "ERR_NOT_BOUND");
       require(pool_store.records[tokenOut].bound, "ERR_NOT_BOUND");
       require(pool_store.publicSwap, "ERR_SWAP_NOT_PUBLIC");
@@ -301,7 +307,9 @@ my_print_f("===minAmountOut==%==",minAmountOut);
 
       uint64_t spotPriceBefore =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
-      check(spotPriceBefore <= maxPrice, std::to_string(maxPrice)+"ERR_BAD_LIMIT_PRICE:spotPriceBefore=" + std::to_string(spotPriceBefore));
+      check(
+          spotPriceBefore <= maxPrice,
+          std::to_string(maxPrice) + "ERR_BAD_LIMIT_PRICE:spotPriceBefore=" + std::to_string(spotPriceBefore));
 
       uint64_t tokenAmountOut = calcOutGivenIn(
           inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountIn, pool_store.swapFee);
@@ -487,7 +495,8 @@ my_print_f("===minAmountOut==%==",minAmountOut);
    // ==
    // 'Underlying' token-manipulation functions make external calls but are NOT
    // locked You must `_lock_` or otherwise ensure reentry-safety
-   void _pullUnderlying(name from, const extended_asset& amountx) {
+   void _pullUnderlying(name from, const extended_asset& amount) {
+      extended_asset amountx = convert_one_decimals(amount, -1);
       /// transfer memo implementation
       my_print_f("_pullUnderlying======= %,%,%==", from, pool_name, amountx);
       if (0 == amountx.quantity.amount) {
@@ -496,7 +505,8 @@ my_print_f("===minAmountOut==%==",minAmountOut);
       ifactory.get_transfer_mgmt().transfer(from, pool_name, amountx, "");
    }
 
-   void _pushUnderlying(name to, const extended_asset& amountx) {
+   void _pushUnderlying(name to, const extended_asset& amount) {
+      extended_asset amountx = convert_one_decimals(amount, -1);
       my_print_f("_pushUnderlying=======%,%,%==", pool_name, to, amountx);
       if (0 == amountx.quantity.amount) {
          return;

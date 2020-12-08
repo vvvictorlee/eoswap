@@ -24,16 +24,9 @@ using bytes32 = std::vector<char>;
 using address = name;
 using uint256 = uint128_t;
 using uint112 = uint64_t;
-using uint8_t   = uint8_t;
 using uint32  = uint32_t;
 using namesym = uint128_t;
 
-static const std::string default_core_symbol = "BPT";
-static const uint8_t     default_precision   = 4;
-static const std::string chain_token         = "eth";
-static const std::string address_zero        = "0";
-
-static const uint8_t current_bridge_version = 1;
 
 template <typename Arg, typename... Args>
 inline void my_print_f(const char* s, Arg val, Args... rest) {

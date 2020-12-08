@@ -80,14 +80,23 @@ class transfer_mgmt {
    }
 
    static uint64_t get_balance(const name& owner, const extended_symbol& exsym) {
-      my_print_f(
-          "===get_balance : % % %===", owner, exsym,
-          get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount);
       return get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
    }
 
    static name get_issuer(const extended_symbol& exsym) {
       return get_issuer(exsym.get_contract(), exsym.get_symbol().code());
+   }
+
+   static uint64_t get_balance_one(const name& owner, const extended_symbol& exsym) {
+      uint8_t p = exsym.get_symbol().precision();
+      check(p <= default_precision, "unsupport the decimal");
+      uint64_t amount = get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
+      if (p < default_precision) {
+         uint8_t d = default_precision - p;
+      return static_cast<uint64_t>(amount*std::pow(10, d));
+      }
+
+      return amount;
    }
 
    /**
