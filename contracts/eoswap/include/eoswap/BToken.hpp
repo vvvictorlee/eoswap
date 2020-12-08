@@ -44,11 +44,13 @@ class BTokenBase : public BNum {
 
    void auth(name _msg_sender) {
       require_auth(_msg_sender);
+      setMsgSender(_msg_sender);
+   }
+
+   void setMsgSender(name _msg_sender) {
       msg_sender = _msg_sender;
       caller     = _msg_sender;
    }
-
-   void            setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
    void            set_caller(name _caller) { caller = _caller; }
    name            get_caller() { return caller; }
    name            get_self() { return self; }

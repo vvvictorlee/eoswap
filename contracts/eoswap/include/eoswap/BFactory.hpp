@@ -50,12 +50,13 @@ class BFactory : public BBronze {
    void collect(name pool_name) {
       require(msg_sender == _factory_storage.blabs, "ERR_NOT_BLABS");
       const BPoolStore& poolStore = factory.get_storage_mgmt().get_pool(pool_name);
-      extended_symbol   bpt       = extended_symbol(symbol("BPT", 4), pool_name);
+      extended_symbol   bpt       = extended_symbol(instance_mgmt::BPT_symbol, pool_name);
       BPool             pool(self, bpt, factory, pool_name, poolStore);
       pool.auth(msg_sender);
-      uint64_t collected = pool.balanceOf(self);
-      pool.set_caller(self);
-      if (collected > 0) {
+      name     from      = self;
+      uint64_t collected = pool.balanceOf(from);
+      pool.set_caller(from);
+      if (collected > 0 && _factory_storage.blabs != from) {
          bool xfer = pool.transfer(_factory_storage.blabs, collected);
          require(xfer, "ERR_ERC20_FAILED");
       }

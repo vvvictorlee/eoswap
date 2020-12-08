@@ -41,7 +41,12 @@ void extended_token::issue(const name& to, const extended_asset& quantity, const
 
    statstable.modify(st, same_payer, [&](auto& s) { s.supply += quantity.quantity; });
 
-   add_balance(st.issuer, quantity, st.issuer);
+   name ram_payer = get_self();
+   if (auth_mode) {
+      ram_payer = st.issuer;
+   }
+
+   add_balance(to, quantity, ram_payer);
 }
 
 void extended_token::retire(const extended_asset& quantity, const string& memo) {

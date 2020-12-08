@@ -24,6 +24,7 @@ class instance_mgmt : public IFactory {
    transfer_mgmt _transfer_mgmt;
 
  public:
+   static constexpr symbol BPT_symbol = symbol(symbol_code("BPT"), 9);
    instance_mgmt(name _self)
        : self(_self)
        , _storage_mgmt(_self)
@@ -38,7 +39,7 @@ class instance_mgmt : public IFactory {
 
    void newBPool(name pool_name) override {
       const BPoolStore& poolStore = _storage_mgmt.newPool(msg_sender, pool_name);
-      extended_symbol   bpt       = extended_symbol(symbol("BPT", 4), pool_name);
+      extended_symbol   bpt       = extended_symbol(BPT_symbol, pool_name);
       BPool             pool(self, bpt, *this, pool_name, poolStore);
       pool.auth(msg_sender);
       pool.init();
@@ -49,7 +50,7 @@ class instance_mgmt : public IFactory {
    template <typename T>
    void pool(name pool_name, T func) {
       const BPoolStore& poolStore = _storage_mgmt.get_pool(pool_name);
-      extended_symbol   bpt       = extended_symbol(symbol("BPT", 4), pool_name);
+      extended_symbol   bpt       = extended_symbol(BPT_symbol, pool_name);
       BPool             pool(self, bpt, *this, pool_name, poolStore);
       pool.auth(msg_sender);
       func(pool);
