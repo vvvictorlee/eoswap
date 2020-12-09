@@ -10,7 +10,6 @@
 
 #include <eosdos/intf/IDODO.hpp>
 #include <eosdos/intf/IERC20.hpp>
-#include <eosdos/lib/Ownable.hpp>
 #include <eosdos/lib/SafeERC20.hpp>
 #include <eosdos/lib/SafeMath.hpp>
 

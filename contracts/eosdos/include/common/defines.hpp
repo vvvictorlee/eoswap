@@ -9,7 +9,7 @@
 #include <common/dos.functions.hpp>
 #include <common/dos.types.hpp>
 // DEBUG(format,...) printf("FILE: "__FILE__", LINE: %d: "format"/n", __LINE__, ##__VA_ARGS__)
-#define EOSDOS_CONTRACT_DEBUG
+// #define EOSDOS_CONTRACT_DEBUG
 
 #ifdef EOSDOS_CONTRACT_DEBUG
 #define contract_debug(args...) print(" | ",##args)

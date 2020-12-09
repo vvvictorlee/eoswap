@@ -12,7 +12,6 @@
 #include <eosdos/intf/IDODO.hpp>
 #include <eosdos/intf/IERC20.hpp>
 #include <eosdos/intf/IWETH.hpp>
-#include <eosdos/lib/ReentrancyGuard.hpp>
 #include <eosdos/lib/SafeERC20.hpp>
 #include <eosdos/lib/SafeMath.hpp>
 
@@ -27,7 +26,7 @@ class IDODOZoo {
  *
  * @notice Handle ETH-WETH converting for users.
  */
-class DODOEthProxy : public ReentrancyGuard {
+class DODOEthProxy {
  private:
    name           self;
    name           msg_sender;
@@ -40,8 +39,7 @@ class DODOEthProxy : public ReentrancyGuard {
        : self(_self)
        , _instance_mgmt(__instance_mgmt)
        , zoo(_zoo)
-       , stores(__instance_mgmt.get_storage_mgmt().get_proxy_store())
-       , ReentrancyGuard(__instance_mgmt.get_storage_mgmt().get_proxy_store().guard) {}
+       , stores(__instance_mgmt.get_storage_mgmt().get_proxy_store()) {}
    name getMsgSender() { return msg_sender; }
    void setMsgSender(name _msg_sender, bool flag = true) {
       if (flag) {
@@ -64,9 +62,9 @@ class DODOEthProxy : public ReentrancyGuard {
 
    uint64_t sellEthToToken(const extended_asset& ethToken, const extended_asset& minReceiveToken) {
       // address quoteTokenAddress, uint64_t ethAmount, uint64_t minReceiveTokenAmount
-      namesym ethtoken              = to_namesym(ethToken.get_extended_symbol());
+      namesym  ethtoken              = to_namesym(ethToken.get_extended_symbol());
       uint64_t ethAmount             = ethToken.quantity.amount;
-      namesym quoteTokenAddress     = to_namesym(minReceiveToken.get_extended_symbol());
+      namesym  quoteTokenAddress     = to_namesym(minReceiveToken.get_extended_symbol());
       uint64_t minReceiveTokenAmount = minReceiveToken.quantity.amount;
 
       //   require(msg_value == ethAmount, "ETH_AMOUNT_NOT_MATCH");
@@ -91,9 +89,9 @@ class DODOEthProxy : public ReentrancyGuard {
 
    uint64_t buyEthWithToken(const extended_asset& ethToken, const extended_asset& maxPayToken, bool pretransfer) {
       // address quoteTokenAddress, uint64_t ethAmount, uint64_t maxPayTokenAmount
-      namesym ethtoken          = to_namesym(ethToken.get_extended_symbol());
+      namesym  ethtoken          = to_namesym(ethToken.get_extended_symbol());
       uint64_t ethAmount         = ethToken.quantity.amount;
-      namesym quoteTokenAddress = to_namesym(maxPayToken.get_extended_symbol());
+      namesym  quoteTokenAddress = to_namesym(maxPayToken.get_extended_symbol());
       uint64_t maxPayTokenAmount = maxPayToken.quantity.amount;
 
       address _dodo = zoo.getDODO(to_namesym(stores.proxy._WETH_), quoteTokenAddress);
@@ -123,9 +121,9 @@ class DODOEthProxy : public ReentrancyGuard {
    uint64_t sellTokenToEth(
        const extended_asset& baseToken, const extended_asset& minReceiveEth, uint64_t receiveEthAmount, uint8_t state) {
       // address baseTokenAddress, uint64_t tokenAmount, uint64_t minReceiveEthAmount
-      namesym baseTokenAddress    = to_namesym(baseToken.get_extended_symbol());
+      namesym  baseTokenAddress    = to_namesym(baseToken.get_extended_symbol());
       uint64_t tokenAmount         = baseToken.quantity.amount;
-      namesym ethTokenAddress     = to_namesym(minReceiveEth.get_extended_symbol());
+      namesym  ethTokenAddress     = to_namesym(minReceiveEth.get_extended_symbol());
       uint64_t minReceiveEthAmount = minReceiveEth.quantity.amount;
 
       address _dodo = zoo.getDODO(baseTokenAddress, to_namesym(stores.proxy._WETH_));
@@ -139,7 +137,7 @@ class DODOEthProxy : public ReentrancyGuard {
          return 0;
       }
 
-    //   uint64_t receiveEthAmount = 0;
+      //   uint64_t receiveEthAmount = 0;
       if (2 == state) {
          _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
             receiveEthAmount = dodo.sellBaseToken(tokenAmount, minReceiveEthAmount, {});
@@ -161,9 +159,9 @@ class DODOEthProxy : public ReentrancyGuard {
 
    uint64_t buyTokenWithEth(const extended_asset& baseToken, const extended_asset& maxPayEth, uint8_t state) {
       // address baseTokenAddress, uint64_t tokenAmount, uint64_t maxPayEthAmount
-      namesym baseTokenAddress = to_namesym(baseToken.get_extended_symbol());
+      namesym  baseTokenAddress = to_namesym(baseToken.get_extended_symbol());
       uint64_t tokenAmount      = baseToken.quantity.amount;
-      namesym ethTokenAddress  = to_namesym(maxPayEth.get_extended_symbol());
+      namesym  ethTokenAddress  = to_namesym(maxPayEth.get_extended_symbol());
       uint64_t maxPayEthAmount  = maxPayEth.quantity.amount;
 
       //   require(msg_value == maxPayEthAmount, "ETH_AMOUNT_NOT_MATCH");
@@ -207,8 +205,8 @@ class DODOEthProxy : public ReentrancyGuard {
 
    void depositEthAsBase(const extended_asset& ethtokenamount, const extended_symbol& quoteToken) {
       // uint64_t ethAmount, address quoteTokenAddress
-      namesym quoteTokenAddress = to_namesym(quoteToken);
-      namesym ethTokenAddress   = to_namesym(ethtokenamount.get_extended_symbol());
+      namesym  quoteTokenAddress = to_namesym(quoteToken);
+      namesym  ethTokenAddress   = to_namesym(ethtokenamount.get_extended_symbol());
       uint64_t ethAmount         = ethtokenamount.quantity.amount;
 
       // require(msg_value == ethAmount, "ETH_AMOUNT_NOT_MATCH");
@@ -229,8 +227,8 @@ class DODOEthProxy : public ReentrancyGuard {
 
    uint64_t withdrawEthAsBase(const extended_asset& ethtokenamount, const extended_symbol& quoteToken, uint8_t state) {
       // uint64_t ethAmount, address quoteTokenAddress
-      namesym quoteTokenAddress = to_namesym(quoteToken);
-      namesym ethTokenAddress   = to_namesym(ethtokenamount.get_extended_symbol());
+      namesym  quoteTokenAddress = to_namesym(quoteToken);
+      namesym  ethTokenAddress   = to_namesym(ethtokenamount.get_extended_symbol());
       uint64_t ethAmount         = ethtokenamount.quantity.amount;
 
       address _dodo = zoo.getDODO(ethTokenAddress, quoteTokenAddress);
@@ -328,8 +326,8 @@ class DODOEthProxy : public ReentrancyGuard {
 
    void depositEthAsQuote(const extended_asset& ethtokenamount, const extended_symbol& baseToken) {
       // uint64_t ethAmount, address baseTokenAddress
-      namesym baseTokenAddress = to_namesym(baseToken);
-      namesym ethTokenAddress  = to_namesym(ethtokenamount.get_extended_symbol());
+      namesym  baseTokenAddress = to_namesym(baseToken);
+      namesym  ethTokenAddress  = to_namesym(ethtokenamount.get_extended_symbol());
       uint64_t ethAmount        = ethtokenamount.quantity.amount;
 
       //   require(msg_value == ethAmount, "ETH_AMOUNT_NOT_MATCH");
@@ -346,13 +344,16 @@ class DODOEthProxy : public ReentrancyGuard {
          //  token.approve(_dodo, ethAmount);
       });
 
-      _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) { dodo.depositQuoteTo(getMsgSender(), ethAmount); });
+      _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
+         dodo.depositQuoteTo(getMsgSender(), ethAmount);
+      });
+
    }
 
    uint64_t withdrawEthAsQuote(const extended_asset& ethtokenamount, const extended_symbol& baseToken, uint8_t state) {
       // uint64_t ethAmount, address baseTokenAddress
-      namesym baseTokenAddress = to_namesym(baseToken);
-      namesym ethTokenAddress  = to_namesym(ethtokenamount.get_extended_symbol());
+      namesym  baseTokenAddress = to_namesym(baseToken);
+      namesym  ethTokenAddress  = to_namesym(ethtokenamount.get_extended_symbol());
       uint64_t ethAmount        = ethtokenamount.quantity.amount;
 
       address _dodo = zoo.getDODO(baseTokenAddress, to_namesym(stores.proxy._WETH_));
@@ -411,13 +412,11 @@ class DODOEthProxy : public ReentrancyGuard {
    uint64_t withdrawAllEthAsQuote(const extended_symbol& baseToken, uint8_t state) {
       // address baseTokenAddress
       namesym baseTokenAddress = to_namesym(baseToken);
-
       address _dodo = zoo.getDODO(baseTokenAddress, to_namesym(stores.proxy._WETH_));
       require(_dodo != address(0), "DODO_NOT_EXIST");
       if (1 == state) {
          _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
             const extended_symbol& ethLpToken = dodo._QUOTE_CAPITAL_TOKEN_();
-
             // transfer all pool shares to proxy
             _instance_mgmt.get_lptoken(self, ethLpToken, [&](auto& token) {
                //  uint64_t lpBalance = IERC20(ethLpToken).balanceOf(getMsgSender());
@@ -431,7 +430,6 @@ class DODOEthProxy : public ReentrancyGuard {
       if (2 == state) {
          _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
             const extended_symbol& ethLpToken = dodo._QUOTE_CAPITAL_TOKEN_();
-
             dodo.withdrawAllQuote();
          });
          return 0;

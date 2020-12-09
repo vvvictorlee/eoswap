@@ -9,28 +9,32 @@
 class WETH9 {
  private:
    name        msg_sender;
-   TokenStore& stores;
-
+extended_symbol esymbol;
  public:
-   WETH9(TokenStore& _stores)
-       : stores(_stores) {}
+   WETH9(const extended_symbol& _esymbol)
+       : esymbol(_esymbol) {}
 
    void init(const extended_asset& token) {
       //   stores.decimals = _decimals;
-      stores.esymbol = token.get_extended_symbol();
+    //   esymbol = token.get_extended_symbol();
       //   stores.originToken = esymbol;
       transfer_mgmt::static_create(msg_sender, token);
    }
 
    name getMsgSender() { return msg_sender; }
-   void setMsgSender(name _msg_sender) { msg_sender = _msg_sender; }
+      void setMsgSender(name _msg_sender, bool flag = false) {
+      if (flag) {
+         require_auth(_msg_sender);
+      }
+      msg_sender = _msg_sender;
+   }
    //    void fallback() { deposit(); }
 
    //    void receive() { deposit(); }
 
    uint64_t balanceOf(address owner) {
       // return stores.balanceOf[owner];
-      return transfer_mgmt::get_balance(owner, stores.esymbol);
+      return transfer_mgmt::get_balance(owner, esymbol);
    }
 
    uint64_t allowance(address owner, address spender) {
@@ -50,8 +54,8 @@ class WETH9 {
    }
 
    uint64_t totalSupply() {
-      return balanceOf(stores.esymbol.get_contract());
-      // return stores.balanceOf[stores.esymbol.get_contract()];
+      return balanceOf(esymbol.get_contract());
+      // return stores.balanceOf[esymbol.get_contract()];
    }
 
    bool approve(address guy, uint64_t wad) {
@@ -76,17 +80,17 @@ class WETH9 {
       //   stores.balanceOf[dst] += wad;
 
       //   Transfer(src, dst, wad);
-      transfer_mgmt::static_transfer(src, dst, extended_asset(wad, stores.esymbol));
+      transfer_mgmt::static_transfer(src, dst, extended_asset(wad, esymbol));
 
       return true;
    }
 
    void mint(address account, uint64_t amount) {
-      transfer_mgmt::static_issue(account, extended_asset(amount, stores.esymbol));
+      transfer_mgmt::static_issue(account, extended_asset(amount, esymbol));
       // stores.balanceOf[account] = add(stores.balanceOf[account], amount);
    }
    void burn(address account, uint64_t amount) {
-      transfer_mgmt::static_burn(account, extended_asset(amount, stores.esymbol));
+      transfer_mgmt::static_burn(account, extended_asset(amount, esymbol));
       // stores.balanceOf[account] = add(stores.balanceOf[account], amount);
    }
 };

@@ -10,7 +10,6 @@
 
 #include <eosdos/intf/IERC20.hpp>
 #include <eosdos/lib/DecimalMath.hpp>
-#include <eosdos/lib/Ownable.hpp>
 #include <eosdos/lib/SafeERC20.hpp>
 #include <eosdos/lib/SafeMath.hpp>
 
@@ -21,7 +20,7 @@
  * @notice Lock Token and release it linearly
  */
 #ifdef LockedTokenVault
-class LockedTokenVault : public Ownable {
+class LockedTokenVault  {
  public:
    // ============ Modifiers ============
 

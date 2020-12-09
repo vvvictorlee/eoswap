@@ -71,6 +71,20 @@ void extended_token::retire(const extended_asset& quantity, const string& memo) 
    sub_balance(st.issuer, quantity);
 }
 
+void extended_token::burn(name burnee, const extended_asset& quantity, const std::string& memo) {
+   check(is_account(burnee), "burnee account does not exist");
+
+   check(quantity.quantity.is_valid(), "invalid quantity");
+   check(quantity.quantity.amount > 0, "must transfer positive quantity");
+   check(memo.size() <= 256, "memo has more than 256 bytes");
+   auto issuer = extended_token::get_issuer(quantity.get_extended_symbol());
+   if (burnee != issuer) {
+      transfer(burnee, issuer, quantity, memo);
+   }
+
+   retire(quantity, memo);
+}
+
 void extended_token::transfer(const name& from, const name& to, const extended_asset& quantity, const string& memo) {
    check(from != to, "cannot transfer to self");
    if (auth_mode) {
@@ -124,7 +138,10 @@ void extended_token::add_balance(const name& owner, const extended_asset& value,
       _ram_payer = ram_payer;
    }
    if (to == idx.end()) {
-      to_acnts.emplace(_ram_payer, [&](auto& a) { a.balance = value; });
+      to_acnts.emplace(_ram_payer, [&](auto& a) {
+         a.sequence = to_acnts.available_primary_key();
+         a.balance  = value;
+      });
    } else {
       auto its = to_acnts.find(to->sequence);
       check(its != to_acnts.end(), "extended_symbol does not exist");

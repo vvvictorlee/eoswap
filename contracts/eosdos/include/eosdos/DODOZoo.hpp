@@ -14,7 +14,6 @@
 #include <eosdos/helper/TestERC20.hpp>
 #include <eosdos/helper/TestWETH.hpp>
 #include <eosdos/impl/DODOLpToken.hpp>
-#include <eosdos/lib/Ownable.hpp>
 
 /**
  * @title DODOZoo
@@ -22,22 +21,27 @@
  *
  * @notice Register of All DODO
  */
-class DODOZoo : public Ownable {
+class DODOZoo {
  private:
    name           self;
    instance_mgmt& _instance_mgmt;
    ZooStorage&    zoo_storage;
+   name           msg_sender;
 
  public:
    DODOZoo(name _self, instance_mgmt& __instance_mgmt)
        : self(_self)
        , _instance_mgmt(__instance_mgmt)
-       , zoo_storage(__instance_mgmt.get_storage_mgmt().get_zoo_store())
-       , Ownable(__instance_mgmt.get_storage_mgmt().get_zoo_store().ownable) {
+       , zoo_storage(__instance_mgmt.get_storage_mgmt().get_zoo_store()) {}
+   name getMsgSender() { return msg_sender; }
+   void setMsgSender(name _msg_sender, bool flag = false) {
+      if (flag) {
+         require_auth(_msg_sender);
+      }
+      msg_sender = _msg_sender;
    }
-
    void init(address _dodoLogic, address _cloneFactory, address _defaultSupervisor) {
-      zoo_storage.ownable._OWNER_      =  self;
+      zoo_storage.ownable._OWNER_      = self;
       zoo_storage._DODO_LOGIC_         = _dodoLogic;
       zoo_storage._CLONE_FACTORY_      = _cloneFactory;
       zoo_storage._DEFAULT_SUPERVISOR_ = _defaultSupervisor;
@@ -61,8 +65,8 @@ class DODOZoo : public Ownable {
    //    }
 
    void removeDODO(address _dodo) {
-      onlyOwner();
-      _instance_mgmt.get_dodo(self,_dodo, [&](auto& dodo) {
+    //   onlyOwner();
+      _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
          namesym baseToken  = dodo._BASE_TOKEN_();
          namesym quoteToken = dodo._QUOTE_TOKEN_();
 
@@ -80,7 +84,7 @@ class DODOZoo : public Ownable {
    }
 
    void addDODO(address _dodo) {
-      _instance_mgmt.get_dodo(self,_dodo, [&](auto& dodo) {
+      _instance_mgmt.get_dodo(self, _dodo, [&](auto& dodo) {
          namesym baseToken  = dodo._BASE_TOKEN_();
          namesym quoteToken = dodo._QUOTE_TOKEN_();
 
@@ -100,9 +104,9 @@ class DODOZoo : public Ownable {
 
       require(!isDODORegistered(nbaseToken, nquoteToken), "DODO_REGISTERED");
 
-      _instance_mgmt.newDODO(getMsgSender(),
-          dodo_name, zoo_storage.ownable._OWNER_, zoo_storage._DEFAULT_SUPERVISOR_, maintainer, baseToken, quoteToken,
-          oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
+      _instance_mgmt.newDODO(
+          getMsgSender(), dodo_name, zoo_storage.ownable._OWNER_, zoo_storage._DEFAULT_SUPERVISOR_, maintainer,
+          baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
 
       addDODO(dodo_name);
 

@@ -9,7 +9,6 @@
  #include <common/defines.hpp>
 
 
-#include <eosdos/lib/Ownable.hpp>
 #include <eosdos/lib/SafeERC20.hpp>
 #include <eosdos/intf/IERC20.hpp>
 
@@ -21,7 +20,7 @@ class IDODORewardVault {
 }
 
 
-class DODORewardVault : public  Ownable {
+class DODORewardVault  {
  public:
     
 

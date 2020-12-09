@@ -48,7 +48,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       tradeAllowed();
       sellingAllowed();
       gasPriceLimit();
-      preventReentrant();
+    //   //preventReentrant();
       // query price
       uint256 receiveQuote;
       uint256 lpFeeQuote;
@@ -90,7 +90,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       tradeAllowed();
       buyingAllowed();
       gasPriceLimit();
-      preventReentrant();
+    //   //preventReentrant();
       // query price
       uint256 payQuote;
       uint256 lpFeeBase;

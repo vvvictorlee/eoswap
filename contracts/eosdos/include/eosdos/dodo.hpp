@@ -42,6 +42,7 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
        , Pricing(stores, _factory)
        , Settlement(stores, _factory) {}
    ~DODO() { factory.get_storage_mgmt().saveDodo(stores.dodo_name, stores); }
+
    void init(
        name dodo_name, address owner, address supervisor, address maintainer, const extended_symbol& baseToken,
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint64_t lpFeeRate, uint64_t mtFeeRate,

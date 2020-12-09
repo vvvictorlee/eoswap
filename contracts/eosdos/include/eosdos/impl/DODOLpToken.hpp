@@ -8,9 +8,10 @@
 #pragma once
 #include <common/defines.hpp>
 
+#include <common/extended_token.hpp>
 #include <eosdos/intf/IERC20.hpp>
-#include <eosdos/lib/Ownable.hpp>
 #include <eosdos/lib/SafeMath.hpp>
+
 using namespace SafeMath;
 /**
  * @title DODOLpToken
@@ -18,41 +19,50 @@ using namespace SafeMath;
  *
  * @notice Tokenize liquidity pool assets. An ordinary ERC20 contract with mint and burn functions
  */
-class DODOLpToken : public Ownable {
+class DODOLpToken {
  private:
-   TokenStore& stores;
-   TokenStore& ostores;
-   IFactory&   factory;
+   extended_symbol esymbol;
+   IFactory&        factory;
+   extended_token   _extended_token;
+   name             msg_sender;
 
  public:
-   DODOLpToken(TokenStore& _stores, TokenStore& _ostores, IFactory& _factory)
-       : stores(_stores)
-       , ostores(_ostores)
+   DODOLpToken(const extended_symbol& _esymbol, IFactory& _factory)
+       : esymbol(_esymbol)
        , factory(_factory)
-       , Ownable(_stores.ownable) {}
+       , _extended_token(_factory.get_self(),false) {}
+
+   name getMsgSender() { return msg_sender; }
+   void setMsgSender(name _msg_sender, bool flag = false) {
+      if (flag) {
+         require_auth(_msg_sender);
+      }
+      msg_sender = _msg_sender;
+   }
 
    // ============ Functions ============
 
    void init(const extended_asset& token, const extended_symbol& _originToken) {
-      stores.esymbol     = token.get_extended_symbol();
-      stores.originToken = _originToken;
-      transfer_mgmt::static_create(getMsgSender(), token);
+      //   esymbol     = token.get_extended_symbol();
+      //   stores.originToken = _originToken;
+      _extended_token.create(msg_sender, token);
    }
 
-   const extended_symbol& get_esymbol() { return stores.esymbol; }
+   const extended_symbol& get_esymbol() { return esymbol; }
    std::string            names() {
       std::string lpTokenSuffix = "_DODO_LP_TOKEN_";
       //   return string(abi.encodePacked(IERC20(originToken).name(), lpTokenSuffix));
-      return ostores.names + lpTokenSuffix;
+      //   return ostores.names + lpTokenSuffix;
       // std::to_string(sym.precision()) + sym.code().to_string() + "@" + exsym.get_contract().to_string();
-   }
+return lpTokenSuffix;   
+}
 
-   std::string            symbol() { return stores.esymbol.get_symbol().code().to_string(); };
-   const extended_symbol& originToken() { return stores.originToken; };
+   std::string symbol() { return esymbol.get_symbol().code().to_string(); };
+   //    const extended_symbol& originToken() { return stores.originToken; };
 
-   uint8_t   decimals() { return stores.esymbol.get_symbol().precision(); }
+   uint8_t  decimals() { return esymbol.get_symbol().precision(); }
    uint64_t totalSupply() {
-      return transfer_mgmt::get_supply(stores.esymbol);
+      return _extended_token.get_supply(esymbol);
       // return stores.totalSupply;
    };
 
@@ -62,11 +72,11 @@ class DODOLpToken : public Ownable {
     * @param amount The amount to be transferred.
     */
    bool transfer(address to, uint64_t amount) {
-      //   require(amount <= stores.balances[getMsgSender()], "BALANCE_NOT_ENOUGH");
+      //   require(amount <= stores.balances[msg_sender], "BALANCE_NOT_ENOUGH");
 
-      //   stores.balances[getMsgSender()] = sub(stores.balances[getMsgSender()], amount);
+      //   stores.balances[msg_sender] = sub(stores.balances[msg_sender], amount);
       //   stores.balances[to]             = add(stores.balances[to], amount);
-      transferFrom(getMsgSender(), to, amount);
+      transferFrom(msg_sender, to, amount);
       return true;
    }
 
@@ -76,7 +86,7 @@ class DODOLpToken : public Ownable {
     * @return balance An uint64_t representing the amount owned by the passed address.
     */
    uint64_t balanceOf(address owner) {
-      return transfer_mgmt::get_balance(owner, stores.esymbol);
+      return _extended_token.get_balance(owner, esymbol);
       // return stores.balances[owner];
    }
 
@@ -88,22 +98,22 @@ class DODOLpToken : public Ownable {
     */
    bool transferFrom(address from, address to, uint64_t amount) {
       //       require(amount <= stores.balances[from], "BALANCE_NOT_ENOUGH");
-      //   require(amount <= stores.allowed[from].dst2amt[getMsgSender()], "ALLOWANCE_NOT_ENOUGH");
+      //   require(amount <= stores.allowed[from].dst2amt[msg_sender], "ALLOWANCE_NOT_ENOUGH");
 
       //   stores.balances[from]                        = sub(stores.balances[from], amount);
       //   stores.balances[to]                          = sub(stores.balances[to], amount);
-      //   stores.allowed[from].dst2amt[getMsgSender()] = sub(stores.allowed[from].dst2amt[getMsgSender()], amount);
-      transfer_mgmt::static_transfer(from, to, extended_asset(amount, stores.esymbol));
+      //   stores.allowed[from].dst2amt[msg_sender] = sub(stores.allowed[from].dst2amt[msg_sender], amount);
+      _extended_token.transfer(from, to, extended_asset(amount, esymbol),"");
       return true;
    }
 
    /**
-    * @dev Approve the passed address to spend the specified amount of tokens on behalf of getMsgSender().
+    * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg_sender.
     * @param spender The address which will spend the funds.
     * @param amount The amount of tokens to be spent.
     */
    bool approve(address spender, uint64_t amount) {
-      //   stores.allowed[getMsgSender()].dst2amt[spender] = amount;
+      //   stores.allowed[msg_sender].dst2amt[spender] = amount;
 
       return true;
    }
@@ -122,12 +132,12 @@ class DODOLpToken : public Ownable {
    void mint(address user, uint64_t value) {
       //   stores.balances[user] = add(stores.balances[user], value);
       //   stores.totalSupply    = add(stores.totalSupply, value);
-      transfer_mgmt::static_issue(user, extended_asset(value, stores.esymbol));
+      _extended_token.issue(user, extended_asset(value, esymbol));
    }
 
    void burn(address user, uint64_t value) {
       //   stores.balances[user] = sub(stores.balances[user], value);
       //   stores.totalSupply    = sub(stores.totalSupply, value);
-      transfer_mgmt::static_burn(user, extended_asset(value, stores.esymbol));
+      _extended_token.burn(user,extended_asset(value, esymbol));
    }
 };

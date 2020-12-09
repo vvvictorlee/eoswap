@@ -73,6 +73,10 @@ class transfer_mgmt {
       return _core_symbol;
    }
 
+
+
+
+
    static uint64_t get_supply(const extended_symbol& exsym) {
       return get_supply(exsym.get_contract(), exsym.get_symbol().code()).amount;
    }
@@ -112,8 +116,6 @@ class transfer_mgmt {
    }
 
    static void static_create(name issuer, const extended_asset& maximum_supply) {
-      my_print_f("=======static_create========== % %", issuer, maximum_supply);
-
       require_auth(issuer);
       check(is_account(issuer), "issuer account does not exist");
       check(maximum_supply.quantity.is_valid(), "invalid quantity");

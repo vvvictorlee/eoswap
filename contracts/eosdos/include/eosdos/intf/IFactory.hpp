@@ -30,9 +30,9 @@ class IFactory {
 //       _instance_mgmt.get_lptoken(lptoken, func);
 //    }
 
-   template <typename T>
-   void get_oracle(name _msg_sender,const extended_symbol& oracle, T func);
-//  {
-//       _instance_mgmt.get_oracle(oracle, func);
-//    }
+//    template <typename T>
+//    void get_oracle(name _msg_sender,const extended_symbol& oracle, T func);
+// //  {
+// //       _instance_mgmt.get_oracle(oracle, func);
+// //    }
 };

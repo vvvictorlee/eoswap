@@ -38,25 +38,25 @@ class instance_mgmt : public IFactory {
    template <typename T>
    void get_dodo(name _msg_sender, name dodo_name, T func) {
       const DODOStore& dodoStore = _storage_mgmt.get_dodo(dodo_name);
-      DODO       dodo(dodoStore, *this);
-      dodo.setMsgSender(_msg_sender);
+      DODO             dodo(dodoStore, *this);
+      dodo.setMsgSender(_msg_sender,false);
       func(dodo);
    }
 
    template <typename T>
    void get_lptoken(name _msg_sender, const extended_symbol& lptoken, T func) {
-      TokenStore& lptokenStore  = _storage_mgmt.get_token_store(lptoken);
-      TokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
-      DODOLpToken token(lptokenStore, olptokenStore, *this);
-      token.setMsgSender(_msg_sender);
+    //   TokenStore& lptokenStore  = _storage_mgmt.get_token_store(lptoken);
+    //   TokenStore& olptokenStore = _storage_mgmt.get_token_store(lptokenStore.originToken);
+      DODOLpToken token(lptoken, *this);
+      token.setMsgSender(_msg_sender,false);
       func(token);
    }
 
    template <typename T, typename F>
    void get_token(name _msg_sender, const extended_symbol& _token, F func) {
-      TokenStore& tokenStore = _storage_mgmt.get_token_store(_token);
-      T           token(tokenStore);
-      token.setMsgSender(_msg_sender);
+      //   TokenStore& tokenStore = _storage_mgmt.get_token_store(_token);
+      T token(_token);
+      token.setMsgSender(_msg_sender,false);
       func(token);
    }
 
@@ -66,7 +66,7 @@ class instance_mgmt : public IFactory {
        uint64_t lpFeeRate, uint64_t mtFeeRate, uint64_t k, uint64_t gasPriceLimit) {
       const DODOStore& dodoStore = _storage_mgmt.newDodo(_msg_sender, dodo_name);
       DODO             dodo(dodoStore, *this);
-      dodo.setMsgSender(_msg_sender);
+      dodo.setMsgSender(_msg_sender,false);
       dodo.init(
           dodo_name, owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
           gasPriceLimit);
@@ -74,21 +74,23 @@ class instance_mgmt : public IFactory {
 
    template <typename T>
    void newToken(name _msg_sender, const extended_asset& tokenx) {
-      const extended_symbol& exsym      = tokenx.get_extended_symbol();
-      TokenStore&            tokenStore = _storage_mgmt.newTokenStore(exsym);
-      T                      otoken(tokenStore);
-      otoken.setMsgSender(_msg_sender);
+      const extended_symbol& exsym = tokenx.get_extended_symbol();
+      //   TokenStore&            tokenStore = _storage_mgmt.newTokenStore(exsym);
+      T otoken(exsym);
+      otoken.setMsgSender(_msg_sender,false);
       otoken.init(tokenx);
    }
+
    static const uint64_t MAX_TOTAL_SUPPLY = 1000000000000000;
+
    extended_symbol       newLpToken(name _msg_sender, name dodo_name, const extended_symbol& tokenx) override {
       const symbol&   sym   = tokenx.get_symbol();
       extended_symbol exsym = extended_symbol(sym, dodo_name);
 
-      TokenStore& tokenStore    = _storage_mgmt.newTokenStore(exsym);
-      TokenStore& olptokenStore = _storage_mgmt.get_token_store(tokenx);
-      DODOLpToken token(tokenStore, olptokenStore, *this);
-      token.setMsgSender(_msg_sender);
+    //   TokenStore& tokenStore    = _storage_mgmt.newTokenStore(exsym);
+    //   TokenStore& olptokenStore = _storage_mgmt.get_token_store(tokenx);
+      DODOLpToken token(exsym, *this);
+      token.setMsgSender(_msg_sender,false);
       token.init(extended_asset{MAX_TOTAL_SUPPLY, exsym}, tokenx);
 
       return exsym;
@@ -100,7 +102,7 @@ void IFactory::get_lptoken(name _msg_sender, const extended_symbol& lptoken, T f
    get_instance_mgmt().get_lptoken(_msg_sender, lptoken, func);
 }
 
-template <typename T>
-void IFactory::get_oracle(name _msg_sender, const extended_symbol& oracle, T func) {
-   get_instance_mgmt().get_oracle(_msg_sender, oracle, func);
-}
+// template <typename T>
+// void IFactory::get_oracle(name _msg_sender, const extended_symbol& oracle, T func) {
+//    get_instance_mgmt().get_oracle(_msg_sender, oracle, func);
+// }

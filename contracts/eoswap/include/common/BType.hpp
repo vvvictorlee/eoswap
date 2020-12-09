@@ -7,7 +7,7 @@
 #include <eosio/symbol.hpp>
 #include <eosio/system.hpp>
 
-#define EOSWAP_CONTRACT_DEBUG
+// #define EOSWAP_CONTRACT_DEBUG
 
 #ifdef EOSWAP_CONTRACT_DEBUG
 #define debug(args...) print(" | ", ##args)

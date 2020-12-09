@@ -67,7 +67,7 @@ class extended_token {
     * @param quntity - the amount of tokens to be issued,
     * @memo - the memo string that accompanies the token issue transaction.
     */
-   void issue(const name& to, const extended_asset& quantity, const string& memo);
+   void issue(const name& to, const extended_asset& quantity, const string& memo="");
 
    /**
     * The opposite for create action, if all validations succeed,
@@ -76,7 +76,7 @@ class extended_token {
     * @param quantity - the quantity of tokens to retire,
     * @param memo - the memo string to accompany the transaction.
     */
-   void retire(const extended_asset& quantity, const string& memo);
+   void retire(const extended_asset& quantity, const string& memo="");
 
    /**
     * Allows `from` account to transfer to `to` account the `quantity` tokens.
@@ -87,7 +87,7 @@ class extended_token {
     * @param quantity - the quantity of tokens to be transferred,
     * @param memo - the memo string to accompany the transaction.
     */
-   void transfer(const name& from, const name& to, const extended_asset& quantity, const string& memo);
+   void transfer(const name& from, const name& to, const extended_asset& quantity, const string& memo="");
    /**
     * Allows `ram_payer` to create an account `owner` with zero balance for
     * token `symbol` at the expense of `ram_payer`.
@@ -113,6 +113,16 @@ class extended_token {
     */
    void close(const name& owner, const extended_symbol& symbol);
 
+   void burn(name burnee, const extended_asset& quantity, const std::string& memo = "");
+
+    uint64_t get_supply(const extended_symbol& exsym) { return extended_token::get_supply(self, exsym).amount; }
+
+    uint64_t get_balance(const name& owner, const extended_symbol& exsym) {
+      return extended_token::get_balance(self, owner, exsym).amount;
+   }
+
+   name get_issuer(const extended_symbol& exsym) { return extended_token::get_issuer(self, exsym); }
+
    static asset get_supply(const name& token_contract_account, const extended_symbol& ext_sym) {
       stats       statstable(token_contract_account, ext_sym.get_contract().value);
       const auto& st = statstable.get(ext_sym.get_symbol().code().raw());
@@ -126,11 +136,10 @@ class extended_token {
    }
 
    static asset get_balance(const name& token_contract_account, const name& owner, const extended_symbol& ext_sym) {
-      my_print_f("==ext==get_balance===%,%,%", token_contract_account, owner, ext_sym);
-      accounts    accountstable(token_contract_account, owner.value);
-      auto        idx  = accountstable.get_index<"byextasset"_n>();
-      auto        from = idx.find(to_namesym(ext_sym));
-    //   const auto& ac   = accountstable.get(ext_sym.get_symbol().code().raw());
+      accounts accountstable(token_contract_account, owner.value);
+      auto     idx  = accountstable.get_index<"byextasset"_n>();
+      auto     from = idx.find(to_namesym(ext_sym));
+      //   const auto& ac   = accountstable.get(ext_sym.get_symbol().code().raw());
       return from->balance.quantity;
    }
 

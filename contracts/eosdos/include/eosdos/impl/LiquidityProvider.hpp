@@ -57,7 +57,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
 
    // ============ Deposit Functions ============
    virtual uint64_t depositQuoteTo(address to, uint64_t amount) {
-      preventReentrant();
+      //preventReentrant();
 
       depositQuoteAllowed();
 
@@ -76,16 +76,14 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
 
       // settlement
       _quoteTokenTransferIn(getMsgSender(), extended_asset(amount, stores._QUOTE_TOKEN_));
-
       _mintQuoteCapital(to, capital);
-
       stores._TARGET_QUOTE_TOKEN_AMOUNT_ = add(stores._TARGET_QUOTE_TOKEN_AMOUNT_, amount);
 
       return capital;
    }
 
    uint64_t depositBaseTo(address to, uint64_t amount) {
-      preventReentrant();
+      //preventReentrant();
       depositBaseAllowed();
       uint256 baseTarget                = 0;
       std::tie(baseTarget, std::ignore) = getExpectedTarget();
@@ -113,7 +111,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    // ============ Withdraw Functions ============
 
    uint64_t withdrawQuoteTo(address to, uint64_t amount) {
-      preventReentrant();
+      //preventReentrant();
       dodoNotClosed();
       // calculate capital
       uint256 quoteTarget                = 0;
@@ -138,7 +136,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    }
 
    uint64_t withdrawBaseTo(address to, uint64_t amount) {
-      preventReentrant();
+      //preventReentrant();
       dodoNotClosed();
       // calculate capital
       uint256 baseTarget                = 0;
@@ -164,7 +162,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    // ============ Withdraw all Functions ============
 
    uint64_t withdrawAllQuoteTo(address to) {
-      preventReentrant();
+      //preventReentrant();
       dodoNotClosed();
       uint256 withdrawAmount = getLpQuoteBalance(getMsgSender());
       uint256 capital        = getQuoteCapitalBalanceOf(getMsgSender());
@@ -183,7 +181,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
    }
 
    uint64_t withdrawAllBaseTo(address to) {
-      preventReentrant();
+      //preventReentrant();
       dodoNotClosed();
       uint256 withdrawAmount = getLpBaseBalance(getMsgSender());
       uint256 capital        = getBaseCapitalBalanceOf(getMsgSender());

@@ -11,11 +11,10 @@
 #include <eosdos/DODORewardVault.hpp>
 #include <eosdos/intf/IERC20.hpp>
 #include <eosdos/lib/DecimalMath.hpp>
-#include <eosdos/lib/Ownable.hpp>
 #include <eosdos/lib/SafeERC20.hpp>
 #include <eosdos/lib/SafeMath.hpp>
 #ifdef DODOMINE
-class DODOMine : public Ownable {
+class DODOMine  {
    DODOMine(address _dodoToken, uint64_t _startBlock) public {
       dodoRewardVault = address(new DODORewardVault(_dodoToken));
       startBlock      = _startBlock;
