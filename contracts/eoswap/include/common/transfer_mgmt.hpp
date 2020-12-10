@@ -115,14 +115,19 @@ class transfer_mgmt {
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
       check(memo.size() <= 256, "memo has more than 256 bytes");
 
-      transaction t;
-      t.actions.emplace_back(
-          permission_level{from, active_permission}, quantity.contract, "transfer"_n,
-          std::make_tuple(from, to, quantity.quantity, memo));
-      t.delay_sec           = 0;
-      uint128_t deferred_id = (uint128_t(to.value) << 64) | current_time_point_sec().sec_since_epoch();
-      cancel_deferred(deferred_id);
-      t.send(deferred_id, self, true);
+      action(
+          permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
+          std::make_tuple(from, to, quantity.quantity, memo))
+          .send();
+
+    //   transaction t;
+    //   t.actions.emplace_back(
+    //       permission_level{from, active_permission}, quantity.contract, "transfer"_n,
+    //       std::make_tuple(from, to, quantity.quantity, memo));
+    //   t.delay_sec           = 0;
+    //   uint128_t deferred_id = (uint128_t(to.value) << 64) | current_time_point_sec().sec_since_epoch();
+    //   cancel_deferred(deferred_id);
+    //   t.send(deferred_id, self, true);
    }
 
    void create(name issuer, const extended_asset& maximum_supply) {
