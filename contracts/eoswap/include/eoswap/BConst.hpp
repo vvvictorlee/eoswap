@@ -34,7 +34,7 @@ public:
 
     static constexpr uint256m  MIN_BPOW_BASE     = 1 ;
     static constexpr uint256m  MAX_BPOW_BASE     = (2 * BONE) - 1 ;
-    static constexpr uint256m  BPOW_PRECISION    = BONE / my_pow(10,3);//10
+    static constexpr uint256m  BPOW_PRECISION    = BONE/ my_pow(10,5);//10
 
     static constexpr uint256m  MAX_IN_RATIO      = BONE / 2;
     static constexpr uint256m  MAX_OUT_RATIO     = (BONE / 3) + 1 ;

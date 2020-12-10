@@ -73,7 +73,6 @@ class storage_mgmt {
       namesym token_name = to_namesym(token);
       auto    t          = token_storage.tokens.find(token_name);
       bool    f          = (t != token_storage.tokens.end());
-
       require(f, "NO_TOKEN");
       return t->second;
    }

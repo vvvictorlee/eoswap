@@ -165,7 +165,10 @@ void extended_token::open(const name& owner, const extended_symbol& symbol, cons
    auto     idx = acnts.get_index<"byextasset"_n>();
    auto     it  = idx.find(to_namesym(symbol));
    if (it == idx.end()) {
-      acnts.emplace(ram_payer, [&](auto& a) { a.balance = extended_asset{0, symbol}; });
+      acnts.emplace(ram_payer, [&](auto& a) {
+         a.sequence = acnts.available_primary_key();
+         a.balance  = extended_asset{0, symbol};
+      });
    }
 }
 

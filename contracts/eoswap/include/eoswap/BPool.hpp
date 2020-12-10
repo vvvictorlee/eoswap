@@ -313,7 +313,9 @@ class BPool : public BToken, public BMath {
 
       uint64_t tokenAmountOut = calcOutGivenIn(
           inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountIn, pool_store.swapFee);
-      check(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT:tokenAmountOut=" + std::to_string(tokenAmountOut));
+      check(
+          tokenAmountOut >= minAmountOut,
+          std::to_string(minAmountOut) + "ERR_LIMIT_OUT:tokenAmountOut=" + std::to_string(tokenAmountOut));
 
       inRecord.balance  = BMath::badd(inRecord.balance, tokenAmountIn);
       outRecord.balance = BMath::bsub(outRecord.balance, tokenAmountOut);
@@ -373,10 +375,13 @@ class BPool : public BToken, public BMath {
           spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX:spotPriceAfter=" + std::to_string(spotPriceAfter) +
                                                  ":spotPriceBefore=" + std::to_string(spotPriceBefore));
       check(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE:spotPriceAfter=" + std::to_string(spotPriceAfter));
+      uint64_t p  = BMath::bdiv(tokenAmountIn, tokenAmountOut);
+      uint64_t pp = BMath::bdiv(tokenAmountIn * BONE, tokenAmountOut * BONE) / BONE;
       check(
-          spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut),
+          spotPriceBefore <= p ,
           "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) + ":tokenAmountOut=" +
-              std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore));
+              std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
+              ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p) + ":pp=" + std::to_string(pp));
 
       _pullUnderlying(get_msg_sender(), extended_asset(tokenAmountIn, maxAmountInx.get_extended_symbol()));
       _pushUnderlying(get_msg_sender(), tokenAmountOutx);

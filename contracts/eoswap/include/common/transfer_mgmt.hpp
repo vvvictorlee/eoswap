@@ -132,7 +132,7 @@ class transfer_mgmt {
       check(maximum_supply.quantity.is_valid(), "invalid quantity");
       check(maximum_supply.quantity.amount > 0, "must transfer positive quantity");
       action(
-          permission_level{"eoswapxtoken"_n, "active"_n}, maximum_supply.contract, "create"_n,
+          permission_level{maximum_supply.contract, "active"_n}, maximum_supply.contract, "create"_n,
           std::make_tuple(issuer, maximum_supply.quantity))
           .send();
    }
