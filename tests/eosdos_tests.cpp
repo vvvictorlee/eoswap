@@ -1034,6 +1034,51 @@ BOOST_FIXTURE_TEST_CASE(setparameter_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
+/////////////////////admin dodo///////////////////////
+BOOST_FIXTURE_TEST_CASE(no_enable_trading_tests, eosdos_tester) try {
+   newTokenBefore();
+   mintStableBefore();
+
+   setPriceStableBefore();
+   breedStableBefore();
+   LINE_DEBUG;
+   name dodo_name = dodo_stablecoin_name;
+   //   enabletradin(admin, dodo_name);
+   enablequodep(admin, dodo_name);
+   enablebasdep(admin, dodo_name);
+
+   depositBaseStableBefore();
+   depositQuoteStableBefore();
+
+   //    buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "DAI"), to_wei_asset(1001, "MKR"));
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("TRADE_NOT_ALLOWED"),
+       buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "DAI"), to_wei_asset(1001, "MKR")));
+}
+FC_LOG_AND_RETHROW()
+
+/////////////////////admin dodo///////////////////////
+BOOST_FIXTURE_TEST_CASE(no_token_trading_tests, eosdos_tester) try {
+   stableCoinBefore();
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("no base token symbol in the pair"),  buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "WETH"), to_wei_asset(1001, "MKR")));
+}
+FC_LOG_AND_RETHROW()
+
+/////////////////////admin dodo///////////////////////
+BOOST_FIXTURE_TEST_CASE(no_token_decimals_trading_tests, eosdos_tester) try {
+   stableCoinBefore();
+
+   auto base_with_dec_one = extended_asset{asset{1000, symbol{TOKEN_DECIMALS + 1, "DAI"}}, name{"eosdosxtoken"}};
+
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("mismatch precision of the base token in the pair"),
+       buybasetoken(trader, dodo_stablecoin_name, base_with_dec_one, to_wei_asset(1001, "MKR")));
+}
+FC_LOG_AND_RETHROW()
+
 /////////////////////dodo///////////////////////
 BOOST_FIXTURE_TEST_CASE(buy_base_token_tests, eosdos_tester) try {
    stableCoinBefore();

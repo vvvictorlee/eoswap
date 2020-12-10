@@ -86,4 +86,17 @@ class DODO : public Admin, public Trader, virtual public LiquidityProvider {
 
    const extended_symbol& _BASE_CAPITAL_TOKEN_() { return stores._BASE_CAPITAL_TOKEN_; }
    const extended_symbol& _QUOTE_CAPITAL_TOKEN_() { return stores._QUOTE_CAPITAL_TOKEN_; }
+   void                   check_base_token(const extended_symbol& base_token) {
+
+      check(
+          base_token.get_symbol().code() == stores._BASE_TOKEN_.get_symbol().code(),
+          "no base token symbol in the pair");
+      check(base_token == stores._BASE_TOKEN_, "mismatch precision of the base token in the pair");
+   }
+   void check_quote_token(const extended_symbol& quote_token) {
+      check(
+          quote_token.get_symbol().code() == stores._QUOTE_TOKEN_.get_symbol().code(),
+          "no quote token symbol in the pair");
+      check(quote_token == stores._QUOTE_TOKEN_, "mismatch precision of the quote token in the pair");
+   }
 };
