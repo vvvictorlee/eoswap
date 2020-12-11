@@ -43,7 +43,6 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
    void gasPriceLimit() { require(tx_gasprice <= stores._GAS_PRICE_LIMIT_, "GAS_PRICE_EXCEED"); }
 
    // ============ Trade Functions ============
-
    uint64_t sellBaseToken(uint64_t amount, uint64_t minReceiveQuote, bytes data) {
       tradeAllowed();
       sellingAllowed();

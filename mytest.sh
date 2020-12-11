@@ -6,7 +6,7 @@
 case "$1" in
 "n") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/neworacle_tests -- --verbose ;;
 "p") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/setprice_tests -- --verbose ;;
-"k") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/setparameter_tests -- --verbose ;;
+"k") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/set* -- --verbose ;;
 "e") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/no_* -- --verbose ;;
 "b") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buy_tiny_base_token_tests -- --verbose ;;
 "s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sell_token_to_eth_tests -- --verbose ;;

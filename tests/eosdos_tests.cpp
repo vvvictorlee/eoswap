@@ -427,21 +427,15 @@ class eosdos_tester : public tester {
    }
 
    //////////////////admin dodo//////////////
-   action_result enablequodep(name msg_sender, name dodo_name) {
-      return push_action(msg_sender, N(enablequodep), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
-   }
-
-   action_result enablebasdep(name msg_sender, name dodo_name) {
-      return push_action(msg_sender, N(enablebasdep), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
-   }
-
-   action_result enabletradin(name msg_sender, name dodo_name) {
-      return push_action(msg_sender, N(enabletradin), mvo()("msg_sender", msg_sender)("dodo_name", dodo_name));
+   action_result setadmin(name msg_sender, name dodo_name, name admin_name, name admin) {
+      return push_action(
+          msg_sender, N(setadmin),
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("admin_name", admin_name)("admin", admin));
    }
 
    action_result setparameter(name msg_sender, name dodo_name, name para_name, uint64_t para_value) {
       return push_action(
-          msg_sender, N(enablequodep),
+          msg_sender, N(setparameter),
           mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("para_name", para_name)("para_value", para_value));
    }
 
@@ -636,31 +630,10 @@ class eosdos_tester : public tester {
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("ProxyStorage", data, abi_serializer_max_time);
    }
 
-   fc::variant get_dodo_store() {
-      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(dodo), N(dodo));
-      if (data.empty())
-         std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("DODOStorage", data, abi_serializer_max_time);
-   }
-
    fc::variant get_dodo_table(name dodo_name) {
       name         table_name = N(dodos);
       vector<char> data       = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), table_name, dodo_name);
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("dodo_storage", data, abi_serializer_max_time);
-   }
-
-   fc::variant get_token_store() {
-      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(token), N(token));
-      if (data.empty())
-         std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("TokenStorage", data, abi_serializer_max_time);
-   }
-
-   fc::variant get_oracle_store() {
-      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(oracle), N(oracle));
-      if (data.empty())
-         std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("OracleStorage", data, abi_serializer_max_time);
    }
 
    fc::variant get_oracle_table(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
@@ -682,13 +655,6 @@ class eosdos_tester : public tester {
       if (data.empty())
          std::cout << "\nData is empty\n" << std::endl;
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant("oracle_prices", data, abi_serializer_max_time);
-   }
-
-   fc::variant get_helperstore() {
-      vector<char> data = get_row_by_account(N(eosdoseosdos), N(eosdoseosdos), N(helper), N(helper));
-      if (data.empty())
-         std::cout << "\nData is empty\n" << std::endl;
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("HelperStorage", data, abi_serializer_max_time);
    }
 
    ///////////////utils///////////////////////////
@@ -914,25 +880,25 @@ class eosdos_tester : public tester {
    void enableBaseBefore() {
       LINE_DEBUG;
       name dodo_name = dodo_ethbase_name;
-      enabletradin(admin, dodo_name);
-      enablequodep(admin, dodo_name);
-      enablebasdep(admin, dodo_name);
+      setparameter(admin, dodo_name, N(trading), 1);
+      setparameter(admin, dodo_name, N(quotedeposit), 1);
+      setparameter(admin, dodo_name, N(basedeposit), 1);
    }
 
    void enableQuoteBefore() {
       LINE_DEBUG;
       name dodo_name = dodo_ethquote_name;
-      enabletradin(admin, dodo_name);
-      enablequodep(admin, dodo_name);
-      enablebasdep(admin, dodo_name);
+      setparameter(admin, dodo_name, N(trading), 1);
+      setparameter(admin, dodo_name, N(quotedeposit), 1);
+      setparameter(admin, dodo_name, N(basedeposit), 1);
    }
 
    void enableStableBefore() {
       LINE_DEBUG;
       name dodo_name = dodo_stablecoin_name;
-      enabletradin(admin, dodo_name);
-      enablequodep(admin, dodo_name);
-      enablebasdep(admin, dodo_name);
+      setparameter(admin, dodo_name, N(trading), 1);
+      setparameter(admin, dodo_name, N(quotedeposit), 1);
+      setparameter(admin, dodo_name, N(basedeposit), 1);
    }
 
    void depositQuoteBefore() {
@@ -1025,12 +991,44 @@ class eosdos_tester : public tester {
 BOOST_AUTO_TEST_SUITE(eosdos_tests)
 ////////////////dodo admin////////////////////
 
+BOOST_FIXTURE_TEST_CASE(setadmin_tests, eosdos_tester) try {
+   stableCoinBefore();
+   name dodo_name = dodo_stablecoin_name;
+   setadmin(admin, dodo_name, N(supervisor), N(alice));
+   setadmin(admin, dodo_name, N(maintainer), N(bob));
+   auto store = dodos(dodo_name);
+   //    BOOST_TEST_CHECK(nullptr==store);
+   BOOST_TEST_CHECK("alice" == store["_SUPERVISOR_"].as_string());
+   BOOST_TEST_CHECK("bob" == store["_MAINTAINER_"].as_string());
+}
+FC_LOG_AND_RETHROW()
+
 BOOST_FIXTURE_TEST_CASE(setparameter_tests, eosdos_tester) try {
    stableCoinBefore();
    name dodo_name = dodo_stablecoin_name;
    setparameter(admin, dodo_name, N(k), 100);
-   setparameter(admin, dodo_name, N(lpfeerate), 2);
+   setparameter(admin, dodo_name, N(lpfeerate), 3);
    setparameter(admin, dodo_name, N(mtfeerate), 2);
+   setparameter(admin, dodo_name, N(trading), 1);
+   setparameter(admin, dodo_name, N(quotedeposit), 1);
+   setparameter(admin, dodo_name, N(basedeposit), 1);
+   setparameter(admin, dodo_name, N(buying), 1);
+   setparameter(admin, dodo_name, N(selling), 1);
+   setparameter(admin, dodo_name, N(basebalimit), 4);
+   setparameter(admin, dodo_name, N(quotebalimit), 5);
+   auto store = dodos(dodo_name);
+   //    BOOST_TEST_CHECK(nullptr==store);
+
+   BOOST_TEST_CHECK(3 == store["_LP_FEE_RATE_"].as<uint64_t>());
+   BOOST_TEST_CHECK(2 == store["_MT_FEE_RATE_"].as<uint64_t>());
+   BOOST_TEST_CHECK(100 == store["_K_"].as<uint64_t>());
+   BOOST_TEST_CHECK(true == store["_TRADE_ALLOWED_"].as<bool>());
+   BOOST_TEST_CHECK(true == store["_DEPOSIT_QUOTE_ALLOWED_"].as<bool>());
+   BOOST_TEST_CHECK(true == store["_DEPOSIT_BASE_ALLOWED_"].as<bool>());
+   BOOST_TEST_CHECK(true == store["_BUYING_ALLOWED_"].as<bool>());
+   BOOST_TEST_CHECK(true == store["_SELLING_ALLOWED_"].as<bool>());
+   BOOST_TEST_CHECK(4 == store["_BASE_BALANCE_LIMIT_"].as<uint64_t>());
+   BOOST_TEST_CHECK(5 == store["_QUOTE_BALANCE_LIMIT_"].as<uint64_t>());
 }
 FC_LOG_AND_RETHROW()
 
@@ -1043,9 +1041,9 @@ BOOST_FIXTURE_TEST_CASE(enable_trading_tests, eosdos_tester) try {
    breedStableBefore();
    LINE_DEBUG;
    name dodo_name = dodo_stablecoin_name;
-   //   enabletradin(admin, dodo_name);
-   enablequodep(admin, dodo_name);
-   enablebasdep(admin, dodo_name);
+   //   setparameter(admin, dodo_name,N(trading),1);
+   setparameter(admin, dodo_name, N(quotedeposit), 1);
+   setparameter(admin, dodo_name, N(basedeposit), 1);
 
    depositBaseStableBefore();
    depositQuoteStableBefore();
@@ -1063,11 +1061,12 @@ BOOST_FIXTURE_TEST_CASE(no_token_trading_tests, eosdos_tester) try {
    stableCoinBefore();
 
    BOOST_REQUIRE_EQUAL(
-       wasm_assert_msg("no base token symbol in the pair"),  buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "WETH"), to_wei_asset(1001, "MKR")));
+       wasm_assert_msg("no base token symbol in the pair"),
+       buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "WETH"), to_wei_asset(1001, "MKR")));
 
- BOOST_REQUIRE_EQUAL(
-       wasm_assert_msg("no quote token symbol in the pair"),  buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "DAI"), to_wei_asset(1001, "WETH")));
-
+   BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("no quote token symbol in the pair"),
+       buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "DAI"), to_wei_asset(1001, "WETH")));
 
    auto base_with_dec_one = extended_asset{asset{1000, symbol{TOKEN_DECIMALS + 1, "DAI"}}, name{"eosdosxtoken"}};
 
@@ -1080,10 +1079,8 @@ BOOST_FIXTURE_TEST_CASE(no_token_trading_tests, eosdos_tester) try {
    BOOST_REQUIRE_EQUAL(
        wasm_assert_msg("mismatch precision of the quote token in the pair"),
        buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "DAI"), quote_with_dec_one));
-
 }
 FC_LOG_AND_RETHROW()
-
 
 /////////////////////dodo///////////////////////
 BOOST_FIXTURE_TEST_CASE(buy_tiny_base_token_tests, eosdos_tester) try {
@@ -1096,7 +1093,6 @@ BOOST_FIXTURE_TEST_CASE(buy_tiny_base_token_tests, eosdos_tester) try {
    sellbastoken(trader, dodo_stablecoin_name, to_wei_asset(1, "DAI"), to_asset(1, "MKR"));
    check_balance("DAI", "10000.000000");
    check_balance("MKR", "10000.999998");
-
 }
 FC_LOG_AND_RETHROW()
 
