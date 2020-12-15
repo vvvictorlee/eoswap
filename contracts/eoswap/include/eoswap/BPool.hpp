@@ -378,7 +378,7 @@ class BPool : public BToken, public BMath {
       uint64_t p  = BMath::bdiv(tokenAmountIn, tokenAmountOut);
       uint64_t pp = BMath::bdiv(tokenAmountIn * BONE, tokenAmountOut * BONE) / BONE;
       check(
-          spotPriceBefore <= p ,
+          spotPriceBefore <= p,
           "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) + ":tokenAmountOut=" +
               std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
               ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p) + ":pp=" + std::to_string(pp));
@@ -505,8 +505,11 @@ class BPool : public BToken, public BMath {
       /// transfer memo implementation
       my_print_f("_pullUnderlying======= %,%,%==", from, pool_name, amountx);
       if (0 == amountx.quantity.amount) {
+         my_print_f("_pullUnderlying===0 == amountx.quantity.amount==== %,%,%==", from, pool_name, amountx);
          return;
       }
+      uint64_t fromamount = ifactory.get_transfer_mgmt().get_balance(from, amountx.get_extended_symbol());
+      check(fromamount >= amountx.quantity.amount, "overdrawn balance ");
       ifactory.get_transfer_mgmt().transfer(from, pool_name, amountx, "");
    }
 
@@ -516,6 +519,8 @@ class BPool : public BToken, public BMath {
       if (0 == amountx.quantity.amount) {
          return;
       }
+      uint64_t fromamount = ifactory.get_transfer_mgmt().get_balance(pool_name, amountx.get_extended_symbol());
+      check(fromamount >= amountx.quantity.amount, "overdrawn balance ");
       ifactory.get_transfer_mgmt().transfer(pool_name, to, amountx, "");
    }
 

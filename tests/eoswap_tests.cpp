@@ -885,8 +885,24 @@ BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
    mintBefore1();
    bind(newcontroller, N(dai2mkr11111), to_wei_asset(5, "WETH"), to_wei(5));
    bind(newcontroller, N(dai2mkr11111), to_wei_asset(200, "DAI"), to_wei(5));
+
+
 }
 FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(bind_decimal_tests, eoswap_tester) try {
+
+   newpoolBefore();
+   mintBefore1();
+bind(newcontroller, N(dai2mkr11111), to_wei_asset(5, "WETH"), to_wei(5));
+   auto with_dec_one = extended_asset{asset{500000000, symbol{TOKEN_DECIMALS + 1, "WETH"}}, name{"eoswapxtoken"}};
+ BOOST_REQUIRE_EQUAL(
+       wasm_assert_msg("symbol precision mismatch"),
+       bind(newcontroller, N(dai2mkr11111), with_dec_one, to_wei(5)));
+
+}
+FC_LOG_AND_RETHROW()
+
 
 BOOST_FIXTURE_TEST_CASE(finalize_tests, eoswap_tester) try {
    newpoolBefore();
