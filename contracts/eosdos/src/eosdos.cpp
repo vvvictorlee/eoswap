@@ -49,6 +49,8 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        name msg_sender, name dodo_name, address owner, address supervisor, address maintainer,
        const extended_symbol& baseToken, const extended_symbol& quoteToken, const extended_symbol& oracle,
        uint64_t lpFeeRate, uint64_t mtFeeRate, uint64_t k, uint64_t gasPriceLimit) {
+      check(is_account(dodo_name), "dodo_name account does not exist");
+
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.newDODO(
           msg_sender, dodo_name, owner, supervisor, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k,
@@ -69,6 +71,8 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
        name msg_sender, name dodo_name, address maintainer, const extended_symbol& baseToken,
        const extended_symbol& quoteToken, const extended_symbol& oracle, uint64_t lpFeeRate, uint64_t mtFeeRate,
        uint64_t k, uint64_t gasPriceLimit) {
+      check(is_account(dodo_name), "dodo_name account does not exist");
+
       proxy.setMsgSender(msg_sender);
       zoo.breedDODO(dodo_name, maintainer, baseToken, quoteToken, oracle, lpFeeRate, mtFeeRate, k, gasPriceLimit);
    }

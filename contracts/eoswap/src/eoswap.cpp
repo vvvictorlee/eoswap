@@ -30,10 +30,10 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    extended_token extoken;
 
  public:
-//    static constexpr eosio::name admin_account{"eoswapeoswap"_n};
-//    static constexpr eosio::name controller_account{"poolmanagers"_n};
-//    static constexpr eosio::name tokenissuer_account{"tokenissuers"_n};
-//    static constexpr eosio::name swaptoken_account{"eoswapxtoken"_n};
+   //    static constexpr eosio::name admin_account{"eoswapeoswap"_n};
+   //    static constexpr eosio::name controller_account{"poolmanagers"_n};
+   //    static constexpr eosio::name tokenissuer_account{"tokenissuers"_n};
+   //    static constexpr eosio::name swaptoken_account{"eoswapxtoken"_n};
    //    static constexpr extended_symbol weth_symbol = {symbol(symbol_code("WETH"), 4), "eosdosxtoken"_n};
 
    eoswap(name s, name code, eosio::datastream<const char*> ds)
@@ -44,19 +44,19 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 
    //////////////////factory////////////////////////
    [[eosio::action]] void setblabs(name msg_sender, name blabs) {
-    
+
       factory.setMsgSender(msg_sender);
       factory.setBLabs(blabs);
    }
 
    [[eosio::action]] void collect(name msg_sender, name pool_name) {
-    
+
       factory.setMsgSender(msg_sender);
       factory.collect(pool_name);
    }
 
    [[eosio::action]] void newpool(name msg_sender, name pool_name) {
-    
+  check(is_account(pool_name), "pool_name account does not exist");
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.newBPool(pool_name);
       factory.setMsgSender(msg_sender);
@@ -65,32 +65,32 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 
    //////////////////POOL////////////////////////
    [[eosio::action]] void setswapfee(name msg_sender, name pool_name, uint64_t swapFee) {
-    
+
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.setSwapFee(swapFee); });
    }
 
    [[eosio::action]] void setcontroler(name msg_sender, name pool_name, name manager) {
-    
+
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.setController(manager); });
    }
 
    [[eosio::action]] void setpubswap(name msg_sender, name pool_name, bool public_) {
-    
+
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.setPublicSwap(public_); });
    }
 
    [[eosio::action]] void finalize(name msg_sender, name pool_name) {
-    
+
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.finalize(); });
    }
    // _lock_  Bind does not lock because it jumps to `rebind`, which does
 
    [[eosio::action]] void bind(name msg_sender, name pool_name, const extended_asset& balance, uint64_t denorm) {
-     extended_asset balances = convert_one_decimals(balance);
+      extended_asset balances = convert_one_decimals(balance);
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.bind(balances, denorm); });
    }
@@ -102,7 +102,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    }
 
    [[eosio::action]] void unbind(name msg_sender, name pool_name, const extended_symbol& token) {
-    
+
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.unbind(token); });
    }
@@ -110,7 +110,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    // Absorb any _token_ that have been sent to this contract into the pool
 
    [[eosio::action]] void gulp(name msg_sender, name pool_name, const extended_symbol& token) {
-    
+
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(pool_name, [&](auto& pool) { pool.gulp(token); });
    }
@@ -130,8 +130,8 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    [[eosio::action]] void swapamtin(
        name msg_sender, name pool_name, const extended_asset& tokenAmountIn, const extended_asset& minAmountOut,
        uint64_t maxPrice) {
-     extended_asset tokenAmountIns = convert_one_decimals(tokenAmountIn);
-     extended_asset minAmountOuts = convert_one_decimals(minAmountOut);
+      extended_asset tokenAmountIns = convert_one_decimals(tokenAmountIn);
+      extended_asset minAmountOuts  = convert_one_decimals(minAmountOut);
 
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(
@@ -141,8 +141,8 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    [[eosio::action]] void swapamtout(
        name msg_sender, name pool_name, const extended_asset& maxAmountIn, const extended_asset& tokenAmountOut,
        uint64_t maxPrice) {
- extended_asset maxAmountIns = convert_one_decimals(maxAmountIn);
-     extended_asset tokenAmountOuts = convert_one_decimals(tokenAmountOut);
+      extended_asset maxAmountIns    = convert_one_decimals(maxAmountIn);
+      extended_asset tokenAmountOuts = convert_one_decimals(tokenAmountOut);
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.pool(
           pool_name, [&](auto& pool) { pool.swapExactAmountOut(maxAmountIns, tokenAmountOuts, maxPrice); });
@@ -150,7 +150,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 
    ////////////////// TEST pool storage///////////////////////
    [[eosio::action]] void cppool2table(name msg_sender, name pool_name) {
-    //   check(admin_account == msg_sender, "no admin");
+      //   check(admin_account == msg_sender, "no admin");
       _instance_mgmt.get_storage_mgmt().copyPoolStore2Table(msg_sender, pool_name);
    }
 
@@ -160,16 +160,16 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    }
 
    [[eosio::action]] void newtoken(name msg_sender, const extended_asset& token) {
-    //   check(tokenissuer_account == msg_sender, "no token issuer");
+      //   check(tokenissuer_account == msg_sender, "no token issuer");
       _instance_mgmt.get_transfer_mgmt().create(msg_sender, token);
    }
 
    [[eosio::action]] void newtokenex(name msg_sender, const extended_asset& token) {
-    //   check(tokenissuer_account == msg_sender, "no token issuer");
-         BToken       otoken(_self,token.get_extended_symbol());
-        otoken.setMsgSender(msg_sender);
-        otoken.create(msg_sender,token);
-    }
+      //   check(tokenissuer_account == msg_sender, "no token issuer");
+      BToken otoken(_self, token.get_extended_symbol());
+      otoken.setMsgSender(msg_sender);
+      otoken.create(msg_sender, token);
+   }
 
    [[eosio::action]] void transferex(name msg_sender, name dst, const extended_asset& amt) {
       BToken token(_self, amt.get_extended_symbol());
@@ -189,12 +189,12 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    }
 
    [[eosio::action]] void burn(name msg_sender, const extended_asset& amt) {
-    //   check(tokenissuer_account == msg_sender, "no token issuer");
+      //   check(tokenissuer_account == msg_sender, "no token issuer");
       _instance_mgmt.get_transfer_mgmt().burn(msg_sender, amt, "");
    }
 
    [[eosio::action]] void burnex(name msg_sender, const extended_asset& amt) {
-    //   check(tokenissuer_account == msg_sender, "no token issuer");
+      //   check(tokenissuer_account == msg_sender, "no token issuer");
       BToken token(_self, amt.get_extended_symbol());
       token.setMsgSender(msg_sender);
       token._burn(amt.quantity.amount);
