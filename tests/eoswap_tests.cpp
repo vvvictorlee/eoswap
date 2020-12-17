@@ -30,8 +30,8 @@ const std::string TOKEN_DECIMALS_STR    = "8,";
 const int         TOKEN_DECIMALS        = 8;
 const std::string LP_TOKEN_DECIMALS_STR = "8,";
 const int         LP_TOKEN_DECIMALS     = 8;
-const char* const default_lp_symbol_str = "BPT";
-const std::string default_lp_symbol     = "BPT";
+const char* const default_lp_symbol_str = "SPT";
+const std::string default_lp_symbol     = "SPT";
 
 class findx {
  public:
@@ -949,7 +949,7 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
    const auto ab = get_account(newcontroller, LP_TOKEN_DECIMALS_STR + default_lp_symbol, N(dai2mkr11111));
    BOOST_REQUIRE_EQUAL("100000.000000 " + default_lp_symbol, ab);
 
-   //  std::string token_name = "BPT";
+   //  std::string token_name = "SPT";
    //    const auto ab = get_balancex(admin, sym_from_string("4," + token_name), N(dai2mkr11111));
    //    BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("100.000000 " + token_name), ab);
 }

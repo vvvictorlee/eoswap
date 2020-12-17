@@ -23,7 +23,7 @@ using address  = name;
 using uint256m = uint128_t;
 using namesym  = uint128_t;
 
-static constexpr const char*  const  default_lp_symbol_str = "BPT";
+static constexpr const char*  const  default_lp_symbol_str = "SPT";
 static const uint8_t     default_precision = 9;
 static const uint8_t     default_lp_precision = 6;
 static const std::string chain_token       = "eth";
