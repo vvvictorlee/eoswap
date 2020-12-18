@@ -83,6 +83,7 @@
         "random": "cpp",
         "unordered_set": "cpp",
         "__memory": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "*.include": "cpp"
     }
 }

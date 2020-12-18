@@ -16,7 +16,7 @@
 
 class BConst : public  BBronze {
 public:
-    static  constexpr uint256m  BONE              = my_pow(10,9);
+    static  constexpr uint256m  BONE              = static_cast<uint64_t>(my_pow(10,9));
 
     static constexpr uint256m  MIN_BOUND_TOKENS  = 2;
     static constexpr uint256m  MAX_BOUND_TOKENS  = 8;

@@ -326,10 +326,12 @@ class BPool : public BToken, public BMath {
           spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX:spotPriceAfter=" + std::to_string(spotPriceAfter) +
                                                  ":spotPriceBefore=" + std::to_string(spotPriceBefore));
       check(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE:spotPriceAfter=" + std::to_string(spotPriceAfter));
+      uint64_t p = BMath::bdiv(tokenAmountIn, tokenAmountOut);
       check(
           spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut),
           "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) + ":tokenAmountOut=" +
-              std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore));
+              std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
+              ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
       _pullUnderlying(get_msg_sender(), tokenAmountInx);
       _pushUnderlying(get_msg_sender(), extended_asset(tokenAmountOut, minAmountOutx.get_extended_symbol()));
@@ -375,13 +377,12 @@ class BPool : public BToken, public BMath {
           spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX:spotPriceAfter=" + std::to_string(spotPriceAfter) +
                                                  ":spotPriceBefore=" + std::to_string(spotPriceBefore));
       check(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE:spotPriceAfter=" + std::to_string(spotPriceAfter));
-      uint64_t p  = BMath::bdiv(tokenAmountIn, tokenAmountOut);
-      uint64_t pp = BMath::bdiv(tokenAmountIn * BONE, tokenAmountOut * BONE) / BONE;
+      uint64_t p = BMath::bdiv(tokenAmountIn, tokenAmountOut);
       check(
-          spotPriceBefore <= p,
-          "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) + ":tokenAmountOut=" +
-              std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
-              ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p) + ":pp=" + std::to_string(pp));
+          spotPriceBefore <= p, "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) +
+                                    ":tokenAmountOut=" + std::to_string(tokenAmountOut) +
+                                    ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
+                                    ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
       _pullUnderlying(get_msg_sender(), extended_asset(tokenAmountIn, maxAmountInx.get_extended_symbol()));
       _pushUnderlying(get_msg_sender(), tokenAmountOutx);
@@ -504,10 +505,8 @@ class BPool : public BToken, public BMath {
       extended_asset amountx = convert_one_decimals(amount, -1);
       /// transfer memo implementation
       my_print_f("_pullUnderlying======= %,%,%==", from, pool_name, amountx);
-      if (0 == amountx.quantity.amount) {
-         my_print_f("_pullUnderlying===0 == amountx.quantity.amount==== %,%,%==", from, pool_name, amountx);
-         return;
-      }
+      check(amountx.quantity.amount > 0, "_pullUnderlying amount is 0");
+
       uint64_t fromamount = ifactory.get_transfer_mgmt().get_balance(from, amountx.get_extended_symbol());
       check(fromamount >= amountx.quantity.amount, "overdrawn balance ");
       ifactory.get_transfer_mgmt().transfer(from, pool_name, amountx, "");
@@ -516,9 +515,8 @@ class BPool : public BToken, public BMath {
    void _pushUnderlying(name to, const extended_asset& amount) {
       extended_asset amountx = convert_one_decimals(amount, -1);
       my_print_f("_pushUnderlying=======%,%,%==", pool_name, to, amountx);
-      if (0 == amountx.quantity.amount) {
-         return;
-      }
+      check(amountx.quantity.amount > 0, "_pushUnderlying amount is 0");
+
       uint64_t fromamount = ifactory.get_transfer_mgmt().get_balance(pool_name, amountx.get_extended_symbol());
       check(fromamount >= amountx.quantity.amount, "overdrawn balance ");
       ifactory.get_transfer_mgmt().transfer(pool_name, to, amountx, "");

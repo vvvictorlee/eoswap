@@ -6,7 +6,6 @@
 #include <eosio/singleton.hpp>
 #include <eosio/symbol.hpp>
 #include <eosio/system.hpp>
-
 #define EOSWAP_CONTRACT_DEBUG
 
 #ifdef EOSWAP_CONTRACT_DEBUG
@@ -20,12 +19,11 @@ using namespace eosio;
 using bytes = std::vector<char>;
 
 using address  = name;
-using uint256m = uint128_t;
+using uint256m = double;
 using namesym  = uint128_t;
 
 static constexpr const char*  const  default_lp_symbol_str = "SPT";
 static const uint8_t     default_precision = 9;
-static const uint8_t     default_lp_precision = 6;
 static const std::string chain_token       = "eth";
 static const std::string address_zero      = "0";
 
