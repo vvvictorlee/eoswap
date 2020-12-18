@@ -1,6 +1,8 @@
 #pragma once
 #include <common/BType.hpp>
 #include <common/extended_token.hpp>
+#include <common/roxe.tokenize.hpp>
+
 using namespace std;
 class transfer_mgmt {
  private:
@@ -93,7 +95,7 @@ class transfer_mgmt {
       uint64_t amount = get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
       if (p < default_precision) {
          uint8_t d = default_precision - p;
-      return static_cast<uint64_t>(amount*std::pow(10, d));
+         return static_cast<uint64_t>(amount * std::pow(10, d));
       }
 
       return amount;
@@ -115,19 +117,25 @@ class transfer_mgmt {
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
       check(memo.size() <= 256, "memo has more than 256 bytes");
 
+      if (quantity.contract == "roxe.ro"_n) {
+         ////transfer fee
+        auto fee =  tokenize::estimate_fee_given_in(quantity.contract,quantity.quantity);
+
+      }
+
       action(
           permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
           std::make_tuple(from, to, quantity.quantity, memo))
           .send();
 
-    //   transaction t;
-    //   t.actions.emplace_back(
-    //       permission_level{from, active_permission}, quantity.contract, "transfer"_n,
-    //       std::make_tuple(from, to, quantity.quantity, memo));
-    //   t.delay_sec           = 0;
-    //   uint128_t deferred_id = (uint128_t(to.value) << 64) | current_time_point_sec().sec_since_epoch();
-    //   cancel_deferred(deferred_id);
-    //   t.send(deferred_id, self, true);
+      //   transaction t;
+      //   t.actions.emplace_back(
+      //       permission_level{from, active_permission}, quantity.contract, "transfer"_n,
+      //       std::make_tuple(from, to, quantity.quantity, memo));
+      //   t.delay_sec           = 0;
+      //   uint128_t deferred_id = (uint128_t(to.value) << 64) | current_time_point_sec().sec_since_epoch();
+      //   cancel_deferred(deferred_id);
+      //   t.send(deferred_id, self, true);
    }
 
    void create(name issuer, const extended_asset& maximum_supply) {

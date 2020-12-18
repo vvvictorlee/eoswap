@@ -211,7 +211,6 @@ class BPool : public BToken, public BMath {
       namesym token = to_namesym(tokenx);
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
       pool_store.records[token].balance = transfer_mgmt::get_balance_one(pool_name, pool_store.records[token].exsym);
-      ;
    }
 
    uint64_t getSpotPrice(const extended_symbol& tokenInx, const extended_symbol& tokenOutx) {

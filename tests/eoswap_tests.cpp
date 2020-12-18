@@ -466,8 +466,7 @@ class eoswap_tester : public tester {
 
    fc::variant records(name pool_name, const extended_symbol& token) {
       const auto ps = get_pool_table(pool_name);
-      const auto p  = find_variant(ps["pools"], pool_name.to_string());
-      const auto r  = find_value(p["records"], ns_to_string(to_namesym(token)));
+      const auto r  = find_variant(ps["pools"]["records"], ns_to_string(to_namesym(token)));
       return r;
    }
 
@@ -517,9 +516,7 @@ class eoswap_tester : public tester {
       return extended_symbol{symbol{get_decimal(sym), sym.c_str()}, name{"eoswapxtoken"}};
    }
 
-   extended_asset to_maximum_supply(const std::string& sym) {
-      return to_asset(static_cast<int64_t>(pow(10, 15)),sym);
-   }
+   extended_asset to_maximum_supply(const std::string& sym) { return to_asset(static_cast<int64_t>(pow(10, 15)), sym); }
 
    namesym to_namesym(const extended_symbol& exsym) {
       namesym ns = exsym.contract.to_uint64_t();
@@ -933,7 +930,8 @@ BOOST_FIXTURE_TEST_CASE(bind_decimal_tests, eoswap_tester) try {
    mintBefore1();
    std::string sym = "BTC";
    bind(newcontroller, N(dai2mkr11111), to_wei_asset(5, sym), to_wei(5));
-   auto with_dec_one = extended_asset{asset{500000000, symbol{static_cast<uint8_t>(get_decimal(sym) + 1), sym.c_str()}}, name{"eoswapxtoken"}};
+   auto with_dec_one = extended_asset{asset{500000000, symbol{static_cast<uint8_t>(get_decimal(sym) + 1), sym.c_str()}},
+                                      name{"eoswapxtoken"}};
    BOOST_REQUIRE_EQUAL(
        wasm_assert_msg("symbol precision mismatch"), bind(newcontroller, N(dai2mkr11111), with_dec_one, to_wei(5)));
 }
@@ -993,30 +991,39 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(swapExactAmountIn_tests, eoswap_tester) try {
    before2();
    name pool_name = N(dai2mkr11111);
-   //    auto pool = get_pool_table(N(dai2mkr11111));
-   //    BOOST_TEST_CHECK(nullptr == pool);
-   //           "balance": "220000000000",
-   //           "exsym": {
-   //             "sym": "9,USD",
-   //  "balance": "5500000000",
-   //           "exsym": {
-   //             "sym": "9,BTC",
+   {
+      auto pool = get_pool_table(pool_name);
+      BOOST_TEST_CHECK(nullptr == pool);
+      std::map<std::string, std::string> expected_token_balances{std::make_pair("BTC", "10000"),
+                                                           std::make_pair("USD", "10000")};
+      for (auto token_name : expected_token_balances) {
+         auto r = records(pool_name, to_sym(token_name.first));
+         BOOST_TEST_CHECK(token_name.second == r["balance"].as_string());
+
+         const auto ab = get_balancex(user1, to_sym(token_name.first).sym);
+         //   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("5.00000000 " + token_name), ab);
+         BOOST_TEST_CHECK(eosio::chain::asset::from_string("5.00000000 " + token_name.first) == ab);
+      }
+   }
    LINE_DEBUG;
    swapamtin(user1, pool_name, to_asset(210000, "BTC"), to_asset(100, "USD"), to_wei(50000000));
+   {
+      auto pool = get_pool_table(pool_name);
+      BOOST_TEST_CHECK(nullptr == pool);
+      std::map<std::string, std::string> expected_token_balances{std::make_pair("BTC", "10000"),
+                                                           std::make_pair("USD", "10000")};
+      for (auto token_name : expected_token_balances) {
+         auto r = records(pool_name, to_sym(token_name.first));
+         BOOST_TEST_CHECK(token_name.second == r["balance"].as_string());
+
+         const auto ab = get_balancex(user1, to_sym(token_name.first).sym);
+         //   BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("5.00000000 " + token_name), ab);
+         BOOST_TEST_CHECK(eosio::chain::asset::from_string("5.00000000 " + token_name.first) == ab);
+      }
+   }
+
    LINE_DEBUG;
    swapamtin(user1, pool_name, to_asset(2100, "BTC"), to_asset(10, "USD"), to_wei(50000000));
-   //    pool = get_pool_table(N(dai2mkr11111));
-   //    BOOST_TEST_CHECK(nullptr == pool);
-   //    "balance": "220002100000",
-   //           "exsym": {
-   //             "sym": "9,USD",
-   //        "balance": "5499947502",
-   //           "exsym": {
-   //             "sym": "9,BTC",
-   // 5499947502
-   // 52498
-   // 5500052508
-   // 5500000000
 }
 FC_LOG_AND_RETHROW()
 
@@ -1024,23 +1031,10 @@ BOOST_FIXTURE_TEST_CASE(swapExactAmountOut_tests, eoswap_tester) try {
    before2();
    name pool_name = N(dai2mkr11111);
    auto pool      = get_pool_table(pool_name);
-//    BOOST_TEST_CHECK(nullptr == pool);
-   //   "balance": "220000000000",
-   //   "exsym": {
-   //     "sym": "9,USD",
-   //   "balance": "5500000000",
-   //   "exsym": {
-   //     "sym": "9,BTC",
+
    LINE_DEBUG;
    swapamtout(user1, pool_name, to_asset(43008800502, "USD"), to_asset(21000, "BTC"), to_wei(50000000));
    pool = get_pool_table(pool_name);
-//    BOOST_TEST_CHECK(nullptr == pool);
-   //       "balance": "219997900000",
-   //       "exsym": {
-   //         "sym": "9,USD",
-   //   "balance": "5500052508",
-   //       "exsym": {
-   //         "sym": "9,BTC",
 }
 FC_LOG_AND_RETHROW()
 
@@ -1048,24 +1042,11 @@ BOOST_FIXTURE_TEST_CASE(swapExactAmountOut1_tests, eoswap_tester) try {
    before2();
    name pool_name = N(dai2mkr11111);
    auto pool      = get_pool_table(pool_name);
-//    BOOST_TEST_CHECK(nullptr == pool);
-   //   "balance": "220000000000",
-   //   "exsym": {
-   //     "sym": "9,USD",
-   //   "balance": "5500000000",
-   //   "exsym": {
-   //     "sym": "9,BTC",
+
    LINE_DEBUG;
    swapamtout(user1, pool_name, to_asset(43008800502, "USD"), to_asset(2100000, "BTC"), to_wei(50000000));
 
    pool = get_pool_table(pool_name);
-//    BOOST_TEST_CHECK(nullptr == pool);
-   //       "balance": "219997900000",
-   //       "exsym": {
-   //         "sym": "9,USD",
-   //   "balance": "5500052508",
-   //       "exsym": {
-   //         "sym": "9,BTC",
 }
 FC_LOG_AND_RETHROW()
 ////////////////token////////////////////
