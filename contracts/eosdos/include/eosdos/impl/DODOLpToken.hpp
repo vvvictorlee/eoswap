@@ -22,15 +22,15 @@ using namespace SafeMath;
 class DODOLpToken {
  private:
    extended_symbol esymbol;
-   IFactory&        factory;
-   extended_token   _extended_token;
-   name             msg_sender;
+   IFactory&       factory;
+   extended_token  _extended_token;
+   name            msg_sender;
 
  public:
    DODOLpToken(const extended_symbol& _esymbol, IFactory& _factory)
        : esymbol(_esymbol)
        , factory(_factory)
-       , _extended_token(_factory.get_self(),false) {}
+       , _extended_token(_factory.get_self(), false) {}
 
    name getMsgSender() { return msg_sender; }
    void setMsgSender(name _msg_sender, bool flag = false) {
@@ -54,8 +54,8 @@ class DODOLpToken {
       //   return string(abi.encodePacked(IERC20(originToken).name(), lpTokenSuffix));
       //   return ostores.names + lpTokenSuffix;
       // std::to_string(sym.precision()) + sym.code().to_string() + "@" + exsym.get_contract().to_string();
-return lpTokenSuffix;   
-}
+      return lpTokenSuffix;
+   }
 
    std::string symbol() { return esymbol.get_symbol().code().to_string(); };
    //    const extended_symbol& originToken() { return stores.originToken; };
@@ -103,7 +103,7 @@ return lpTokenSuffix;
       //   stores.balances[from]                        = sub(stores.balances[from], amount);
       //   stores.balances[to]                          = sub(stores.balances[to], amount);
       //   stores.allowed[from].dst2amt[msg_sender] = sub(stores.allowed[from].dst2amt[msg_sender], amount);
-      _extended_token.transfer(from, to, extended_asset(amount, esymbol),"");
+      _extended_token.transfer(from, to, extended_asset(amount, esymbol), "");
       return true;
    }
 
@@ -138,6 +138,6 @@ return lpTokenSuffix;
    void burn(address user, uint64_t value) {
       //   stores.balances[user] = sub(stores.balances[user], value);
       //   stores.totalSupply    = sub(stores.totalSupply, value);
-      _extended_token.burn(user,extended_asset(value, esymbol));
+      _extended_token.burn(user, extended_asset(value, esymbol));
    }
 };

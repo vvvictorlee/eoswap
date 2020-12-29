@@ -47,17 +47,20 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       tradeAllowed();
       sellingAllowed();
       gasPriceLimit();
-    //   //preventReentrant();
+      //   //preventReentrant();
       // query price
       uint256 receiveQuote;
       uint256 lpFeeQuote;
       uint256 mtFeeQuote;
-      uint8_t   newRStatus;
+      uint8_t newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget) =
           _querySellBaseToken(amount);
-      require(receiveQuote >= minReceiveQuote, "SELL_BASE_RECEIVE_NOT_ENOUGH");
+
+      require(
+          receiveQuote >= minReceiveQuote,
+          "SELL_BASE_RECEIVE_NOT_ENOUGH" + std::to_string(static_cast<uint64_t>(receiveQuote)));
 
       // settle assets
       _quoteTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(receiveQuote), stores._QUOTE_TOKEN_));
@@ -66,7 +69,8 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       }
       _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
       if (mtFeeQuote != 0) {
-         _quoteTokenTransferOut(stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeQuote), stores._QUOTE_TOKEN_));
+         _quoteTokenTransferOut(
+             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeQuote), stores._QUOTE_TOKEN_));
       }
 
       // update TARGET
@@ -89,16 +93,16 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       tradeAllowed();
       buyingAllowed();
       gasPriceLimit();
-    //   //preventReentrant();
+      //   //preventReentrant();
       // query price
       uint256 payQuote;
       uint256 lpFeeBase;
       uint256 mtFeeBase;
-      uint8_t   newRStatus;
+      uint8_t newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget) = _queryBuyBaseToken(amount);
-      require(payQuote <= maxPayQuote, "BUY_BASE_COST_TOO_MUCH");
+      require(payQuote <= maxPayQuote,std::to_string(static_cast<uint64_t>(payQuote))+ "BUY_BASE_COST_TOO_MUCH"+std::to_string(static_cast<uint64_t>(maxPayQuote)));
 
       // settle assets
       _baseTokenTransferOut(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
@@ -107,7 +111,8 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       }
       _quoteTokenTransferIn(getMsgSender(), extended_asset(static_cast<uint64_t>(payQuote), stores._QUOTE_TOKEN_));
       if (mtFeeBase != 0) {
-         _baseTokenTransferOut(stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_));
+         _baseTokenTransferOut(
+             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_));
       }
 
       // update TARGET
@@ -146,48 +151,61 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256 receiveQuote;
       uint256 lpFeeQuote;
       uint256 mtFeeQuote;
-      uint8_t   newRStatus;
+      uint8_t newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
+
+     my_print_f(">>>>>begin _querySellBaseToken stores._BASE_BALANCE_=%,stores._QUOTE_BALANCE_=%,newBaseTarget=%, newQuoteTarget=%=; ",stores._BASE_BALANCE_,stores._QUOTE_BALANCE_,newBaseTarget, newQuoteTarget);
 
       uint256 sellBaseAmount = amount;
 
       if (stores._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
          // R falls below one
+         my_print_f(">>>>>>[[[[[[1]]]]]] _querySellBaseToken stores._R_STATUS_ == Types::RStatus::ONE");
          receiveQuote = _ROneSellBaseToken(sellBaseAmount, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
       } else if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          uint256 backToOnePayBase      = sub(newBaseTarget, stores._BASE_BALANCE_);
          uint256 backToOneReceiveQuote = sub(stores._QUOTE_BALANCE_, newQuoteTarget);
+         my_print_f(">>>>>>[[[[2]]]] _querySellBaseToken stores._R_STATUS_ == Types::RStatus::ABOVE_ONE:backToOnePayBase=%=,backToOneReceiveQuote=%=; ",backToOnePayBase,backToOneReceiveQuote);
+
          // case 2: R>1
          // complex case, R status depends on trading amount
          if (sellBaseAmount < backToOnePayBase) {
             // case 2.1: R status do not change
             receiveQuote = _RAboveSellBaseToken(sellBaseAmount, stores._BASE_BALANCE_, newBaseTarget);
             newRStatus   = Types::RStatus::ABOVE_ONE;
+            my_print_f(">>>>>>[[[[2.1]]]] _querySellBaseToken sellBaseAmount < backToOnePayBase");
+
             if (receiveQuote > backToOneReceiveQuote) {
                // [Important corner case!] may enter this branch when some precision problem happens. And consequently
                // contribute to negative spare quote amount to make sure spare quote>=0, mannually set
                // receiveQuote=backToOneReceiveQuote
                receiveQuote = backToOneReceiveQuote;
+               my_print_f(">>>>>>[[[[2.1.1]]]] _querySellBaseToken receiveQuote > backToOneReceiveQuote");
             }
+
          } else if (sellBaseAmount == backToOnePayBase) {
             // case 2.2: R status changes to ONE
             receiveQuote = backToOneReceiveQuote;
             newRStatus   = Types::RStatus::ONE;
+            my_print_f(">>>>>>[[[[2.2]]]] _querySellBaseToken sellBaseAmount == backToOnePayBase");
          } else {
             // case 2.3: R status changes to BELOW_ONE
             receiveQuote =
                 add(backToOneReceiveQuote, _ROneSellBaseToken(sub(sellBaseAmount, backToOnePayBase), newQuoteTarget));
             newRStatus = Types::RStatus::BELOW_ONE;
+            my_print_f(">>>>>>[[[[[2.3]]]]] _querySellBaseToken sellBaseAmount > backToOnePayBase");
+            my_print_f(">>>>>>_querySellBaseToken sellBaseAmount > backToOnePayBase:receiveQuote=%,backToOneReceiveQuote=%,sub(sellBaseAmount, backToOnePayBase)=%,newQuoteTarget=%;||",receiveQuote, backToOneReceiveQuote, sub(sellBaseAmount, backToOnePayBase), newQuoteTarget);
          }
       } else {
          // _R_STATUS_ == Types::RStatus::BELOW_ONE
          // case 3: R<1
          receiveQuote = _RBelowSellBaseToken(sellBaseAmount, stores._QUOTE_BALANCE_, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
+         my_print_f(">>>>>>[[[[3]]]] _querySellBaseToken _R_STATUS_ == Types::RStatus::BELOW_ONE");
       }
 
       // count fees
@@ -198,16 +216,15 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
 
-   std::tuple<uint256, uint256, uint256, uint8_t, uint256, uint256> _queryBuyBaseToken(uint256 amount)
-
-   {
+   std::tuple<uint256, uint256, uint256, uint8_t, uint256, uint256> _queryBuyBaseToken(uint256 amount) {
       uint256 payQuote;
       uint256 lpFeeBase;
       uint256 mtFeeBase;
-      uint8_t   newRStatus;
+      uint8_t newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
+     my_print_f(">>>>>begin _queryBuyBaseToken stores._BASE_BALANCE_=%,stores._QUOTE_BALANCE_=%,newBaseTarget=%, newQuoteTarget=%=; ",stores._BASE_BALANCE_,stores._QUOTE_BALANCE_,newBaseTarget, newQuoteTarget);
 
       // charge fee from user receive amount
       lpFeeBase             = DecimalMath::mul(amount, stores._LP_FEE_RATE_);
@@ -218,13 +235,16 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
          // case 1: R=1
          payQuote   = _ROneBuyBaseToken(buyBaseAmount, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
+         my_print_f(">>>>>>[[[[1]]]] _queryBuyBaseToken _R_STATUS_ == Types::RStatus::ONE");
       } else if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          // case 2: R>1
          payQuote   = _RAboveBuyBaseToken(buyBaseAmount, stores._BASE_BALANCE_, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
+         my_print_f(">>>>>>[[[[2]]]] _queryBuyBaseToken _R_STATUS_ == Types::RStatus::ABOVE_ONE");
       } else if (stores._R_STATUS_ == Types::RStatus::BELOW_ONE) {
          uint256 backToOnePayQuote    = sub(newQuoteTarget, stores._QUOTE_BALANCE_);
          uint256 backToOneReceiveBase = sub(stores._BASE_BALANCE_, newBaseTarget);
+         my_print_f(">>>>>> [[[[3]]]] _queryBuyBaseToken _R_STATUS_ == Types::RStatus::BELOW_ONE");
          // case 3: R<1
          // complex case, R status may change
          if (buyBaseAmount < backToOneReceiveBase) {
@@ -232,17 +252,19 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
             // no need to check payQuote because spare base token must be greater than zero
             payQuote   = _RBelowBuyBaseToken(buyBaseAmount, stores._QUOTE_BALANCE_, newQuoteTarget);
             newRStatus = Types::RStatus::BELOW_ONE;
+            my_print_f(">>>>>>[[[[3.1]]]] _queryBuyBaseToken _R_STATUS_ == buyBaseAmount < backToOneReceiveBase");
          } else if (buyBaseAmount == backToOneReceiveBase) {
             // case 3.2: R status changes to ONE
             payQuote   = backToOnePayQuote;
             newRStatus = Types::RStatus::ONE;
+            my_print_f(">>>>>>[[[[[3.2]]]]] _queryBuyBaseToken buyBaseAmount == backToOneReceiveBase");
          } else {
             // case 3.3: R status changes to ABOVE_ONE
             payQuote =
                 add(backToOnePayQuote, _ROneBuyBaseToken(sub(buyBaseAmount, backToOneReceiveBase), newBaseTarget));
             newRStatus = Types::RStatus::ABOVE_ONE;
+            my_print_f(">>>>>>*****[[[[3.3]]]]**** _queryBuyBaseToken buyBaseAmount > backToOneReceiveBase");
          }
-
       }
 
       return std::make_tuple(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget);

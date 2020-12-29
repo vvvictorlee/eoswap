@@ -27,9 +27,10 @@ namespace DecimalMath {
         return SafeMath::mul(target,d) / ONE;
     }
 
-    uint256  mulCeil(uint256 target, uint256 d) {
+   uint256  mulCeil(uint256 target, uint256 d) {
         return SafeMath::divCeil(SafeMath::mul(target,d),ONE);
     }
+
 
     uint256  divFloor(uint256 target, uint256 d) {
         return SafeMath::div(SafeMath::mul(target,ONE),d);
@@ -37,5 +38,9 @@ namespace DecimalMath {
 
     uint256  divCeil(uint256 target, uint256 d) {
         return SafeMath::divCeil(SafeMath::mul(target,ONE),d);
+    }
+
+    double  ddivCeil(double target, double d) {
+        return DSafeMath::divCeil(DSafeMath::mul(target,ONE),d);
     }
 }

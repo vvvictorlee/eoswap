@@ -9,10 +9,10 @@ case "$1" in
 "k") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/set* -- --verbose ;;
 "e") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/no_* -- --verbose ;;
 "b") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/bind_decimal_tests -- --verbose ;;
-"s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sell_token_to_eth_tests -- --verbose ;;
+"s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/simulation_formula_tests -- --verbose ;;
 "w") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/withdraw_all_eth_as_quote_tests -- --verbose ;;
-"bs") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buy_base_token_tests -- --verbose ;;
-"se") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sell_base_token_tests -- --verbose ;;
+"bs") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buy_base_token_formula_tests -- --verbose ;;
+"se") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sell_base_token_formula_tests -- --verbose ;;
 *) ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests -- --verbose ;;
 esac
 

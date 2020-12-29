@@ -63,3 +63,55 @@ uint256 sqrt(uint256 x) {
    return y;
 }
 } // namespace SafeMath
+
+
+///////////////////DSafeMath///////////////////
+namespace DSafeMath {
+double mul(double a, double b) {
+   if (a == 0) {
+      return 0;
+   }
+
+   double c = a * b;
+   require(c / a == b, "MUL_ERROR");
+
+   return c;
+}
+
+double div(double a, double b) {
+   require(b > 0, "DIVIDING_ERROR");
+   return a / b;
+}
+
+double divCeil(double a, double b) {
+   double quotient  = div(a, b);
+   double remainder = a - quotient * b;
+   if (remainder > 0) {
+      return quotient + 1;
+   } else {
+      return quotient;
+   }
+}
+
+double sub(double a, double b) {
+   require(b <= a, "SUB_ERROR");
+   return a - b;
+}
+
+double add(double a, double b) {
+   double c = a + b;
+   require(c >= a, "ADD_ERROR");
+   return c;
+}
+
+double sqrt(double x) {
+   double z = x / 2 + 1;
+   double y = x;
+   while (z < y) {
+      y = z;
+      z = (x / z + z) / 2;
+   }
+
+   return y;
+}
+} // namespace SafeMath

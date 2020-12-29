@@ -56,7 +56,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    }
 
    [[eosio::action]] void newpool(name msg_sender, name pool_name) {
-  check(is_account(pool_name), "pool_name account does not exist");
+      check(is_account(pool_name), "pool_name account does not exist");
       _instance_mgmt.setMsgSender(msg_sender);
       _instance_mgmt.newBPool(pool_name);
       factory.setMsgSender(msg_sender);
@@ -152,6 +152,11 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    [[eosio::action]] void cppool2table(name msg_sender, name pool_name) {
       //   check(admin_account == msg_sender, "no admin");
       _instance_mgmt.get_storage_mgmt().copyPoolStore2Table(msg_sender, pool_name);
+   }
+
+   ////////////////// roxe.ro transfer fee////////////////////////
+   [[eosio::action]] void transferfee(name from, name to, extended_asset quantity, std::string memo) {
+      // no implementation only recorded on chain
    }
 
    ////////////////// TEST pool TOKEN////////////////////////

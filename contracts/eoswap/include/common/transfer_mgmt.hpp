@@ -119,8 +119,11 @@ class transfer_mgmt {
 
       if (quantity.contract == "roxe.ro"_n) {
          ////transfer fee
-        auto fee =  tokenize::estimate_fee_given_in(quantity.contract,quantity.quantity);
-
+         auto fee = tokenize::estimate_fee_given_in(quantity.contract, quantity.quantity);
+         action(
+             permission_level{from, "active"_n}, self, "transferfee"_n,
+             std::make_tuple(from, "roxe.ro", extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee"))
+             .send();
       }
 
       action(

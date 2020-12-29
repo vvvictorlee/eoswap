@@ -9,7 +9,7 @@
 #include <common/dos.functions.hpp>
 #include <common/dos.types.hpp>
 // DEBUG(format,...) printf("FILE: "__FILE__", LINE: %d: "format"/n", __LINE__, ##__VA_ARGS__)
-// #define EOSDOS_CONTRACT_DEBUG
+#define EOSDOS_CONTRACT_DEBUG
 
 #ifdef EOSDOS_CONTRACT_DEBUG
 #define contract_debug(args...) print(" | ",##args)
@@ -41,7 +41,7 @@ inline void my_print_f(const char* s) {
 #endif
 }
 
-void require(bool test, const char* cstr) { eosio::check(test, cstr); }
+void require(bool test, const std::string& cstr) { eosio::check(test, cstr); }
 
 namesym to_namesym(const extended_symbol& exsym) {
    namesym ns = exsym.get_contract().value;
