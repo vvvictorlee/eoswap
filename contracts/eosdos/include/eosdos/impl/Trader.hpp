@@ -67,6 +67,9 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       if (data.size() > 0) {
          //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
       }
+
+     my_print_f(">>>>> =====SsellBaseToken stores._BASE_BALANCE_=%,stores._TARGET_BASE_TOKEN_AMOUNT_=%,newBaseTarget=%, amount=%=; ",stores._BASE_BALANCE_,stores._TARGET_BASE_TOKEN_AMOUNT_,newBaseTarget, amount);
+
       _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
       if (mtFeeQuote != 0) {
          _quoteTokenTransferOut(
@@ -78,6 +81,8 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
          stores._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
       }
       if (stores._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
+     my_print_f(">>>>> $$$$$SsellBaseToken stores._BASE_BALANCE_=%,stores._TARGET_BASE_TOKEN_AMOUNT_=%,newBaseTarget=%, newQuoteTarget=%=; ",stores._BASE_BALANCE_,stores._TARGET_BASE_TOKEN_AMOUNT_,newBaseTarget, newQuoteTarget);
+
          stores._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
       }
       if (stores._R_STATUS_ != newRStatus) {
@@ -119,6 +124,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       if (stores._TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
          stores._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
       }
+
       if (stores._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
          stores._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
       }

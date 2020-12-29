@@ -11,7 +11,7 @@ case "$1" in
 "b") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/bind_decimal_tests -- --verbose ;;
 "s") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/simulation_formula_tests -- --verbose ;;
 "w") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/withdraw_all_eth_as_quote_tests -- --verbose ;;
-"bs") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buy_base_token_formula_tests -- --verbose ;;
+"bs") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buy1_base_token_formula_tests -- --verbose ;;
 "se") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/sell_base_token_formula_tests -- --verbose ;;
 *) ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests -- --verbose ;;
 esac
