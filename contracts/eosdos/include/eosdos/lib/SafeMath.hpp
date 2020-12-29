@@ -73,7 +73,7 @@ double mul(double a, double b) {
    }
 
    double c = a * b;
-   require(c / a == b, "MUL_ERROR");
+//    require(c / a == b, "MUL_ERROR");
 
    return c;
 }
