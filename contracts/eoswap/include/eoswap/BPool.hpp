@@ -252,8 +252,10 @@ class BPool : public BToken, public BMath {
                                      "bal:" + std::to_string(bal) + " i:" + std::to_string(i));
          check(
              tokenAmountIn <= maxAmountsIn[i], "ERR_LIMIT_IN joinPool: tokenAmountIn:" + std::to_string(tokenAmountIn));
-         pool_store.records[t].balance = BMath::badd(pool_store.records[t].balance, tokenAmountIn);
-         _pullUnderlying(get_msg_sender(), extended_asset(tokenAmountIn, pool_store.records[t].exsym));
+         auto extokenAmountIn = extended_asset(tokenAmountIn, pool_store.records[t].exsym);
+         pool_store.records[t].balance =
+             BMath::badd(pool_store.records[t].balance, round_one_decimals(extokenAmountIn));
+         _pullUnderlying(get_msg_sender(), extokenAmountIn);
       }
       _mintPoolShare(poolAmountOut);
       _pushPoolShare(get_msg_sender(), poolAmountOut);
@@ -278,8 +280,9 @@ class BPool : public BToken, public BMath {
          uint64_t tokenAmountOut = BMath::bmul(ratio, bal);
          require(tokenAmountOut != 0, "ERR_MATH_APPROX");
          require(tokenAmountOut >= minAmountsOut[i], "ERR_LIMIT_OUT");
-         pool_store.records[t].balance = BMath::bsub(pool_store.records[t].balance, tokenAmountOut);
-         _pushUnderlying(get_msg_sender(), extended_asset(tokenAmountOut, pool_store.records[t].exsym));
+         auto extokenAmountOut         = extended_asset(tokenAmountOut, pool_store.records[t].exsym);
+         pool_store.records[t].balance = BMath::bsub(pool_store.records[t].balance, round_one_decimals(extokenAmountOut));
+         _pushUnderlying(get_msg_sender(), extokenAmountOut);
       }
    }
 
@@ -315,9 +318,9 @@ class BPool : public BToken, public BMath {
       check(
           tokenAmountOut >= minAmountOut,
           std::to_string(minAmountOut) + "ERR_LIMIT_OUT:tokenAmountOut=" + std::to_string(tokenAmountOut));
-
-      inRecord.balance  = BMath::badd(inRecord.balance, tokenAmountIn);
-      outRecord.balance = BMath::bsub(outRecord.balance, tokenAmountOut);
+      auto tokenAmountOutx = extended_asset(tokenAmountOut, minAmountOutx.get_extended_symbol());
+      inRecord.balance     = BMath::badd(inRecord.balance, tokenAmountIn);
+      outRecord.balance    = BMath::bsub(outRecord.balance, round_one_decimals(tokenAmountOutx));
 
       uint64_t spotPriceAfter =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
@@ -333,7 +336,7 @@ class BPool : public BToken, public BMath {
               ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
       _pullUnderlying(get_msg_sender(), tokenAmountInx);
-      _pushUnderlying(get_msg_sender(), extended_asset(tokenAmountOut, minAmountOutx.get_extended_symbol()));
+      _pushUnderlying(get_msg_sender(), tokenAmountOutx);
 
       return std::make_pair(tokenAmountOut, spotPriceAfter);
    }
@@ -367,8 +370,9 @@ class BPool : public BToken, public BMath {
           inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountOut, pool_store.swapFee);
       check(tokenAmountIn <= maxAmountIn, "ERR_LIMIT_IN:tokenAmountIn=" + std::to_string(tokenAmountIn));
 
-      inRecord.balance  = BMath::badd(inRecord.balance, tokenAmountIn);
-      outRecord.balance = BMath::bsub(outRecord.balance, tokenAmountOut);
+      auto tokenAmountInx = extended_asset(tokenAmountIn, maxAmountInx.get_extended_symbol());
+      inRecord.balance    = BMath::badd(inRecord.balance, round_one_decimals(tokenAmountInx));
+      outRecord.balance   = BMath::bsub(outRecord.balance, tokenAmountOut);
 
       uint64_t spotPriceAfter =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
@@ -383,7 +387,7 @@ class BPool : public BToken, public BMath {
                                     ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
                                     ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
-      _pullUnderlying(get_msg_sender(), extended_asset(tokenAmountIn, maxAmountInx.get_extended_symbol()));
+      _pullUnderlying(get_msg_sender(), tokenAmountInx);
       _pushUnderlying(get_msg_sender(), tokenAmountOutx);
 
       return std::make_pair(tokenAmountIn, spotPriceAfter);
@@ -430,11 +434,12 @@ class BPool : public BToken, public BMath {
 
       require(tokenAmountIn <= BMath::bmul(pool_store.records[tokenIn].balance, MAX_IN_RATIO), "ERR_MAX_IN_RATIO");
 
-      inRecord.balance = BMath::badd(inRecord.balance, tokenAmountIn);
+      auto tokenAmountInx = extended_asset(tokenAmountIn, maxAmountInx.get_extended_symbol());
+      inRecord.balance    = BMath::badd(inRecord.balance, round_one_decimals(tokenAmountInx));
 
       _mintPoolShare(poolAmountOut);
       _pushPoolShare(get_msg_sender(), poolAmountOut);
-      _pullUnderlying(get_msg_sender(), extended_asset(tokenAmountIn, maxAmountInx.get_extended_symbol()));
+      _pullUnderlying(get_msg_sender(), tokenAmountInx);
 
       return tokenAmountIn;
    }
@@ -454,8 +459,8 @@ class BPool : public BToken, public BMath {
       require(tokenAmountOut >= minAmountOut, "ERR_LIMIT_OUT");
 
       require(tokenAmountOut <= BMath::bmul(pool_store.records[tokenOut].balance, MAX_OUT_RATIO), "ERR_MAX_OUT_RATIO");
-
-      outRecord.balance = BMath::bsub(outRecord.balance, tokenAmountOut);
+      auto tokenAmountOutx = extended_asset(tokenAmountOut, minAmountOutx.get_extended_symbol());
+      outRecord.balance    = BMath::bsub(outRecord.balance, round_one_decimals(tokenAmountOutx));
 
       uint64_t exitFee = BMath::bmul(poolAmountIn, EXIT_FEE);
 
@@ -463,7 +468,7 @@ class BPool : public BToken, public BMath {
       _burnPoolShare(BMath::bsub(poolAmountIn, exitFee));
       _pushPoolShare(pool_store.factory, exitFee);
 
-      _pushUnderlying(get_msg_sender(), extended_asset(tokenAmountOut, minAmountOutx.get_extended_symbol()));
+      _pushUnderlying(get_msg_sender(), tokenAmountOutx);
 
       return tokenAmountOut;
    }
@@ -507,7 +512,7 @@ class BPool : public BToken, public BMath {
       check(amountx.quantity.amount > 0, "_pullUnderlying amount is 0");
 
       uint64_t fromamount = ifactory.get_transfer_mgmt().get_balance(from, amountx.get_extended_symbol());
-      check(fromamount >= amountx.quantity.amount, "overdrawn balance ");
+      check(fromamount >= amountx.quantity.amount, "overdrawn balance");
       ifactory.get_transfer_mgmt().transfer(from, pool_name, amountx, "");
    }
 
@@ -517,7 +522,7 @@ class BPool : public BToken, public BMath {
       check(amountx.quantity.amount > 0, "_pushUnderlying amount is 0");
 
       uint64_t fromamount = ifactory.get_transfer_mgmt().get_balance(pool_name, amountx.get_extended_symbol());
-      check(fromamount >= amountx.quantity.amount, "overdrawn balance ");
+      check(fromamount >= amountx.quantity.amount, "overdrawn balance");
       ifactory.get_transfer_mgmt().transfer(pool_name, to, amountx, "");
    }
 

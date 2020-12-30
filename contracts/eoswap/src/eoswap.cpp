@@ -286,7 +286,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    [[eosio::on_notify("eosio.token::transfer")]] void on_transfer(
        name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() == "eosio.token"_n, "should be eosio.token");
-      //   print_f("On notify : % % % %", from, to, quantity, memo);
+        my_print_f("On notify : % % % %", from, to, quantity, memo);
       _instance_mgmt.get_transfer_mgmt().eosiotoken_transfer(from, to, quantity, memo, [&](const auto& action_event) {
          if (action_event.action.empty()) {
             return;
@@ -305,7 +305,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
 
    [[eosio::on_notify("*::transfer")]] void on_transfer_by_non(name from, name to, asset quantity, std::string memo) {
       check(get_first_receiver() != "eosio.token"_n, "should not be eosio.token");
-      //   print_f("On notify 2 : % % % %", from, to, quantity, memo);
+        my_print_f("On notify 2 : % % % %", from, to, quantity, memo);
       _instance_mgmt.get_transfer_mgmt().non_eosiotoken_transfer(
           from, to, quantity, memo, [&](const auto& action_event) {
 

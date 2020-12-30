@@ -22,10 +22,10 @@ using address  = name;
 using uint256m = double;
 using namesym  = uint128_t;
 
-static constexpr const char*  const  default_lp_symbol_str = "SPT";
-static const uint8_t     default_precision = 9;
-static const std::string chain_token       = "eth";
-static const std::string address_zero      = "0";
+static constexpr const char* const default_lp_symbol_str = "SPT";
+static const uint8_t               default_precision     = 9;
+static const std::string           chain_token           = "eth";
+static const std::string           address_zero          = "0";
 
 template <typename Arg, typename... Args>
 inline void my_print_f(const char* s, Arg val, Args... rest) {
@@ -48,15 +48,28 @@ namesym to_namesym(const extended_symbol& exsym) {
    return ns;
 }
 
-extended_asset convert_one_decimals(const extended_asset& exasset,int8_t signed_one = 1) {
+extended_asset convert_one_decimals(const extended_asset& exasset, int8_t signed_one = 1) {
    uint8_t p = exasset.quantity.symbol.precision();
    check(p <= default_precision, "unsupport the decimal");
    if (p < default_precision) {
       uint8_t d = default_precision - p;
-      return extended_asset{static_cast<int64_t>(exasset.quantity.amount*std::pow(10, d*signed_one)), exasset.get_extended_symbol()};
+      return extended_asset{static_cast<int64_t>(exasset.quantity.amount * std::pow(10, d * signed_one)),
+                            exasset.get_extended_symbol()};
    }
 
    return exasset;
+}
+
+int64_t round_one_decimals(const extended_asset& exasset) {
+   uint8_t p = exasset.quantity.symbol.precision();
+   check(p <= default_precision, "unsupport the decimal");
+   if (p < default_precision) {
+      uint8_t d   = default_precision - p;
+      int64_t dec = std::pow(10, d);
+      return exasset.quantity.amount / dec * dec;
+   }
+
+   return exasset.quantity.amount;
 }
 
 

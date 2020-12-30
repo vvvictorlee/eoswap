@@ -110,6 +110,8 @@ class transfer_mgmt {
     * @param memo
     */
    void transfer(name from, name to, extended_asset quantity, std::string memo) {
+      my_print_f("!!!!!!!!!!!!!transfer :from=%, to=%, quantity=%, memo= % ", from, to, quantity, memo);
+
       check(from != to, "cannot transfer to self");
       //  require_auth( from );
       check(is_account(to), "to account does not exist");
@@ -120,14 +122,13 @@ class transfer_mgmt {
       if (quantity.contract == "roxe.ro"_n) {
          ////transfer fee
          auto fee = tokenize::estimate_fee_given_in(quantity.contract, quantity.quantity);
-         action(
-             permission_level{from, "active"_n}, self, "transferfee"_n,
-             std::make_tuple(from, "roxe.ro", extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee"))
-             .send();
+         //  action(
+         //      permission_level{from, "active"_n}, self, "transferfee"_n,
+         //      std::make_tuple(from, "roxe.ro",
+         //      extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee")) .send();
       }
 
-      action(
-          permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
+      action(permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
           std::make_tuple(from, to, quantity.quantity, memo))
           .send();
 
