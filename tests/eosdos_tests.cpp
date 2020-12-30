@@ -1010,7 +1010,6 @@ class eosdos_tester : public tester {
       depositquote(lp, dodo_stablecoin_name, to_wei_asset(740000, "GBP"));
    }
 
-
    void stableCoinBefore3() {
       std::vector<name>        users{lp, trader};
       std::vector<std::string> tokens{"USD", "GBP"};
@@ -1054,6 +1053,14 @@ class eosdos_tester : public tester {
       depositbase(lp, dodo_stablecoin_name, to_wei_asset(1000000, "USD"));
       LINE_DEBUG;
       depositquote(lp, dodo_stablecoin_name, to_wei_asset(740000, "GBP"));
+   }
+
+   void check_dodos(name dodo_name) {
+#ifdef EOSDOS_DEBUG
+      LINE_DEBUG;
+      auto store = dodos(dodo_name);
+      BOOST_TEST_CHECK(nullptr == store);
+#endif
    }
 
    void check_balance(std::string token_name, std::string amount) {
@@ -1239,9 +1246,9 @@ BOOST_FIXTURE_TEST_CASE(simulation_formula_tests, eosdos_tester) try {
    withdrawquote(lp, dodo_name, to_wei_asset(740000, "GBP"));
    LINE_DEBUG;
    withdrawquote(lp, dodo_name, to_wei_asset(740000, "GBP"));
-
+    //    {0, 1000000, 100000000}, {1, 1000000, 1000000},   {1, 1000000, 10000},
    std::vector<std::vector<int64_t>> testpara{
-       {0, 1000000, 100000000}, {1, 1000000, 1000000},   {1, 1000000, 10000},
+       {0, 1000000, 100000000}, {1, 1000000, 100000},   {1, 1000000, 10000},
        {1, 100000000, 10000},   {0, 50000000, 50000000}, {0, 1287998, 10000000},
        {0, 1287869, 10000000},  {0, 1288385, 10000000},  {0, 1294179, 10000000},
    };
@@ -1257,21 +1264,13 @@ BOOST_FIXTURE_TEST_CASE(simulation_formula_tests, eosdos_tester) try {
 
    auto testbuysell = [&](auto testparas) {
       for (auto p : testparas) {
-         {
-            LINE_DEBUG;
-            auto store = dodos(dodo_name);
-            BOOST_TEST_CHECK(nullptr == store);
-         }
+         check_dodos(dodo_name);
          if (0 == p[0]) {
             buybasetoken(trader, dodo_name, to_asset(p[1], "USD"), to_asset(p[2], "GBP"));
          } else {
             sellbastoken(trader, dodo_name, to_asset(p[1], "USD"), to_asset(p[2], "GBP"));
          }
-         {
-            LINE_DEBUG;
-            auto store = dodos(dodo_name);
-            BOOST_TEST_CHECK(nullptr == store);
-         }
+         check_dodos(dodo_name);
          check_balance("USD", "10001.000000");
          check_balance("GBP", "9998.999999");
       }
@@ -1286,72 +1285,41 @@ BOOST_FIXTURE_TEST_CASE(simulation_formula_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-
 BOOST_FIXTURE_TEST_CASE(buy1_base_token_formula_tests, eosdos_tester) try {
    stableCoinBefore3();
    name dodo_name = dodo_stablecoin_name;
 
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
 
    buybasetoken(trader, dodo_name, to_asset(1000000, "USD"), to_asset(999000000, "GBP"));
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    check_balance("USD", "10001.000000");
    check_balance("GBP", "9998.999999");
 
    sellbastoken(trader, dodo_name, to_asset(1000000, "USD"), to_asset(10, "GBP"));
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
-
 }
 FC_LOG_AND_RETHROW()
 
 BOOST_FIXTURE_TEST_CASE(buy_base_token_formula_tests, eosdos_tester) try {
    stableCoinBefore2();
    name dodo_name = dodo_stablecoin_name;
-
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
 
    buybasetoken(trader, dodo_name, to_asset(1323603731, "USD"), to_asset(999000000, "GBP"));
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    check_balance("USD", "10001.000000");
    check_balance("GBP", "9998.999999");
 
    sellbastoken(trader, dodo_name, to_asset(998500000, "USD"), to_asset(728900000, "GBP"));
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
 
    buybasetoken(trader, dodo_name, to_asset(1323603731, "USD"), to_asset(999000000, "GBP"));
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    check_balance("USD", "10001.000000");
    check_balance("GBP", "9998.999999");
 
@@ -1378,34 +1346,18 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(sell_base_token_formula_tests, eosdos_tester) try {
    stableCoinBefore2();
    name dodo_name = dodo_stablecoin_name;
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    sellbastoken(trader, dodo_name, to_asset(998500000, "USD"), to_asset(728900000, "GBP"));
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    buybasetoken(trader, dodo_name, to_asset(1323603731, "USD"), to_asset(999000000, "GBP"));
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    check_balance("USD", "10001.000000");
    check_balance("GBP", "9998.999999");
 
    sellbastoken(trader, dodo_name, to_asset(998500000, "USD"), to_asset(728900000, "GBP"));
-   {
-      LINE_DEBUG;
-      auto store = dodos(dodo_name);
-      BOOST_TEST_CHECK(nullptr == store);
-   }
+   check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
 
