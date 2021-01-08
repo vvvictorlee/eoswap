@@ -27,7 +27,7 @@ using namesym  = eosio::chain::uint128_t;
 #define LINE_DEBUG
 #endif
 const int         ONE_DECIMALS      = 9;
-const std::string default_lp_symbol = "SPT";
+const std::string default_lp_symbol = "EPT";
 
 class findx {
  public:
@@ -393,6 +393,10 @@ class eoswap_tester : public tester {
    action_result burnex(account_name msg_sender, const extended_asset& amt) {
       return push_action(msg_sender, N(burnex), mvo()("msg_sender", msg_sender)("amt", amt));
    }
+   // symbol& symbol
+   action_result setparameter(const std::string& symbol, const std::vector<int64_t> params) {
+      return push_action(N(eoswapeoswap), N(setparameter), mvo()("symbol", symbol)("params", params));
+   }
 
    ////////////////get table//////////////
 
@@ -517,11 +521,11 @@ class eoswap_tester : public tester {
       return extended_symbol{symbol{get_decimal(sym), sym.c_str()}, name{"eoswapxtoken"}};
    }
 
-   extended_asset to_maximum_supply(const std::string& sym) { return to_asset(static_cast<int64_t>(pow(10, 15)), sym); }
+   extended_asset to_maximum_supply(const std::string& sym) { return to_asset(static_cast<int64_t>(pow(10, 18)), sym); }
 
    namesym to_namesym(const extended_symbol& exsym) {
       namesym ns = exsym.contract.to_uint64_t();
-      return ns << 64 | exsym.sym.value();
+      return ns << 64 | exsym.sym.to_symbol_code().value;
    }
 
    std::string boost_to_string(boost::multiprecision::uint128_t t) {
@@ -742,6 +746,63 @@ class eoswap_tester : public tester {
       //   LINE_DEBUG;
       //   std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
       //   joinpool(user1, pool_name, to_wei(5), v);
+   }
+
+   void before4maxsupply() {
+      name pool_name = N(dai2mkr11111);
+      LINE_DEBUG;
+      newpool(admin, pool_name);
+      setcontroler(admin, pool_name, newcontroller);
+
+      LINE_DEBUG;
+      // await pool.setSwapFee(toWei('0.003'));
+      setswapfee(newcontroller, pool_name, 1000000);
+
+      std::vector<name>        users{admin, newcontroller, nonadmin, user1};
+      std::vector<std::string> tokens{"BTC", "USD"};
+      LINE_DEBUG;
+      for (auto token : tokens) {
+         newtoken(tokenissuer, to_maximum_supply(token));
+      }
+
+      for (auto token : tokens) {
+         for (auto user : users) {
+            mint(user, to_wei_asset(200000000, token));
+         }
+      }
+
+      mint(user2, to_wei_asset(1, "BTC"));
+      mint(user2, to_wei_asset(1, "USD"));
+
+      std::vector<std::tuple<uint64_t, std::string, uint64_t>> bind_data{std::make_tuple(10000, "BTC", 5),
+                                                                         std::make_tuple(10000, "USD", 5)};
+      LINE_DEBUG;
+      for (auto d : bind_data) {
+         bind(newcontroller, pool_name, to_asset(std::get<0>(d), std::get<1>(d)), to_wei(std::get<2>(d)));
+      }
+
+      LINE_DEBUG;
+      finalize(newcontroller, pool_name);
+   }
+
+   void initparam() {
+      // "8,BTC"  0,30000,420,0,0,0
+      // "9,ETH"  0,30000,160000,0,0,0
+      // "6,USD"  0,30000,100000,0,0,0
+      // "6,GBP"  0,30000,70000,0,0,0
+      // "6,HKD"  0,30000,780000,0,0,0
+
+      std::map<std::string, std::vector<int64_t>> params = {
+          std::pair<std::string, std::vector<int64_t>>("8,BTC", {0, 30000, 420, 0, 0, 0}),
+          std::pair<std::string, std::vector<int64_t>>("9,ETH", {0, 30000, 160000, 0, 0, 0}),
+          std::pair<std::string, std::vector<int64_t>>("6,USD", {0, 30000, 100000, 0, 0, 0}),
+          std::pair<std::string, std::vector<int64_t>>("6,GBP", {0, 30000, 70000, 0, 0, 0}),
+          std::pair<std::string, std::vector<int64_t>>("6,HKD", {0, 30000, 780000, 0, 0, 0})};
+
+      LINE_DEBUG;
+      for (auto p : params) {
+         setparameter(p.first, p.second);
+      }
    }
 
    /////////////extended token///////////////////////
@@ -1025,7 +1086,7 @@ BOOST_FIXTURE_TEST_CASE(joinpool_tests, eoswap_tester) try {
    check_balances(pool_name, nonadmin, expected_token_balances);
 
    std::vector<uint256m> v{uint256m(-1), uint256m(-1)};
-   joinpool(nonadmin,pool_name, to_wei(10), v);
+   joinpool(nonadmin, pool_name, to_wei(10), v);
 
    check_balances(pool_name, nonadmin, expected_token_balances);
 }
@@ -1044,8 +1105,34 @@ BOOST_FIXTURE_TEST_CASE(joinpool1_tests, eoswap_tester) try {
 
    check_balances(pool_name, nonadmin, expected_token_balances);
 
-// -191170019
-// -191170019117
+   // -191170019
+   // -191170019117
+   // 191.170019
+   // 191170019000
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(joinpool4maxsupply_tests, eoswap_tester) try {
+
+   before4maxsupply();
+
+      name                                  pool_name = N(dai2mkr11111);
+
+      LINE_DEBUG;
+      std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
+      joinpool(user1, pool_name, to_wei(100000), v);
+
+      joinpool(user1, pool_name, to_asset(static_cast<int64_t>(pow(10, 8), v);
+
+   //    std::vector<std::vector<std::string>> expected_token_balances{std::vector<std::string>{"BTC", "10000", "1000"},
+   //                                                                  std::vector<std::string>{"USD", "10000",
+   //                                                                  "10000"}};
+   //    check_balances(pool_name, nonadmin, expected_token_balances);
+
+   //    std::vector<uint256m> v{uint256m(-1), uint256m(-1)};
+   //    joinpool(nonadmin, pool_name, 100000001, v);
+
+   //    check_balances(pool_name, nonadmin, expected_token_balances);
 }
 FC_LOG_AND_RETHROW()
 
@@ -1072,7 +1159,7 @@ BOOST_FIXTURE_TEST_CASE(collect_tests, eoswap_tester) try {
    const auto ab = get_account(newcontroller, std::to_string(ONE_DECIMALS) + "," + default_lp_symbol, N(dai2mkr11111));
    BOOST_REQUIRE_EQUAL("100.000000000 " + default_lp_symbol, ab);
 
-   //  std::string token_name = "SPT";
+   //  std::string token_name = "EPT";
    //    const auto ab = get_balancex(admin, sym_from_string("4," + token_name), N(dai2mkr11111));
    //    BOOST_REQUIRE_EQUAL(eosio::chain::asset::from_string("100.000000 " + token_name), ab);
 }
@@ -1200,6 +1287,9 @@ BOOST_FIXTURE_TEST_CASE(extransfer_tests, eoswap_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
+BOOST_FIXTURE_TEST_CASE(setparameter_tests, eoswap_tester) try { initparam(); }
+FC_LOG_AND_RETHROW()
+
 /// in order to move data from old table to new table
 // BOOST_FIXTURE_TEST_CASE(cppool2table_tests, eoswap_tester) try {
 //    before();
@@ -1277,7 +1367,7 @@ BOOST_FIXTURE_TEST_CASE(create_max_decimals, eoswap_tester) try {
 
    // extended_asset{asset{value, symbol{4, sym.c_str()}}, name{"eoswapeoswap"}}
    extended_asset max = extended_asset{asset{10, symbol(SY(0, NKT))}, name{"eoswapeoswap"}};
-   // 1.0000000000000000000 => 0x8ac7230489e80000L
+   // 1.0 000 000 000 000 000 000 => 0x8ac7230489e80000L
    share_type amount = 0x8ac7230489e80000L;
    static_assert(sizeof(share_type) <= sizeof(asset), "asset changed so test is no longer valid");
    static_assert(std::is_trivially_copyable<asset>::value, "asset is not trivially copyable");

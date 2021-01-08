@@ -58,7 +58,7 @@ class BTokenBase : public BNum {
    extended_symbol get_ext_symbol() { return ext_symbol; }
    extended_token  get_ext_token() { return _extended_token; }
    void            createtoken() {
-      static const uint64_t MAX_TOTAL_SUPPLY = 1000000000000000;
+      static const uint64_t MAX_TOTAL_SUPPLY =  my_pow(2,62)-my_pow(2,9);
       _extended_token.create(ext_symbol.get_contract(), extended_asset{MAX_TOTAL_SUPPLY, ext_symbol});
    }
    void create(name issuer, const extended_asset& max_supply) { _extended_token.create(issuer, max_supply); }

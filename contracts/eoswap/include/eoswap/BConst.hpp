@@ -30,7 +30,7 @@ public:
     static constexpr uint256m  MAX_TOTAL_WEIGHT  = BONE * 50;
     static constexpr uint256m  MIN_BALANCE       = BONE / my_pow(10,4);//12
 
-    static constexpr uint256m  INIT_POOL_SUPPLY  = BONE * 100;
+    static constexpr uint256m  INIT_POOL_SUPPLY  = BONE / my_pow(10,5);
 
     static constexpr uint256m  MIN_BPOW_BASE     = 1 ;
     static constexpr uint256m  MAX_BPOW_BASE     = (2 * BONE) - 1 ;

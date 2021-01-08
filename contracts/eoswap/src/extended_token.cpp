@@ -37,7 +37,7 @@ void extended_token::issue(const name& to, const extended_asset& quantity, const
    check(quantity.quantity.amount > 0, "must issue positive quantity");
 
    check(quantity.quantity.symbol == st.supply.symbol, "symbol precision mismatch");
-   check(quantity.quantity.amount <= st.max_supply.amount - st.supply.amount, "quantity exceeds available supply");
+   check(quantity.quantity.amount <= st.max_supply.amount - st.supply.amount, "ex quantity exceeds available supply");
 
    statstable.modify(st, same_payer, [&](auto& s) { s.supply += quantity.quantity; });
 

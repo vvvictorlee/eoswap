@@ -3,7 +3,7 @@ case "$1" in
 "m") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/mint_tests -- --verbose ;;
 "c") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/create* -- --verbose ;;
 "co") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/collect_tests -- --verbose ;;
-"j") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/joinpool1_tests -- --verbose ;;
+"j") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/joinpool4maxsupply_tests -- --verbose ;;
 "ex") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/exitpool_tests -- --verbose ;;
 "i") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/swapExactAmountIn_tests -- --verbose ;;
 "o") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/swapExactAmountOut_balance_not_enough_tests -- --verbose ;;
@@ -17,5 +17,6 @@ case "$1" in
 "bu") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/burn_tests -- --verbose ;;
 "e") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/extransfer_tests -- --verbose ;;
 "f") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/finalize_tests -- --verbose ;;
+"set") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/setparameter_tests -- --verbose ;;
 *) ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests -- --verbose ;;
 esac

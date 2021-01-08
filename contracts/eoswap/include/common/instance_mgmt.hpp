@@ -24,7 +24,7 @@ class instance_mgmt : public IFactory {
    transfer_mgmt _transfer_mgmt;
 
  public:
-   static constexpr symbol BPT_symbol = symbol(symbol_code(default_lp_symbol_str), default_precision);
+   static constexpr symbol BPT_symbol = symbol(symbol_code(default_lp_symbol_str), 4);
    instance_mgmt(name _self)
        : self(_self)
        , _storage_mgmt(_self)

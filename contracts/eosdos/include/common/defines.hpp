@@ -49,6 +49,12 @@ namesym to_namesym(const extended_symbol& exsym) {
    return ns;
 }
 
+namesym to_namesymcode(const extended_symbol& exsym) {
+   namesym ns = exsym.get_contract().value;
+   ns         = ns << 64 | exsym.get_symbol().code().raw();
+   return ns;
+}
+
 constexpr double my_pow(double x, int exp) {
    int sign = 1;
    if (exp < 0) {

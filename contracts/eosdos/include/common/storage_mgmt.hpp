@@ -162,18 +162,25 @@ class storage_mgmt {
       }
    }
 
+   uint64_t convert_to_key(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
+      uint64_t key = get_hash_key(get_checksum256(
+          basetoken.get_contract().value, basetoken.get_symbol().code().raw(),
+          quotetoken.get_contract().value,
+          quotetoken.get_symbol().code().raw()));
+
+      return key;
+   }
+
    void save_oracle_prices(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
-      uint64_t             key = get_hash_key(get_checksum256(
-          basetoken.get_contract().value, basetoken.get_symbol().raw(),
-          quotetoken.get_extended_symbol().get_contract().value, quotetoken.get_extended_symbol().get_symbol().raw()));
+      uint64_t            key = convert_to_key(basetoken, quotetoken.get_extended_symbol());
       oracle_prices_table oraclepricestable(self, self.value);
 
       auto oracle = oraclepricestable.find(key);
       if (oracle == oraclepricestable.end()) {
          oraclepricestable.emplace(msg_sender, [&](auto& o) {
-            o.pair_token_hash_key=key;
-            o.basetoken  = basetoken;
-            o.quotetoken = quotetoken;
+            o.pair_token_hash_key = key;
+            o.basetoken           = basetoken;
+            o.quotetoken          = quotetoken;
          });
       } else {
          oraclepricestable.modify(oracle, same_payer, [&](auto& o) {
@@ -184,14 +191,11 @@ class storage_mgmt {
    }
 
    uint64_t get_oracle_prices(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
-      uint64_t             key = get_hash_key(get_checksum256(
-          basetoken.get_contract().value, basetoken.get_symbol().raw(), quotetoken.get_contract().value,
-          quotetoken.get_symbol().raw()));
+      uint64_t            key = convert_to_key(basetoken, quotetoken);
       oracle_prices_table oraclepricestable(self, self.value);
 
       auto oracle = oraclepricestable.find(key);
       check(oracle != oraclepricestable.end(), "no oracle");
       return oracle->quotetoken.quantity.amount;
    }
-
 };

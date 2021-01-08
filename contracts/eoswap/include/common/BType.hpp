@@ -22,7 +22,7 @@ using address  = name;
 using uint256m = double;
 using namesym  = uint128_t;
 
-static constexpr const char* const default_lp_symbol_str = "SPT";
+static constexpr const char* const default_lp_symbol_str = "EPT";
 static const uint8_t               default_precision     = 9;
 static const std::string           chain_token           = "eth";
 static const std::string           address_zero          = "0";
@@ -44,7 +44,7 @@ void require(bool test, const std::string& cstr) { eosio::check(test, cstr); }
 
 namesym to_namesym(const extended_symbol& exsym) {
    namesym ns = exsym.get_contract().value;
-   ns         = ns << 64 | exsym.get_symbol().raw();
+   ns         = ns << 64 | exsym.get_symbol().code().raw();
    return ns;
 }
 

@@ -81,7 +81,7 @@ class instance_mgmt : public IFactory {
       otoken.init(tokenx);
    }
 
-   static const uint64_t MAX_TOTAL_SUPPLY = 1000000000000000;
+   static const uint64_t MAX_TOTAL_SUPPLY = my_pow(10,15);
 
    extended_symbol       newLpToken(name _msg_sender, name dodo_name, const extended_symbol& tokenx) override {
       const symbol&   sym   = tokenx.get_symbol();
