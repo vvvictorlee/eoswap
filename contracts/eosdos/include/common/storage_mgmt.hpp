@@ -162,16 +162,33 @@ class storage_mgmt {
       }
    }
 
+   void clean_oracle_prices(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
+      uint64_t            key = convert_to_key(basetoken, quotetoken.get_extended_symbol());
+      oracle_prices_table oraclepricestable(self, self.value);
+      const int64_t       count = 10;
+      uint64_t            i     = 0;
+      auto                it    = oraclepricestable.begin();
+      while (it != oraclepricestable.end() && i++ < count) {
+         if (it->pair_token_hash_key != key &&
+             it->basetoken.get_symbol().code().raw() == basetoken.get_symbol().code().raw() &&
+             it->quotetoken.get_extended_symbol().get_symbol().code().raw() ==
+                 quotetoken.get_extended_symbol().get_symbol().code().raw()) {
+            oraclepricestable.erase(it);
+         }
+         it = oraclepricestable.begin();
+      }
+   }
+
    uint64_t convert_to_key(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
       uint64_t key = get_hash_key(get_checksum256(
-          basetoken.get_contract().value, basetoken.get_symbol().code().raw(),
-          quotetoken.get_contract().value,
+          basetoken.get_contract().value, basetoken.get_symbol().code().raw(), quotetoken.get_contract().value,
           quotetoken.get_symbol().code().raw()));
 
       return key;
    }
 
    void save_oracle_prices(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
+      clean_oracle_prices(msg_sender, basetoken, quotetoken);
       uint64_t            key = convert_to_key(basetoken, quotetoken.get_extended_symbol());
       oracle_prices_table oraclepricestable(self, self.value);
 

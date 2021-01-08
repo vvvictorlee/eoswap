@@ -1122,7 +1122,7 @@ BOOST_FIXTURE_TEST_CASE(joinpool4maxsupply_tests, eoswap_tester) try {
       std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
       joinpool(user1, pool_name, to_wei(100000), v);
 
-      joinpool(user1, pool_name, to_asset(static_cast<int64_t>(pow(10, 8), v);
+      joinpool(user1, pool_name, static_cast<int64_t>(pow(10, 5)), v);
 
    //    std::vector<std::vector<std::string>> expected_token_balances{std::vector<std::string>{"BTC", "10000", "1000"},
    //                                                                  std::vector<std::string>{"USD", "10000",
