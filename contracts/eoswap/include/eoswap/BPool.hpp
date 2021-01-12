@@ -398,7 +398,7 @@ class BPool : public BToken, public BMath {
                                     ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
       _pullUnderlying(get_msg_sender(), tokenAmountInx);
-      _pushUnderlying(get_msg_sender(), tokenAmountOutx);
+      _pushUnderlying(get_msg_sender(), tokenAmountOutxx);
 
       return std::make_pair(tokenAmountIn, spotPriceAfter);
    }

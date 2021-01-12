@@ -28,20 +28,21 @@ namespace DODOMath {
     res = i*delta*(1-k+k(V0^2/V1/V2))
 */
 uint256 _GeneralIntegrate(uint256 V0, uint256 V1, uint256 V2, uint256 i, uint256 k) {
-   my_print_f(">>>>>>3 _GeneralIntegrate:V0=%=,  V1=%=,  V2=%=,  i=%=,  k=%=,", V0, V1, V2, i, k);
+   my_print_f("     >>>>>> _GeneralIntegrate:V0=%=,  V1=%=,  V2=%=,  i=%=,  k=%=,", V0, V1, V2, i, k);
 
    uint256 fairAmount = DecimalMath::mul(i, sub(V1, V2)); // i*delta
+  uint256 V0V0V1V20   = SafeMath::mul(V0, V0);
+  uint256 V0V0V1V21   = div(SafeMath::mul(V0, V0), V1);
    uint256 V0V0V1V2   = DecimalMath::divCeil(div(SafeMath::mul(V0, V0), V1), V2);
    uint256 penalty    = DecimalMath::mul(k, V0V0V1V2); // k(V0^2/V1/V2)
-   my_print_f(
-       ">>>>>>3 _GeneralIntegrate:fairAmount=%, V0V0V1V2=%, penalty=%,DODOMath::_GeneralIntegrate(B0, B1, B2, i, "
-       "stores._K_)=%=,",
-       fairAmount, V0V0V1V2, penalty, DecimalMath::mul(fairAmount, add(sub(DecimalMath::ONE, k), penalty)));
-   my_print_f(
-       ">>>>>>3 _GeneralIntegrate:sub(DecimalMath::ONE, k)=%, add(sub(DecimalMath::ONE, k), penalty)=%=,",
-       sub(DecimalMath::ONE, k), add(sub(DecimalMath::ONE, k), penalty));
 
-   return DecimalMath::mul(fairAmount, add(sub(DecimalMath::ONE, k), penalty));
+   uint256 r0 = sub(DecimalMath::ONE, k);
+   uint256 r1 = add(sub(DecimalMath::ONE, k), penalty);
+   uint256 r  = DecimalMath::mul(fairAmount, add(sub(DecimalMath::ONE, k), penalty));
+   my_print_f(">>>>>> _GeneralIntegrate:fairAmount=%,V0V0V1V20=%, V0V0V1V21=%, V0V0V1V2=%, penalty=%,==,", fairAmount, V0V0V1V20, V0V0V1V21, V0V0V1V2, penalty);
+   my_print_f(">>>>>> _GeneralIntegrate:r0=%=,r1=%=,r=%=", r0, r1, r);
+
+   return r;
 }
 
 /*
@@ -92,11 +93,12 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
 
    my_print_f(">>>>>>2.1 _SolveQuadraticFunctionForTrade: b=%, kQ02Q1=%", b, kQ02Q1);
 
-   uint256 squareRootv0  = SafeMath::mul(sub(DecimalMath::ONE, k), 4);
+   uint256 squareRootv0   = SafeMath::mul(sub(DecimalMath::ONE, k), 4);
    uint256 squareRootv010 = DecimalMath::mul(k, Q0);
-   uint256 squareRootv01 = SafeMath::mul(DecimalMath::mul(k, Q0), Q0);
+   uint256 squareRootv01  = SafeMath::mul(DecimalMath::mul(k, Q0), Q0);
    my_print_f(
-       ">>>>>>2.2  _SolveQuadraticFunctionForTradesquareRoot v0=%,squareRootv010=%, squareRootv01=%", squareRootv0,squareRootv010, squareRootv01);
+       ">>>>>>2.2  _SolveQuadraticFunctionForTradesquareRoot v0=%,squareRootv010=%, squareRootv01=%", squareRootv0,
+       squareRootv010, squareRootv01);
 
    // calculate sqrt
    uint256 squareRootv1 = DecimalMath::mul(squareRootv0, squareRootv01); // 4(1-k)kQ0^2

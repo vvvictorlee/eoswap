@@ -1310,7 +1310,7 @@ BOOST_FIXTURE_TEST_CASE(sell2_base_token_formula_tests, eosdos_tester) try {
    check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
-   buybasetoken(trader, dodo_name, to_asset(5945945990, "USD"), to_asset(3200, "GBP"));
+   buybasetoken(trader, dodo_name, to_asset(1545915510000, "USD"), to_asset(3200, "GBP"));
 //    sellbastoken(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"));
    check_dodos(dodo_name);
    check_balance("USD", "10000.000000");

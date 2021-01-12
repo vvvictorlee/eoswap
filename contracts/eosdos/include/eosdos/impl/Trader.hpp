@@ -42,7 +42,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
 
    void gasPriceLimit() { require(tx_gasprice <= stores._GAS_PRICE_LIMIT_, "GAS_PRICE_EXCEED"); }
 
-// #define TEST_DATA
+#define TEST_DATA
    // ============ Trade Functions ============
    uint64_t sellBaseToken(uint64_t amount, uint64_t minReceiveQuote, bytes data) {
 
@@ -110,13 +110,23 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
    }
 
    uint256 buyBaseToken(uint256 amount, uint256 maxPayQuote, bytes data) {
-// #ifdef TEST_DATA
-//       stores._R_STATUS_                  = 2;
-//       stores._TARGET_BASE_TOKEN_AMOUNT_  = 994358158970;
-//       stores._TARGET_QUOTE_TOKEN_AMOUNT_ = 739478001769;
-//       stores._BASE_BALANCE_              = 1550541851660;
-//       stores._QUOTE_BALANCE_ = 327954293302;
-// #endif
+//   _R_STATUS_: 2,
+//   _TARGET_BASE_TOKEN_AMOUNT_: '994358158970',
+//   _TARGET_QUOTE_TOKEN_AMOUNT_: '739566542199',
+//   _BASE_BALANCE_: '1750540351660',
+//   _QUOTE_BALANCE_: '180165525862'
+//   _R_STATUS_: 2,
+//   _TARGET_BASE_TOKEN_AMOUNT_: '994358158970',
+//   _TARGET_QUOTE_TOKEN_AMOUNT_: '739566542199',
+//   _BASE_BALANCE_: '1750540351660',
+//   _QUOTE_BALANCE_: '180165525862'
+#ifdef TEST_DATA
+      stores._R_STATUS_                  = 2;
+      stores._TARGET_BASE_TOKEN_AMOUNT_  = 994358158970;
+      stores._TARGET_QUOTE_TOKEN_AMOUNT_ = 739566542199;
+      stores._BASE_BALANCE_              = 1750540351660;
+      stores._QUOTE_BALANCE_ = 180165525862;
+#endif
 
       tradeAllowed();
       buyingAllowed();
