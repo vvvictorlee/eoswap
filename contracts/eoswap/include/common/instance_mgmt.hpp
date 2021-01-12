@@ -24,7 +24,7 @@ class instance_mgmt : public IFactory {
    transfer_mgmt _transfer_mgmt;
 
  public:
-   static constexpr symbol BPT_symbol = symbol(symbol_code(default_lp_symbol_str), 4);
+   static constexpr symbol BPT_symbol = symbol(symbol_code(default_lp_symbol_str), default_lp_precision);
    instance_mgmt(name _self)
        : self(_self)
        , _storage_mgmt(_self)
@@ -34,9 +34,7 @@ class instance_mgmt : public IFactory {
    void setMsgSender(name _msg_sender) override { msg_sender = _msg_sender; }
 
    storage_mgmt&  get_storage_mgmt() override { return _storage_mgmt; }
-   transfer_mgmt& get_transfer_mgmt() override { 
-return _transfer_mgmt; 
-}
+   transfer_mgmt& get_transfer_mgmt() override { return _transfer_mgmt; }
    instance_mgmt& get_instance_mgmt() override { return *this; }
 
    void newBPool(name pool_name) override {

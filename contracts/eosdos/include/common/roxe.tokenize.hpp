@@ -1,5 +1,5 @@
 #pragma once
-#include <common/BType.hpp>
+#include <common/defines.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/eosio.hpp>
 

@@ -85,7 +85,7 @@ class Pricing : virtual public Storage {
       uint256 newTargetQuote =
           DODOMath::_SolveQuadraticFunctionForTarget(stores._QUOTE_BALANCE_, stores._K_, fairAmount);
 
-      my_print_f(">>>>>>*********_RBelowBackToOne:newTargetQuote=%=,,", newTargetQuote);
+      my_print_f(">>>>>>*********_RBelowBackToOne:_QUOTE_BALANCE_=%=,=newTargetQuote=%,",stores._QUOTE_BALANCE_, newTargetQuote);
 
       return sub(newTargetQuote, stores._QUOTE_BALANCE_);
    }

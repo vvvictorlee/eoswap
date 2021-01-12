@@ -68,7 +68,10 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
    uint256 kQ02Q1 = div(SafeMath::mul(DecimalMath::mul(k, Q0), Q0), Q1); // kQ0^2/Q1
    uint256 b      = DecimalMath::mul(sub(DecimalMath::ONE, k), Q1);      // (1-k)Q1
 
-   my_print_f(">>>>>>1 _SolveQuadraticFunctionForTrade: b=%, kQ02Q1=%", b, kQ02Q1);
+   my_print_f(
+       ">>>>>>1 _SolveQuadraticFunctionForTrade: DecimalMath::mul(k, Q0)=%,DecimalMath::mul(k, Q0), Q0)=%,b=%, "
+       "kQ02Q1=%",
+       DecimalMath::mul(k, Q0), SafeMath::mul(DecimalMath::mul(k, Q0), Q0), b, kQ02Q1);
 
    bool minusbSig = true;
    if (deltaBSig) {
@@ -87,15 +90,22 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
       minusbSig = false;
    }
 
+   my_print_f(">>>>>>2.1 _SolveQuadraticFunctionForTrade: b=%, kQ02Q1=%", b, kQ02Q1);
+
+   uint256 squareRootv0  = SafeMath::mul(sub(DecimalMath::ONE, k), 4);
+   uint256 squareRootv010 = DecimalMath::mul(k, Q0);
+   uint256 squareRootv01 = SafeMath::mul(DecimalMath::mul(k, Q0), Q0);
+   my_print_f(
+       ">>>>>>2.2  _SolveQuadraticFunctionForTradesquareRoot v0=%,squareRootv010=%, squareRootv01=%", squareRootv0,squareRootv010, squareRootv01);
+
    // calculate sqrt
-   uint256 squareRoot = DecimalMath::mul(
-       SafeMath::mul(sub(DecimalMath::ONE, k), 4), SafeMath::mul(DecimalMath::mul(k, Q0), Q0)); // 4(1-k)kQ0^2
-   squareRoot = SafeMath::sqrt(add(SafeMath::mul(b, b), squareRoot)); // sqrt(b*b+4(1-k)kQ0*Q0)
+   uint256 squareRootv1 = DecimalMath::mul(squareRootv0, squareRootv01); // 4(1-k)kQ0^2
+   my_print_f(">>>>>>2.3 _SolveQuadraticFunctionForTrade  b=%, squareRoot=%", b, squareRootv1);
+   uint256 squareRoot = SafeMath::sqrt(add(SafeMath::mul(b, b), squareRootv1)); // sqrt(b*b+4(1-k)kQ0*Q0)
 
    my_print_f(
        ">>>>>>3 _SolveQuadraticFunctionForTrade:squareRoot0, "
-       "SafeMath::mul(DecimalMath::mul(k, Q0), Q0))=%, squareRoot=%",
-       DecimalMath::mul(SafeMath::mul(sub(DecimalMath::ONE, k), 4), SafeMath::mul(DecimalMath::mul(k, Q0), Q0)),
+       "squareRoot=%",
        squareRoot);
 
    // final res
@@ -133,21 +143,23 @@ uint256 _SolveQuadraticFunctionForTarget(uint256 V1, uint256 k, uint256 fairAmou
    my_print_f(">>>>>>> _SolveQuadraticFunctionForTarget: V1=%,  k=%,  fairAmount=%", V1, k, fairAmount);
 
    // V0 = V1+V1*(sqrt-1)/2k
-//    uint256 sqrtv0 = mul(DecimalMath::mul(k, fairAmount), 4);
-//    uint256 sqrtv1   = DecimalMath::divCeil(sqrtv0, V1);
-//    uint256 sqrtv           = SafeMath::sqrt(mul(add(sqrtv1, DecimalMath::ONE), DecimalMath::ONE));
-//    uint256 premium = DecimalMath::divCeil(sub(sqrtv, DecimalMath::ONE), mul(k, 2));
-   double sq = DecimalMath::mul(k, fairAmount);
-   double sqrtv0 =  DSafeMath::mul(sq, 4);
-   double sqrtv1   = sqrtv0*DecimalMath::ONE/V1;//DecimalMath::ddivCeil(sqrtv0, V1);
-   double sqrtv          = std::sqrt((sqrtv1+DecimalMath::ONE)*DecimalMath::ONE);//DSafeMath::sqrt(DSafeMath::mul(DSafeMath::add(sqrtv1, DecimalMath::ONE), DecimalMath::ONE));
-   uint256 premium =   DecimalMath::ddivCeil(DSafeMath::sub(sqrtv, DecimalMath::ONE), DSafeMath::mul(k, 2));
+   //    uint256 sqrtv0 = mul(DecimalMath::mul(k, fairAmount), 4);
+   //    uint256 sqrtv1   = DecimalMath::divCeil(sqrtv0, V1);
+   //    uint256 sqrtv           = SafeMath::sqrt(mul(add(sqrtv1, DecimalMath::ONE), DecimalMath::ONE));
+   //    uint256 premium = DecimalMath::divCeil(sub(sqrtv, DecimalMath::ONE), mul(k, 2));
+   double sq     = DecimalMath::mul(k, fairAmount);
+   double sqrtv0 = DSafeMath::mul(sq, 4);
+   double sqrtv1 = sqrtv0 * DecimalMath::ONE / V1; // DecimalMath::ddivCeil(sqrtv0, V1);
+   double sqrtv  = std::sqrt(
+       (sqrtv1 + DecimalMath::ONE) * DecimalMath::ONE); // DSafeMath::sqrt(DSafeMath::mul(DSafeMath::add(sqrtv1,
+                                                         // DecimalMath::ONE), DecimalMath::ONE));
+   uint256 premium = DecimalMath::ddivCeil(DSafeMath::sub(sqrtv, DecimalMath::ONE), DSafeMath::mul(k, 2));
 
    // V0 is greater than or equal to V1 according to the solution
    my_print_f(
        "\n>>>>>>_SolveQuadraticFunctionForTarget:sq=%,sqrtv0=%,sqrtv1=%, "
        "sqrtv=%, premium=%,sqrtv0/V1=% ",
-       sq,sqrtv0,sqrtv1,sqrtv, premium,sqrtv0/V1);
+       sq, sqrtv0, sqrtv1, sqrtv, premium, sqrtv0 / V1);
 
    return DecimalMath::mul(V1, add(DecimalMath::ONE, premium));
 }

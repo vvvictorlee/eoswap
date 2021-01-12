@@ -77,11 +77,11 @@ class transfer_mgmt {
       return _core_symbol;
    }
 
-   static uint64_t get_supply(const extended_symbol& exsym) {
+   static int64_t get_supply(const extended_symbol& exsym) {
       return get_supply(exsym.get_contract(), exsym.get_symbol().code()).amount;
    }
 
-   static uint64_t get_balance(const name& owner, const extended_symbol& exsym) {
+   static int64_t get_balance(const name& owner, const extended_symbol& exsym) {
       return get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
    }
 
@@ -89,17 +89,42 @@ class transfer_mgmt {
       return get_issuer(exsym.get_contract(), exsym.get_symbol().code());
    }
 
-   static uint64_t get_balance_one(const name& owner, const extended_symbol& exsym) {
+   static int64_t get_balance_one(const name& owner, const extended_symbol& exsym) {
       uint8_t p = exsym.get_symbol().precision();
       check(p <= default_precision, "unsupport the decimal");
-      uint64_t amount = get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
+      int64_t amount = get_balance(exsym.get_contract(), owner, exsym.get_symbol().code()).amount;
       if (p < default_precision) {
          uint8_t d = default_precision - p;
-         return static_cast<uint64_t>(amount * std::pow(10, d));
+         return static_cast<int64_t>(amount * std::pow(10, d));
       }
 
       return amount;
    }
+
+   static int64_t get_transfer_fee(const extended_asset& quantity, bool is_in = false) {
+      if (quantity.contract == "roxe.ro"_n || !tokenize::is_exist_symbol(quantity.quantity.symbol.code())) {
+         return 0;
+      }
+      ////transfer fee
+
+      if (is_in) {
+         auto fee = tokenize::estimate_fee_given_in(quantity.contract, quantity.quantity);
+
+         return fee.amount;
+      }
+
+      auto fee = tokenize::estimate_fee_given_out(quantity.contract, quantity.quantity);
+      //  if (is_percent) {
+      //     return static_cast<int64_t>(fee.amount * std::pow(10, default_precision)) / quantity.quantity.amount;
+      //  }
+
+      return fee.amount;
+      //  action(
+      //      permission_level{from, "active"_n}, self, "transferfee"_n,
+      //      std::make_tuple(from, "roxe.ro",
+      //      extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee")) .send();
+   }
+
 
    /**
     * @brief
@@ -119,16 +144,8 @@ class transfer_mgmt {
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
       check(memo.size() <= 256, "memo has more than 256 bytes");
 
-      if (quantity.contract == "roxe.ro"_n) {
-         ////transfer fee
-         auto fee = tokenize::estimate_fee_given_in(quantity.contract, quantity.quantity);
-         //  action(
-         //      permission_level{from, "active"_n}, self, "transferfee"_n,
-         //      std::make_tuple(from, "roxe.ro",
-         //      extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee")) .send();
-      }
-
-      action(permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
+      action(
+          permission_level{from, "active"_n}, quantity.contract, "transfer"_n,
           std::make_tuple(from, to, quantity.quantity, memo))
           .send();
 

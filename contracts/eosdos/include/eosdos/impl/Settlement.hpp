@@ -22,7 +22,7 @@
  *
  * @notice Functions for assets settlement
  */
-class Settlement : virtual  public Storage {
+class Settlement : virtual public Storage {
  private:
    DODOStore& stores;
    IFactory&  factory;
@@ -38,8 +38,7 @@ class Settlement : virtual  public Storage {
 
    void _baseTokenTransferIn(address from, const extended_asset& tokenamount) {
       uint256 amount = tokenamount.quantity.amount;
-      require(
-          add(stores._BASE_BALANCE_, amount) <= stores._BASE_BALANCE_LIMIT_, "BASE_BALANCE_LIMIT_EXCEEDED");
+      require(add(stores._BASE_BALANCE_, amount) <= stores._BASE_BALANCE_LIMIT_, "BASE_BALANCE_LIMIT_EXCEEDED");
       //   IERC20(_BASE_TOKEN_).safeTransferFrom(from, address(this), amount);
       transfer_mgmt::static_transfer(from, stores.dodo_name, tokenamount);
       stores._BASE_BALANCE_ = add(stores._BASE_BALANCE_, amount);
@@ -47,9 +46,7 @@ class Settlement : virtual  public Storage {
 
    void _quoteTokenTransferIn(address from, const extended_asset& tokenamount) {
       uint256 amount = tokenamount.quantity.amount;
-      require(
-          add(stores._QUOTE_BALANCE_, amount) <= stores._QUOTE_BALANCE_LIMIT_,
-          "QUOTE_BALANCE_LIMIT_EXCEEDED");
+      require(add(stores._QUOTE_BALANCE_, amount) <= stores._QUOTE_BALANCE_LIMIT_, "QUOTE_BALANCE_LIMIT_EXCEEDED");
       //   IERC20(stores._QUOTE_TOKEN_).safeTransferFrom(from, address(this), amount);
       transfer_mgmt::static_transfer(from, stores.dodo_name, tokenamount);
       stores._QUOTE_BALANCE_ = add(stores._QUOTE_BALANCE_, amount);
@@ -99,18 +96,18 @@ class Settlement : virtual  public Storage {
       stores._DEPOSIT_QUOTE_ALLOWED_ = false;
       stores._DEPOSIT_BASE_ALLOWED_  = false;
       stores._TRADE_ALLOWED_         = false;
-      uint256 totalBaseCapital             = getTotalBaseCapital();
-      uint256 totalQuoteCapital            = getTotalQuoteCapital();
+      uint256 totalBaseCapital       = getTotalBaseCapital();
+      uint256 totalQuoteCapital      = getTotalQuoteCapital();
 
       if (stores._QUOTE_BALANCE_ > stores._TARGET_QUOTE_TOKEN_AMOUNT_) {
-         uint256 spareQuote = sub(stores._QUOTE_BALANCE_, stores._TARGET_QUOTE_TOKEN_AMOUNT_);
+         uint256 spareQuote                  = sub(stores._QUOTE_BALANCE_, stores._TARGET_QUOTE_TOKEN_AMOUNT_);
          stores._BASE_CAPITAL_RECEIVE_QUOTE_ = DecimalMath::divFloor(spareQuote, totalBaseCapital);
       } else {
          stores._TARGET_QUOTE_TOKEN_AMOUNT_ = stores._QUOTE_BALANCE_;
       }
 
       if (stores._BASE_BALANCE_ > stores._TARGET_BASE_TOKEN_AMOUNT_) {
-         uint256 spareBase = sub(stores._BASE_BALANCE_, stores._TARGET_BASE_TOKEN_AMOUNT_);
+         uint256 spareBase                   = sub(stores._BASE_BALANCE_, stores._TARGET_BASE_TOKEN_AMOUNT_);
          stores._QUOTE_CAPITAL_RECEIVE_BASE_ = DecimalMath::divFloor(spareBase, totalQuoteCapital);
       } else {
          stores._TARGET_BASE_TOKEN_AMOUNT_ = stores._BASE_BALANCE_;
@@ -140,20 +137,22 @@ class Settlement : virtual  public Storage {
       stores._TARGET_QUOTE_TOKEN_AMOUNT_ = sub(stores._TARGET_QUOTE_TOKEN_AMOUNT_, quoteAmount);
       stores._TARGET_BASE_TOKEN_AMOUNT_  = sub(stores._TARGET_BASE_TOKEN_AMOUNT_, baseAmount);
 
-      quoteAmount = add(quoteAmount,DecimalMath::mul(baseCapital, stores._BASE_CAPITAL_RECEIVE_QUOTE_));
-      baseAmount  = add(baseAmount,DecimalMath::mul(quoteCapital, stores._QUOTE_CAPITAL_RECEIVE_BASE_));
+      quoteAmount = add(quoteAmount, DecimalMath::mul(baseCapital, stores._BASE_CAPITAL_RECEIVE_QUOTE_));
+      baseAmount  = add(baseAmount, DecimalMath::mul(quoteCapital, stores._QUOTE_CAPITAL_RECEIVE_BASE_));
 
-      _baseTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(baseAmount),stores._BASE_TOKEN_));
-      _quoteTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(quoteAmount),stores._QUOTE_TOKEN_));
+      _baseTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(baseAmount), stores._BASE_TOKEN_));
+      _quoteTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(quoteAmount), stores._QUOTE_TOKEN_));
 
       //   IDODOLpToken(stores._BASE_CAPITAL_TOKEN_).burn(getMsgSender(), baseCapital);
       //   IDODOLpToken(stores._QUOTE_CAPITAL_TOKEN_).burn(getMsgSender(), quoteCapital);
 
-      factory.get_lptoken(getMsgSender(),
-          stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(getMsgSender(), baseCapital); });
+      factory.get_lptoken(getMsgSender(), stores._BASE_CAPITAL_TOKEN_, [&](auto& lptoken) {
+         lptoken.burn(getMsgSender(), baseCapital);
+      });
 
-      factory.get_lptoken(getMsgSender(),
-          stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) { lptoken.burn(getMsgSender(), quoteCapital); });
+      factory.get_lptoken(getMsgSender(), stores._QUOTE_CAPITAL_TOKEN_, [&](auto& lptoken) {
+         lptoken.burn(getMsgSender(), quoteCapital);
+      });
 
       return;
    }
@@ -165,14 +164,14 @@ class Settlement : virtual  public Storage {
       uint256               amount = tokenamount.quantity.amount;
       if (token == stores._BASE_TOKEN_) {
          uint256 balance = factory.get_transfer_mgmt().get_balance(getMsgSender(), stores._BASE_TOKEN_);
-         require(balance >= add(stores._BASE_BALANCE_,amount), "DODO_BASE_BALANCE_NOT_ENOUGH");
+         require(balance >= add(stores._BASE_BALANCE_, amount), "DODO_BASE_BALANCE_NOT_ENOUGH");
          //  require(
          //      IERC20(stores._BASE_TOKEN_).balanceOf(address(this)) >= stores._BASE_BALANCE_,amount),
          //      "DODO_BASE_BALANCE_NOT_ENOUGH");
       }
       if (token == stores._QUOTE_TOKEN_) {
          uint256 balance = factory.get_transfer_mgmt().get_balance(getMsgSender(), stores._QUOTE_TOKEN_);
-         require(balance >= add(stores._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
+         require(balance >= add(stores._QUOTE_BALANCE_, amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");
          //  require(
          //      IERC20(stores._QUOTE_TOKEN_).balanceOf(address(this)) >=
          //      stores._QUOTE_BALANCE_,amount), "DODO_QUOTE_BALANCE_NOT_ENOUGH");

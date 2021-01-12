@@ -1,5 +1,7 @@
 #pragma once
 #include <common/defines.hpp>
+#include <common/roxe.tokenize.hpp>
+
 class transfer_mgmt {
  private:
    name self;
@@ -73,10 +75,6 @@ class transfer_mgmt {
       return _core_symbol;
    }
 
-
-
-
-
    static uint64_t get_supply(const extended_symbol& exsym) {
       return get_supply(exsym.get_contract(), exsym.get_symbol().code()).amount;
    }
@@ -90,6 +88,28 @@ class transfer_mgmt {
 
    static name get_issuer(const extended_symbol& exsym) {
       return get_issuer(exsym.get_contract(), exsym.get_symbol().code());
+   }
+
+   static int64_t get_transfer_fee(const extended_asset& quantity, bool is_in = false) {
+      if (quantity.contract != "roxe.ro"_n||!tokenize::is_exist_symbol(quantity.quantity.symbol.code())) {
+         return 0;
+      }
+
+      ////transfer fee
+
+      if (is_in) {
+         auto fee = tokenize::estimate_fee_given_in(quantity.contract, quantity.quantity);
+
+         return fee.amount;
+      }
+
+      auto fee = tokenize::estimate_fee_given_out(quantity.contract, quantity.quantity);
+
+      return fee.amount;
+      //  action(
+      //      permission_level{from, "active"_n}, self, "transferfee"_n,
+      //      std::make_tuple(from, "roxe.ro",
+      //      extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee")) .send();
    }
 
    static void static_transfer(name from, name to, extended_asset quantity, std::string memo = "") {

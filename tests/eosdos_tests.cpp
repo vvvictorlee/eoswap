@@ -1030,9 +1030,9 @@ class eosdos_tester : public tester {
       extended_symbol baseToken     = to_sym("USD");
       extended_symbol quoteToken    = to_sym("GBP");
       extended_symbol oracle        = to_sym("USD");
-      uint64_t        lpFeeRate     = 1;
-      uint64_t        mtFeeRate     = 0;
-      uint64_t        k             = 1;
+      uint64_t        lpFeeRate     = 595;
+      uint64_t        mtFeeRate     = 105;
+      uint64_t        k             = 100;
       uint64_t        gasPriceLimit = 0; // gweiStr("100")
                                          //   lpFeeRate: decimalStr("0.0001"),
                                          //   mtFeeRate: decimalStr("0"),
@@ -1297,6 +1297,21 @@ BOOST_FIXTURE_TEST_CASE(buy1_base_token_formula_tests, eosdos_tester) try {
    check_balance("GBP", "9998.999999");
 
    sellbastoken(trader, dodo_name, to_asset(1000000, "USD"), to_asset(10, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(sell2_base_token_formula_tests, eosdos_tester) try {
+   stableCoinBefore3();
+   name dodo_name = dodo_stablecoin_name;
+
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+   buybasetoken(trader, dodo_name, to_asset(5945945990, "USD"), to_asset(3200, "GBP"));
+//    sellbastoken(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"));
    check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
