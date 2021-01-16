@@ -58,6 +58,22 @@ class BNum : public BConst {
       //  return aa*bb;//static_cast<uint64_t>(bmul(aa,bb));
    }
 
+   uint256m rbdiv(uint256m aa, uint256m bb) {
+      uint256m a   = (aa); // static_cast<uint64_t>
+      uint256m b   = (bb);
+      uint256m c1  = 0;
+      uint256m c2  = 0;
+      uint256m ONE = static_cast<uint64_t>(MIN_POOL_RATE);
+      require(b != 0, "ERR_DIV_ZERO");
+      uint256m c0 = a * ONE;
+      //   require(a == 0 || c0 / a == ONE, "ERR_DIV_INTERNAL "); // bmul overflow
+      c1 = c0 + (b / 2);
+      //   require(c1 >= c0, "ERR_DIV_INTERNAL >="); //  badd require
+      c2 = c1 / b;
+      //   my_print_f("a %, b %, c0 %, c1 %, c2 %", a, b, c0, c1, c2);
+      return (c2); // static_cast<uint64_t>
+   }
+
    uint256m bdiv(uint256m aa, uint256m bb) {
       uint256m a   = (aa); // static_cast<uint64_t>
       uint256m b   = (bb);

@@ -101,30 +101,41 @@ class transfer_mgmt {
       return amount;
    }
 
-   static int64_t get_transfer_fee(const extended_asset& quantity, bool is_in = false) {
-      if (quantity.contract == "roxe.ro"_n || !tokenize::is_exist_symbol(quantity.quantity.symbol.code())) {
+   static int64_t
+   get_transfer_fee(const extended_asset& quantity, bool is_in = false, name contract = "eoswapeoswap"_n) {
+      my_print_f("==%=transfer_fee=1=%==", __FUNCTION__, quantity.quantity.amount);
+
+      if (quantity.contract != "roxe.ro"_n || !tokenize::is_exist_symbol(quantity.quantity.symbol.code(), contract)) {
+         my_print_f(
+             "==%=transfer_fee=2=%=%,%=", __FUNCTION__, quantity.contract, quantity.quantity.symbol.code(),
+             quantity.quantity.amount);
          return 0;
       }
+      name tokencontract = quantity.contract;
+      if (contract != "roxe.ro"_n) {
+         tokencontract = contract; // for Test use
+      }
+
       ////transfer fee
 
       if (is_in) {
-         auto fee = tokenize::estimate_fee_given_in(quantity.contract, quantity.quantity);
+         my_print_f("==%=transfer_fee=3=%==", __FUNCTION__, quantity.quantity.amount);
+         auto fee = tokenize::estimate_fee_given_in(tokencontract, quantity.quantity);
 
          return fee.amount;
       }
 
-      auto fee = tokenize::estimate_fee_given_out(quantity.contract, quantity.quantity);
+      auto fee = tokenize::estimate_fee_given_out(tokencontract, quantity.quantity);
       //  if (is_percent) {
       //     return static_cast<int64_t>(fee.amount * std::pow(10, default_precision)) / quantity.quantity.amount;
       //  }
-
+      my_print_f("==%=transfer_fee=4=%==", __FUNCTION__, quantity.quantity.amount);
       return fee.amount;
       //  action(
       //      permission_level{from, "active"_n}, self, "transferfee"_n,
       //      std::make_tuple(from, "roxe.ro",
       //      extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee")) .send();
    }
-
 
    /**
     * @brief

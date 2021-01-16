@@ -18,5 +18,6 @@ case "$1" in
 "e") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/extransfer_tests -- --verbose ;;
 "f") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/finalize_tests -- --verbose ;;
 "set") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/setparameter_tests -- --verbose ;;
+"tf") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/transfer_fee_tests -- --verbose ;;
 *) ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests -- --verbose ;;
 esac

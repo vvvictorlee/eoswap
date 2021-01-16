@@ -32,6 +32,9 @@ public:
 
     static constexpr uint256m  INIT_POOL_SUPPLY  = BONE / my_pow(10,5);
 
+    static constexpr uint256m  MIN_POOL_RATE     = INIT_POOL_SUPPLY ;
+    static constexpr uint256m  MAX_POOL_RATE     = my_pow(10,10);
+
     static constexpr uint256m  MIN_BPOW_BASE     = 1 ;
     static constexpr uint256m  MAX_BPOW_BASE     = (2 * BONE) - 1 ;
     static constexpr uint256m  BPOW_PRECISION    = BONE/ my_pow(10,5);//10

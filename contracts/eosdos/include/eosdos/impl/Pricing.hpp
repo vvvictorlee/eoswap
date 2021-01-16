@@ -37,7 +37,7 @@ class Pricing : virtual public Storage {
           targetQuoteTokenAmount, targetQuoteTokenAmount, DecimalMath::mul(i, amount), false, stores._K_);
       // in theory Q2 <= targetQuoteTokenAmount
       // however when amount is close to 0, precision problems may cause Q2 > targetQuoteTokenAmount
-      my_print_f(">>>>>>_ROneSellBaseToken:i=%,Q2=%,", i, Q2 );
+      my_print_f("                   _ROneSellBaseToken:i=%,Q2=%,", i, Q2 );
       return sub(targetQuoteTokenAmount, Q2);
    }
 
@@ -47,7 +47,7 @@ class Pricing : virtual public Storage {
       uint256 B2    = sub(targetBaseTokenAmount, amount);
       payQuoteToken = _RAboveIntegrate(targetBaseTokenAmount, targetBaseTokenAmount, B2);
 
-      my_print_f(">>>>>>_ROneBuyBaseToken:amount=%,targetBaseTokenAmount=%,B2=%,payQuoteToken=%;", amount, targetBaseTokenAmount, B2,
+      my_print_f("                   _ROneBuyBaseToken:amount=%,targetBaseTokenAmount=%,B2=%,payQuoteToken=%;", amount, targetBaseTokenAmount, B2,
           payQuoteToken);
 
       return payQuoteToken;
@@ -59,7 +59,7 @@ class Pricing : virtual public Storage {
       uint256 i  = getOraclePrice();
       uint256 Q2 = DODOMath::_SolveQuadraticFunctionForTrade(
           targetQuoteAmount, quoteBalance, DecimalMath::mul(i, amount), false, stores._K_);
-      my_print_f(">>>>>>_RBelowSellBaseToken:i=%,Q2=%,", i, Q2 );
+      my_print_f("                   _RBelowSellBaseToken:i=%,Q2=%,", i, Q2 );
 
       return sub(quoteBalance, Q2);
    }
@@ -71,7 +71,7 @@ class Pricing : virtual public Storage {
       uint256 i  = getOraclePrice();
       uint256 Q2 = DODOMath::_SolveQuadraticFunctionForTrade(
           targetQuoteAmount, quoteBalance, DecimalMath::mulCeil(i, amount), true, stores._K_);
-      my_print_f(">>>>>>$$$$$$$$$$$$$$$$$$$$$$_RBelowBuyBaseToken:i=%,Q2=%,", i, Q2);
+      my_print_f("                   $$$$$$$$$$$$$$$$$$$$$$_RBelowBuyBaseToken:i=%,Q2=%,", i, Q2);
       return sub(Q2, quoteBalance);
    }
 
@@ -80,12 +80,12 @@ class Pricing : virtual public Storage {
       uint256 spareBase  = sub(stores._BASE_BALANCE_, stores._TARGET_BASE_TOKEN_AMOUNT_);
       uint256 price      = getOraclePrice();
       uint256 fairAmount = DecimalMath::mul(spareBase, price);
-      my_print_f(">>>>>>*********_RBelowBackToOne:spareBase=%=,price=%=,fairAmount=%=", spareBase, price, fairAmount);
+      my_print_f("                   *********_RBelowBackToOne:spareBase=%=,price=%=,fairAmount=%=", spareBase, price, fairAmount);
 
       uint256 newTargetQuote =
           DODOMath::_SolveQuadraticFunctionForTarget(stores._QUOTE_BALANCE_, stores._K_, fairAmount);
 
-      my_print_f(">>>>>>*********_RBelowBackToOne:_QUOTE_BALANCE_=%=,=newTargetQuote=%,",stores._QUOTE_BALANCE_, newTargetQuote);
+      my_print_f("                   *********_RBelowBackToOne:_QUOTE_BALANCE_=%=,=newTargetQuote=%,",stores._QUOTE_BALANCE_, newTargetQuote);
 
       return sub(newTargetQuote, stores._QUOTE_BALANCE_);
    }
@@ -95,7 +95,7 @@ class Pricing : virtual public Storage {
    uint256 _RAboveBuyBaseToken(uint256 amount, uint256 baseBalance, uint256 targetBaseAmount) {
       require(amount < baseBalance, "DODO_BASE_BALANCE_NOT_ENOUGH");
       uint256 B2 = sub(baseBalance, amount);
-      my_print_f(">>>>>>$$$$$$$$$$$$$$$$_RAboveBuyBaseToken:amount=%,targetBaseTokenAmount=%,B2=%,;",
+      my_print_f("                   $$$$$$$$$$$$$$$$_RAboveBuyBaseToken:amount=%,targetBaseTokenAmount=%,B2=%,;",
           amount, targetBaseAmount, B2);
 
       return _RAboveIntegrate(targetBaseAmount, baseBalance, B2);
@@ -106,7 +106,7 @@ class Pricing : virtual public Storage {
       // Because it is limited at upper function
       // See Trader.querySellBaseToken
       uint256 B1 = add(baseBalance, amount);
-      my_print_f(">>>>>>_RAboveSellBaseToken:amount=%,targetBaseAmount=%,B1=%,;",
+      my_print_f("                   _RAboveSellBaseToken:amount=%,targetBaseAmount=%,B1=%,;",
           amount, targetBaseAmount, B1 );
       return _RAboveIntegrate(targetBaseAmount, B1, baseBalance);
    }
@@ -116,9 +116,9 @@ class Pricing : virtual public Storage {
       uint256 spareQuote = sub(stores._QUOTE_BALANCE_, stores._TARGET_QUOTE_TOKEN_AMOUNT_);
       uint256 price      = getOraclePrice();
       uint256 fairAmount = DecimalMath::divFloor(spareQuote, price);
-      my_print_f(">>>>>>*********_RAboveBackToOne:spareQuote=%=,price=%=,fairAmount=%=", spareQuote, price, fairAmount);
+      my_print_f("                   *********_RAboveBackToOne:spareQuote=%=,price=%=,fairAmount=%=", spareQuote, price, fairAmount);
       uint256 newTargetBase = DODOMath::_SolveQuadraticFunctionForTarget(stores._BASE_BALANCE_, stores._K_, fairAmount);
-      my_print_f(">>>>>>*********_RAboveBackToOne:newTargetBase=%=,", newTargetBase);
+      my_print_f("                   *********_RAboveBackToOne:newTargetBase=%=,", newTargetBase);
 
       return sub(newTargetBase, stores._BASE_BALANCE_);
    }
@@ -130,17 +130,17 @@ class Pricing : virtual public Storage {
       uint256 Q           = stores._QUOTE_BALANCE_;
       uint256 B           = stores._BASE_BALANCE_;
       if (stores._R_STATUS_ == Types::RStatus::ONE) {
-         my_print_f(">>>>>>1 getExpectedTarget:stores._TARGET_BASE_TOKEN_AMOUNT_=%=, stores._TARGET_QUOTE_TOKEN_AMOUNT_=%=,",
+         my_print_f("                   1 getExpectedTarget:stores._TARGET_BASE_TOKEN_AMOUNT_=%=, stores._TARGET_QUOTE_TOKEN_AMOUNT_=%=,",
              stores._TARGET_BASE_TOKEN_AMOUNT_, stores._TARGET_QUOTE_TOKEN_AMOUNT_);
          return std::make_tuple(stores._TARGET_BASE_TOKEN_AMOUNT_, stores._TARGET_QUOTE_TOKEN_AMOUNT_);
       } else if (stores._R_STATUS_ == Types::RStatus::BELOW_ONE) {
          uint256 payQuoteToken = _RBelowBackToOne();
-         my_print_f(">>>>>>2 getExpectedTarget:stores._TARGET_BASE_TOKEN_AMOUNT_=%=, Q=%, payQuoteToken=%,add(Q, payQuoteToken)=%=,",
+         my_print_f("                   2 getExpectedTarget:stores._TARGET_BASE_TOKEN_AMOUNT_=%=, Q=%, payQuoteToken=%,add(Q, payQuoteToken)=%=,",
              stores._TARGET_BASE_TOKEN_AMOUNT_, Q, payQuoteToken, add(Q, payQuoteToken));
          return std::make_tuple(stores._TARGET_BASE_TOKEN_AMOUNT_, add(Q, payQuoteToken));
       } else if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          uint256 payBaseToken = _RAboveBackToOne();
-         my_print_f(">>>>>>3 getExpectedTarget:stores._TARGET_QUOTE_TOKEN_AMOUNT_=%=, B=%, payBaseToken=%,add(B, payBaseToken)=%=,",
+         my_print_f("                   3 getExpectedTarget:stores._TARGET_QUOTE_TOKEN_AMOUNT_=%=, B=%, payBaseToken=%,add(B, payBaseToken)=%=,",
              stores._TARGET_QUOTE_TOKEN_AMOUNT_, B, payBaseToken, add(B, payBaseToken));
 
          return std::make_tuple(add(B, payBaseToken), stores._TARGET_QUOTE_TOKEN_AMOUNT_);
@@ -167,7 +167,7 @@ class Pricing : virtual public Storage {
 
    uint256 _RAboveIntegrate(uint256 B0, uint256 B1, uint256 B2) {
       uint256 i = getOraclePrice();
-      my_print_f(">>>>>>3 _RAboveIntegrate:B0=%, B1=%, B2=%, i=%, stores._K_=%,",
+      my_print_f("                   3 _RAboveIntegrate:B0=%, B1=%, B2=%, i=%, stores._K_=%,",
           B0, B1, B2, i, stores._K_);
       return DODOMath::_GeneralIntegrate(B0, B1, B2, i, stores._K_);
    }

@@ -28,7 +28,7 @@ namespace DODOMath {
     res = i*delta*(1-k+k(V0^2/V1/V2))
 */
 uint256 _GeneralIntegrate(uint256 V0, uint256 V1, uint256 V2, uint256 i, uint256 k) {
-   my_print_f("     >>>>>> _GeneralIntegrate:V0=%=,  V1=%=,  V2=%=,  i=%=,  k=%=,", V0, V1, V2, i, k);
+   my_print_f("                         _GeneralIntegrate:V0=%=,  V1=%=,  V2=%=,  i=%=,  k=%=,", V0, V1, V2, i, k);
 
    uint256 fairAmount = DecimalMath::mul(i, sub(V1, V2)); // i*delta
   uint256 V0V0V1V20   = SafeMath::mul(V0, V0);
@@ -39,8 +39,8 @@ uint256 _GeneralIntegrate(uint256 V0, uint256 V1, uint256 V2, uint256 i, uint256
    uint256 r0 = sub(DecimalMath::ONE, k);
    uint256 r1 = add(sub(DecimalMath::ONE, k), penalty);
    uint256 r  = DecimalMath::mul(fairAmount, add(sub(DecimalMath::ONE, k), penalty));
-   my_print_f(">>>>>> _GeneralIntegrate:fairAmount=%,V0V0V1V20=%, V0V0V1V21=%, V0V0V1V2=%, penalty=%,==,", fairAmount, V0V0V1V20, V0V0V1V21, V0V0V1V2, penalty);
-   my_print_f(">>>>>> _GeneralIntegrate:r0=%=,r1=%=,r=%=", r0, r1, r);
+   my_print_f("                    _GeneralIntegrate:fairAmount=%,V0V0V1V20=%, V0V0V1V21=%, V0V0V1V2=%, penalty=%,==,", fairAmount, V0V0V1V20, V0V0V1V21, V0V0V1V2, penalty);
+   my_print_f("                    _GeneralIntegrate:r0=%=,r1=%=,r=%=", r0, r1, r);
 
    return r;
 }
@@ -61,7 +61,7 @@ uint256 _GeneralIntegrate(uint256 V0, uint256 V1, uint256 V2, uint256 i, uint256
 */
 uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB, bool deltaBSig, uint256 k) {
    my_print_f(
-       ">>>>>>> _SolveQuadraticFunctionForTrade: Q0=%,  Q1=%,  ideltaB=%,  deltaBSig=%,  k=%", Q0, Q1, ideltaB,
+       "                   > _SolveQuadraticFunctionForTrade: Q0=%,  Q1=%,  ideltaB=%,  deltaBSig=%,  k=%", Q0, Q1, ideltaB,
        deltaBSig, k);
 
    // calculate -b value and sig
@@ -70,7 +70,7 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
    uint256 b      = DecimalMath::mul(sub(DecimalMath::ONE, k), Q1);      // (1-k)Q1
 
    my_print_f(
-       ">>>>>>1 _SolveQuadraticFunctionForTrade: DecimalMath::mul(k, Q0)=%,DecimalMath::mul(k, Q0), Q0)=%,b=%, "
+       "                   1 _SolveQuadraticFunctionForTrade: DecimalMath::mul(k, Q0)=%,DecimalMath::mul(k, Q0), Q0)=%,b=%, "
        "kQ02Q1=%",
        DecimalMath::mul(k, Q0), SafeMath::mul(DecimalMath::mul(k, Q0), Q0), b, kQ02Q1);
 
@@ -81,7 +81,7 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
       kQ02Q1 = add(kQ02Q1, ideltaB); // i*deltaB+kQ0^2/Q1
    }
 
-   my_print_f(">>>>>>2 _SolveQuadraticFunctionForTrade: b=%, kQ02Q1=%", b, kQ02Q1);
+   my_print_f("                   2 _SolveQuadraticFunctionForTrade: b=%, kQ02Q1=%", b, kQ02Q1);
 
    if (b >= kQ02Q1) {
       b         = sub(b, kQ02Q1);
@@ -91,22 +91,22 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
       minusbSig = false;
    }
 
-   my_print_f(">>>>>>2.1 _SolveQuadraticFunctionForTrade: b=%, kQ02Q1=%", b, kQ02Q1);
+   my_print_f("                   2.1 _SolveQuadraticFunctionForTrade: b=%, kQ02Q1=%", b, kQ02Q1);
 
    uint256 squareRootv0   = SafeMath::mul(sub(DecimalMath::ONE, k), 4);
    uint256 squareRootv010 = DecimalMath::mul(k, Q0);
    uint256 squareRootv01  = SafeMath::mul(DecimalMath::mul(k, Q0), Q0);
    my_print_f(
-       ">>>>>>2.2  _SolveQuadraticFunctionForTradesquareRoot v0=%,squareRootv010=%, squareRootv01=%", squareRootv0,
+       "                   2.2  _SolveQuadraticFunctionForTradesquareRoot v0=%,squareRootv010=%, squareRootv01=%", squareRootv0,
        squareRootv010, squareRootv01);
 
    // calculate sqrt
    uint256 squareRootv1 = DecimalMath::mul(squareRootv0, squareRootv01); // 4(1-k)kQ0^2
-   my_print_f(">>>>>>2.3 _SolveQuadraticFunctionForTrade  b=%, squareRoot=%", b, squareRootv1);
+   my_print_f("                   2.3 _SolveQuadraticFunctionForTrade  b=%, squareRoot=%", b, squareRootv1);
    uint256 squareRoot = SafeMath::sqrt(add(SafeMath::mul(b, b), squareRootv1)); // sqrt(b*b+4(1-k)kQ0*Q0)
 
    my_print_f(
-       ">>>>>>3 _SolveQuadraticFunctionForTrade:squareRoot0, "
+       "                   3 _SolveQuadraticFunctionForTrade:squareRoot0, "
        "squareRoot=%",
        squareRoot);
 
@@ -120,16 +120,16 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
    }
 
    my_print_f(
-       ">>>>>>4 _SolveQuadraticFunctionForTrade:minusbSig=%, numerator=%, denominator=%", minusbSig, numerator,
+       "                   4 _SolveQuadraticFunctionForTrade:minusbSig=%, numerator=%, denominator=%", minusbSig, numerator,
        denominator);
    if (deltaBSig) {
       my_print_f(
-          ">>>>>>5 _SolveQuadraticFunctionForTrade DecimalMath::divFloor(numerator, denominator)=%",
+          "                   5 _SolveQuadraticFunctionForTrade DecimalMath::divFloor(numerator, denominator)=%",
           DecimalMath::divFloor(numerator, denominator));
       return DecimalMath::divFloor(numerator, denominator);
    } else {
       my_print_f(
-          ">>>>>>6 _SolveQuadraticFunctionForTrade:DecimalMath::divCeil(numerator, denominator=%",
+          "                   6 _SolveQuadraticFunctionForTrade:DecimalMath::divCeil(numerator, denominator=%",
           DecimalMath::divCeil(numerator, denominator));
       return DecimalMath::divCeil(numerator, denominator);
    }
@@ -142,7 +142,7 @@ uint256 _SolveQuadraticFunctionForTrade(uint256 Q0, uint256 Q1, uint256 ideltaB,
     let fairAmount = i*deltaB
 */
 uint256 _SolveQuadraticFunctionForTarget(uint256 V1, uint256 k, uint256 fairAmount) {
-   my_print_f(">>>>>>> _SolveQuadraticFunctionForTarget: V1=%,  k=%,  fairAmount=%", V1, k, fairAmount);
+   my_print_f("                   > _SolveQuadraticFunctionForTarget: V1=%,  k=%,  fairAmount=%", V1, k, fairAmount);
 
    // V0 = V1+V1*(sqrt-1)/2k
    //    uint256 sqrtv0 = mul(DecimalMath::mul(k, fairAmount), 4);
@@ -159,7 +159,7 @@ uint256 _SolveQuadraticFunctionForTarget(uint256 V1, uint256 k, uint256 fairAmou
 
    // V0 is greater than or equal to V1 according to the solution
    my_print_f(
-       "\n>>>>>>_SolveQuadraticFunctionForTarget:sq=%,sqrtv0=%,sqrtv1=%, "
+       "\n                   _SolveQuadraticFunctionForTarget:sq=%,sqrtv0=%,sqrtv1=%, "
        "sqrtv=%, premium=%,sqrtv0/V1=% ",
        sq, sqrtv0, sqrtv1, sqrtv, premium, sqrtv0 / V1);
 

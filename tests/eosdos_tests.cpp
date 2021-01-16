@@ -91,7 +91,7 @@ class eosdos_tester : public tester {
 
       create_accounts({N(alice), N(bob), N(carol), N(eosdoseosdos), N(eosdosoracle), N(ethbasemkr11), N(ethquotemkr1),
                        N(daimkrdaimkr), N(maintainer11), N(tokenissuer1), N(dodoowner111)});
-      create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(eosdosxtoken)});
+      create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(roxe.ro)});
       produce_blocks(2);
       admin       = N(eosdoseosdos);
       doowner     = N(dodoowner111);
@@ -136,8 +136,8 @@ class eosdos_tester : public tester {
       create_account_with_resources(N(carol1111111), N(eosio), core_sym::from_string("1.0000"), false);
       create_account_with_resources(N(david1111111), N(eosio), core_sym::from_string("1.0000"), false);
 
-      set_code(N(eosdosxtoken), contracts::token_wasm());
-      set_abi(N(eosdosxtoken), contracts::token_abi().data());
+      set_code(N(roxe.ro), contracts::token_wasm());
+      set_abi(N(roxe.ro), contracts::token_abi().data());
 
       set_code(N(ethbasemkr11), contracts::token_wasm());
       set_abi(N(ethbasemkr11), contracts::token_abi().data());
@@ -161,11 +161,11 @@ class eosdos_tester : public tester {
       //      asset       maxsupply = eosio::chain::asset::from_string(amount.c_str());
       //      name        acc       = name(acc_name.c_str());
 
-      //      create_currency(N(eosdosxtoken), acc, maxsupply);
-      //      issuex(N(eosdosxtoken), acc, maxsupply, acc);
+      //      create_currency(N(roxe.ro), acc, maxsupply);
+      //      issuex(N(roxe.ro), acc, maxsupply, acc);
       //      produce_blocks(1);
       //      for (auto& to : taccounts) {
-      //         transferex(N(eosdosxtoken), acc, to, tamount, acc, memo);
+      //         transferex(N(roxe.ro), acc, to, tamount, acc, memo);
       //      }
       //   }
 
@@ -198,7 +198,7 @@ class eosdos_tester : public tester {
       if (!is_auth_token) {
          is_auth_token = true;
          push_permission_update_auth_action(admin);
-         push_permission_update_auth_action(N(eosdosxtoken));
+         push_permission_update_auth_action(N(roxe.ro));
          push_permission_update_auth_action(lp);
          push_permission_update_auth_action(trader);
          push_permission_update_auth_action(N(alice1111111));
@@ -307,7 +307,7 @@ class eosdos_tester : public tester {
       return asset(result, symbol(CORE_SYM));
    }
 
-   asset get_balancex(const account_name& act, const symbol& sym, name contract = N(eosdosxtoken)) {
+   asset get_balancex(const account_name& act, const symbol& sym, name contract = N(roxe.ro)) {
       // return get_currency_balance( config::system_account_name,
       // symbol(CORE_SYMBOL), act ); temporary code. current get_currency_balancy
       // uses table name N(accounts) from currency.h generic_currency table name
@@ -498,6 +498,29 @@ class eosdos_tester : public tester {
 
    action_result mint(account_name msg_sender, const extended_asset& amt) {
       return push_action(msg_sender, N(mint), mvo()("msg_sender", msg_sender)("amt", amt));
+   }
+
+   //////////////////TEST BUY& SELL//////////////
+   action_result sellbasetest(
+       name msg_sender, name dodo_name, const extended_asset& amount, const extended_asset& minReceiveQuote,
+       const std::vector<int64_t>& params) {
+      return push_action(
+          msg_sender, N(sellbasetest),
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amount", amount)("minReceiveQuote", minReceiveQuote)(
+              "params", params));
+   }
+
+   action_result buybasetest(
+       name msg_sender, name dodo_name, const extended_asset& amount, const extended_asset& maxPayQuote,
+       const std::vector<int64_t>& params) {
+      return push_action(
+          msg_sender, N(buybasetest),
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amount", amount)("maxPayQuote", maxPayQuote)(
+              "params", params));
+   }
+
+   action_result setparametera(const std::string& symbol, const std::vector<int64_t> params) {
+      return push_action(N(eosdoseosdos), N(setparametera), mvo()("symbol", symbol)("params", params));
    }
 
    ////////////////get table//////////////
@@ -728,7 +751,7 @@ class eosdos_tester : public tester {
    symbol to_lp_sym(const std::string& sym) { return symbol{TOKEN_DECIMALS, sym.c_str()}; }
 
    extended_asset to_asset(int64_t value, const std::string& sym) {
-      return extended_asset{asset{value, symbol{TOKEN_DECIMALS, sym.c_str()}}, name{"eosdosxtoken"}};
+      return extended_asset{asset{value, symbol{TOKEN_DECIMALS, sym.c_str()}}, name{"roxe.ro"}};
    }
    extended_asset to_wei_asset(uint256m value, const std::string& sym) {
       return to_asset(static_cast<int64_t>(to_wei(value)), sym);
@@ -739,11 +762,11 @@ class eosdos_tester : public tester {
    symbol to_sym_from_string(const std::string& sym) { return symbol{TOKEN_DECIMALS, sym.c_str()}; }
 
    extended_symbol to_sym(const std::string& sym) {
-      return extended_symbol{symbol{TOKEN_DECIMALS, sym.c_str()}, name{"eosdosxtoken"}};
+      return extended_symbol{symbol{TOKEN_DECIMALS, sym.c_str()}, name{"roxe.ro"}};
    }
 
    extended_asset to_maximum_supply(const std::string& sym) {
-      return extended_asset{asset{1000000000000000, symbol{TOKEN_DECIMALS, sym.c_str()}}, name{"eosdosxtoken"}};
+      return extended_asset{asset{1000000000000000, symbol{TOKEN_DECIMALS, sym.c_str()}}, name{"roxe.ro"}};
    }
 
    namesym to_namesym(const extended_symbol& exsym) {
@@ -1070,6 +1093,26 @@ class eosdos_tester : public tester {
       BOOST_TEST_CHECK(c == b);
    }
 
+   void initparam() {
+      // "8,BTC"  0,30000,420,0,0,0
+      // "9,ETH"  0,30000,160000,0,0,0
+      // "6,USD"  0,30000,100000,0,0,0
+      // "6,GBP"  0,30000,70000,0,0,0
+      // "6,HKD"  0,30000,780000,0,0,0
+
+      std::map<std::string, std::vector<int64_t>> params = {
+          std::pair<std::string, std::vector<int64_t>>("8,BTC", {0, 30000, 420, 0, 0, 0}),
+          std::pair<std::string, std::vector<int64_t>>("9,ETH", {0, 30000, 160000, 0, 0, 0}),
+          std::pair<std::string, std::vector<int64_t>>("6,USD", {0, 30000, 100000, 0, 0, 0}),
+          std::pair<std::string, std::vector<int64_t>>("6,GBP", {0, 30000, 70000, 0, 0, 0}),
+          std::pair<std::string, std::vector<int64_t>>("6,HKD", {0, 30000, 780000, 0, 0, 0})};
+
+      LINE_DEBUG;
+      for (auto p : params) {
+         setparametera(p.first, p.second);
+      }
+   }
+
    bool is_auth_token;
 
    name           admin;
@@ -1164,13 +1207,13 @@ BOOST_FIXTURE_TEST_CASE(no_token_trading_tests, eosdos_tester) try {
        wasm_assert_msg("no quote token symbol in the pair"),
        buybasetoken(trader, dodo_stablecoin_name, to_wei_asset(1000, "DAI"), to_wei_asset(1001, "WETH")));
 
-   auto base_with_dec_one = extended_asset{asset{1000, symbol{TOKEN_DECIMALS + 1, "DAI"}}, name{"eosdosxtoken"}};
+   auto base_with_dec_one = extended_asset{asset{1000, symbol{TOKEN_DECIMALS + 1, "DAI"}}, name{"roxe.ro"}};
 
    BOOST_REQUIRE_EQUAL(
        wasm_assert_msg("mismatch precision of the base token in the pair"),
        buybasetoken(trader, dodo_stablecoin_name, base_with_dec_one, to_wei_asset(1001, "MKR")));
 
-   auto quote_with_dec_one = extended_asset{asset{1000, symbol{TOKEN_DECIMALS + 1, "MKR"}}, name{"eosdosxtoken"}};
+   auto quote_with_dec_one = extended_asset{asset{1000, symbol{TOKEN_DECIMALS + 1, "MKR"}}, name{"roxe.ro"}};
 
    BOOST_REQUIRE_EQUAL(
        wasm_assert_msg("mismatch precision of the quote token in the pair"),
@@ -1246,9 +1289,9 @@ BOOST_FIXTURE_TEST_CASE(simulation_formula_tests, eosdos_tester) try {
    withdrawquote(lp, dodo_name, to_wei_asset(740000, "GBP"));
    LINE_DEBUG;
    withdrawquote(lp, dodo_name, to_wei_asset(740000, "GBP"));
-    //    {0, 1000000, 100000000}, {1, 1000000, 1000000},   {1, 1000000, 10000},
+   //    {0, 1000000, 100000000}, {1, 1000000, 1000000},   {1, 1000000, 10000},
    std::vector<std::vector<int64_t>> testpara{
-       {0, 1000000, 100000000}, {1, 1000000, 100000},   {1, 1000000, 10000},
+       {0, 1000000, 100000000}, {1, 1000000, 100000},    {1, 1000000, 10000},
        {1, 100000000, 10000},   {0, 50000000, 50000000}, {0, 1287998, 10000000},
        {0, 1287869, 10000000},  {0, 1288385, 10000000},  {0, 1294179, 10000000},
    };
@@ -1303,15 +1346,42 @@ BOOST_FIXTURE_TEST_CASE(buy1_base_token_formula_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(sell2_base_token_formula_tests, eosdos_tester) try {
+BOOST_FIXTURE_TEST_CASE(transfer_fee_tests, eosdos_tester) try {
    stableCoinBefore3();
+   initparam();
    name dodo_name = dodo_stablecoin_name;
+
+   check_dodos(dodo_name);
+
+   buybasetoken(trader, dodo_name, to_asset(1000000, "USD"), to_asset(999000000, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10001.000000");
+   check_balance("GBP", "9998.999999");
+
+   sellbastoken(trader, dodo_name, to_asset(1000000, "USD"), to_asset(10, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(buysell_base_testparam_formula_tests, eosdos_tester) try {
+   stableCoinBefore3();
+   name                 dodo_name = dodo_stablecoin_name;
+   std::vector<int64_t> params    = {1, 994984389360, 739567295754, 699279538448, 958398324877};
+
+   // _R_STATUS_: 1,
+   // _TARGET_BASE_TOKEN_AMOUNT_: '994984389360',
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: '739567295754',
+   // _BASE_BALANCE_: '699279538448',
+   // _QUOTE_BALANCE_: '958398324877'
 
    check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
-   buybasetoken(trader, dodo_name, to_asset(1545915510000, "USD"), to_asset(3200, "GBP"));
-//    sellbastoken(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"));
+   buybasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_wei_asset(99999999, "GBP"), params);
+   //    sellbasetest(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_asset(0, "GBP"),params);
    check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");

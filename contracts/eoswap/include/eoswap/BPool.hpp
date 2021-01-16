@@ -235,11 +235,14 @@ class BPool : public BToken, public BMath {
 
    void joinPool(uint64_t poolAmountOut, std::vector<uint64_t> maxAmountsIn) {
       require(pool_store.finalized, "ERR_NOT_FINALIZED");
+
       // 1/10^4  10^14 %
       // double(default_lp_precision)*poolAmountOut
       // INIT_POOL_SUPPLY
       uint64_t poolTotal = totalSupply();
-      uint64_t ratio     = BMath::bdiv(poolAmountOut, poolTotal);
+      require(poolAmountOut > poolTotal / MIN_POOL_RATE, "poolAmountOutmust be greater than 1");
+      require(poolAmountOut / poolTotal < MAX_POOL_RATE, "poolAmountOut must be less than10^15");
+      uint64_t ratio     = BMath::rbdiv(poolAmountOut, poolTotal);
       check(
           ratio != 0, "ERR_MATH_APPROX joinPool: poolAmountOut:" + std::to_string(poolAmountOut) +
                           "poolTotal:" + std::to_string(poolTotal));
@@ -266,10 +269,13 @@ class BPool : public BToken, public BMath {
    void exitPool(uint64_t poolAmountIn, std::vector<uint64_t> minAmountsOut) {
       require(pool_store.finalized, "ERR_NOT_FINALIZED");
 
+
       uint64_t poolTotal       = totalSupply();
+      require(poolAmountIn > poolTotal / MIN_POOL_RATE, "poolAmountOutmust be greater than 1");
+      require(poolAmountIn / poolTotal < MAX_POOL_RATE, "poolAmountOut must be less than10^15");
       uint64_t exitFee         = BMath::bmul(poolAmountIn, EXIT_FEE);
       uint64_t pAiAfterExitFee = BMath::bsub(poolAmountIn, exitFee);
-      uint64_t ratio           = BMath::bdiv(pAiAfterExitFee, poolTotal);
+      uint64_t ratio           = BMath::rbdiv(pAiAfterExitFee, poolTotal);
       require(ratio != 0, "ERR_MATH_APPROX");
 
       _pullPoolShare(get_msg_sender(), poolAmountIn);
@@ -339,7 +345,9 @@ class BPool : public BToken, public BMath {
               ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
       int64_t transfer_fee = transfer_mgmt::get_transfer_fee(tokenAmountOutx, true);
+      my_print_f("==%=before transfer_fee==%==", __FUNCTION__, tokenAmountOutx.quantity.amount);
       tokenAmountOutx.quantity.amount -= transfer_fee;
+      my_print_f("==%=afer transfer_fee==%==", __FUNCTION__, tokenAmountOutx.quantity.amount);
 
       _pullUnderlying(get_msg_sender(), tokenAmountInx);
       _pushUnderlying(get_msg_sender(), tokenAmountOutx);
@@ -349,9 +357,11 @@ class BPool : public BToken, public BMath {
 
    std::pair<uint64_t, uint64_t>
    swapExactAmountOut(const extended_asset& maxAmountInx, const extended_asset& tokenAmountOutxx, uint64_t maxPrice) {
-      extended_asset  tokenAmountOutx = tokenAmountOutxx;
-      int64_t transfer_fee = transfer_mgmt::get_transfer_fee(tokenAmountOutx);
+      extended_asset tokenAmountOutx = tokenAmountOutxx;
+      int64_t        transfer_fee    = transfer_mgmt::get_transfer_fee(tokenAmountOutx);
+      my_print_f("==%=before transfer_fee==%==", __FUNCTION__, tokenAmountOutx.quantity.amount);
       tokenAmountOutx.quantity.amount += transfer_fee;
+      my_print_f("==%=after transfer_fee==%==", __FUNCTION__, tokenAmountOutx.quantity.amount);
 
       namesym  tokenIn        = to_namesym(maxAmountInx.get_extended_symbol());
       uint64_t maxAmountIn    = maxAmountInx.quantity.amount;
