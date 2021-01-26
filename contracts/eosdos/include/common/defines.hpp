@@ -1,18 +1,51 @@
 #pragma once
 #include <cmath>
+#include <common/dos.functions.hpp>
+#include <common/dos.types.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/crypto.hpp>
 #include <eosio/eosio.hpp>
 #include <eosio/singleton.hpp>
 #include <eosio/symbol.hpp>
 #include <eosio/system.hpp>
-#include <common/dos.functions.hpp>
-#include <common/dos.types.hpp>
-// DEBUG(format,...) printf("FILE: "__FILE__", LINE: %d: "format"/n", __LINE__, ##__VA_ARGS__)
-#define EOSDOS_CONTRACT_DEBUG
+// #define DEBUG(format,...) printf("FILE: "__FILE__", LINE: %d: "format"/n", __LINE__, ##__VA_ARGS__)
+// #define EOSDOS_CONTRACT_DEBUG
+
+#define _DODO_DEBUG
+#if defined(EOSDOS_CONTRACT_DEBUG) && defined(_DODO_DEBUG)
+#define DODO_DEBUG(...)                                                                                                \
+   do {                                                                                                                \
+      my_print_f("        <% % %>         ", __FILE__, __LINE__, __FUNCTION__);                                          \
+      my_print_f(__VA_ARGS__);    \
+      my_print_f("                      ");                                                                           \
+   } while (0);
+#else
+#define DODO_DEBUG(...)
+#endif
+
+#define _TRADER_DEBUG
+#ifdef _TRADER_DEBUG
+#define TRADER_DEBUG(args...) DODO_DEBUG(##args)
+#else
+#define TRADER_DEBUG
+#endif
+
+#define _PRICING_DEBUG
+#ifdef _PRICING_DEBUG
+#define PRICING_DEBUG(args...) DODO_DEBUG(##args)
+#else
+#define PRICING_DEBUG
+#endif
+
+#define _DODOMATH_DEBUG
+#ifdef _DODOMATH_DEBUG
+#define DODOMATH_DEBUG(args...) DODO_DEBUG(##args)
+#else
+#define DODOMATH_DEBUG
+#endif
 
 #ifdef EOSDOS_CONTRACT_DEBUG
-#define contract_debug(args...) print(" | ",##args)
+#define contract_debug(args...) print(" | ", ##args)
 #else
 #define contract_debug
 #endif
@@ -26,7 +59,6 @@ using uint256 = uint128_t;
 using uint112 = uint64_t;
 using uint32  = uint32_t;
 using namesym = uint128_t;
-
 
 template <typename Arg, typename... Args>
 inline void my_print_f(const char* s, Arg val, Args... rest) {

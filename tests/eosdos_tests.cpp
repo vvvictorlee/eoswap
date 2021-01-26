@@ -91,8 +91,9 @@ class eosdos_tester : public tester {
 
       create_accounts({N(alice), N(bob), N(carol), N(eosdoseosdos), N(eosdosoracle), N(ethbasemkr11), N(ethquotemkr1),
                        N(daimkrdaimkr), N(maintainer11), N(tokenissuer1), N(dodoowner111)});
-      create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(roxe.ro)});
+      create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(roxe.ro), N(orc.polygon)});
       produce_blocks(2);
+      oracleadmin = N(orc.polygon);
       admin       = N(eosdoseosdos);
       doowner     = N(dodoowner111);
       tokenissuer = N(tokenissuer1);
@@ -198,6 +199,7 @@ class eosdos_tester : public tester {
       if (!is_auth_token) {
          is_auth_token = true;
          push_permission_update_auth_action(admin);
+         push_permission_update_auth_action(oracleadmin);
          push_permission_update_auth_action(N(roxe.ro));
          push_permission_update_auth_action(lp);
          push_permission_update_auth_action(trader);
@@ -477,6 +479,14 @@ class eosdos_tester : public tester {
           msg_sender, N(buybasetoken),
           mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amount", amount)("maxPayQuote", maxPayQuote));
    }
+
+   action_result
+   sellquote(name msg_sender, name dodo_name, const extended_asset& minReceiveBase, const extended_asset& amount) {
+      return push_action(
+          msg_sender, N(sellquote),
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("minReceiveBase", minReceiveBase)("amount", amount));
+   }
+
    //////////////////Oracle//////////////
    action_result setprice(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
       return push_action(
@@ -517,6 +527,22 @@ class eosdos_tester : public tester {
           msg_sender, N(buybasetest),
           mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amount", amount)("maxPayQuote", maxPayQuote)(
               "params", params));
+   }
+
+   action_result sellquotetst(
+       name msg_sender, name dodo_name, const extended_asset& minReceiveBase, const extended_asset& amount,
+       const std::vector<int64_t>& params) {
+      return push_action(
+          msg_sender, N(sellquotetst),
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("minReceiveBase", minReceiveBase)("amount", amount)(
+              "params", params));
+   }
+
+   action_result
+   withdrawquot(name msg_sender, name dodo_name, const extended_asset& amt, const std::vector<int64_t>& params) {
+      return push_action(
+          msg_sender, N(withdrawquot),
+          mvo()("msg_sender", msg_sender)("dodo_name", dodo_name)("amt", amt)("params", params));
    }
 
    action_result setparametera(const std::string& symbol, const std::vector<int64_t> params) {
@@ -740,7 +766,7 @@ class eosdos_tester : public tester {
 
    uint256m to_wei(uint256m value) { return value * pow(10, TOKEN_DECIMALS); }
 
-   extended_asset to_pl_asset(int64_t value, const std::string& sym, name lp_contract_name) {
+   extended_asset to_lp_asset(int64_t value, const std::string& sym, name lp_contract_name) {
       return extended_asset{asset{value, symbol{TOKEN_DECIMALS, sym.c_str()}}, lp_contract_name};
    }
 
@@ -807,9 +833,9 @@ class eosdos_tester : public tester {
       LINE_DEBUG;
    }
 
-   void setPriceBaseBefore() { setprice(admin, to_sym("WETH"), to_wei_asset(100, "MKR")); }
+   void setPriceBaseBefore() { setprice(oracleadmin, to_sym("WETH"), to_wei_asset(100, "MKR")); }
 
-   void setPriceQuoteBefore() { setprice(admin, to_sym("MKR"), to_asset(100, "WETH")); }
+   void setPriceQuoteBefore() { setprice(oracleadmin, to_sym("MKR"), to_asset(100, "WETH")); }
 
    void breedBaseBefore() {
 
@@ -934,7 +960,7 @@ class eosdos_tester : public tester {
       LINE_DEBUG;
    }
 
-   void setPriceStableBefore() { setprice(admin, to_sym("DAI"), to_wei_asset(1, "MKR")); }
+   void setPriceStableBefore() { setprice(oracleadmin, to_sym("DAI"), to_wei_asset(1, "MKR")); }
 
    void breedStableBefore() {
 
@@ -999,7 +1025,7 @@ class eosdos_tester : public tester {
          }
       }
 
-      setprice(admin, to_sym("USD"), to_asset(740000, "GBP"));
+      setprice(oracleadmin, to_sym("USD"), to_asset(740000, "GBP"));
 
       LINE_DEBUG;
       name            msg_sender    = admin;
@@ -1044,7 +1070,7 @@ class eosdos_tester : public tester {
          }
       }
 
-      setprice(admin, to_sym("USD"), to_asset(740000, "GBP"));
+      setprice(oracleadmin, to_sym("USD"), to_asset(740000, "GBP"));
 
       LINE_DEBUG;
       name            msg_sender    = admin;
@@ -1116,6 +1142,7 @@ class eosdos_tester : public tester {
    bool is_auth_token;
 
    name           admin;
+   name           oracleadmin;
    name           doowner;
    name           tokenissuer;
    name           maintainer;
@@ -1246,7 +1273,7 @@ BOOST_FIXTURE_TEST_CASE(simulation_formula_tests, eosdos_tester) try {
       }
    }
 
-   setprice(admin, to_sym("USD"), to_asset(740000, "GBP"));
+   setprice(oracleadmin, to_sym("USD"), to_asset(740000, "GBP"));
 
    LINE_DEBUG;
    name            msg_sender    = admin;
@@ -1365,10 +1392,121 @@ BOOST_FIXTURE_TEST_CASE(transfer_fee_tests, eosdos_tester) try {
 }
 FC_LOG_AND_RETHROW()
 
-BOOST_FIXTURE_TEST_CASE(buysell_base_testparam_formula_tests, eosdos_tester) try {
+BOOST_FIXTURE_TEST_CASE(sell_quote_tests, eosdos_tester) try {
    stableCoinBefore3();
-   name                 dodo_name = dodo_stablecoin_name;
-   std::vector<int64_t> params    = {1, 994984389360, 739567295754, 699279538448, 958398324877};
+   initparam();
+   name dodo_name = dodo_stablecoin_name;
+
+   check_dodos(dodo_name);
+
+   buybasetoken(trader, dodo_name, to_asset(100000000, "USD"), to_asset(10, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+
+   sellquote(trader, dodo_name, to_asset(1000000, "USD"), to_asset(999000000, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10001.000000");
+   check_balance("GBP", "9998.999999");
+
+   sellbastoken(trader, dodo_name, to_asset(100000000, "USD"), to_asset(10, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+
+   sellquote(trader, dodo_name, to_asset(1000000, "USD"), to_asset(999000000, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10001.000000");
+   check_balance("GBP", "9998.999999");
+
+   buybasetoken(trader, dodo_name, to_asset(100000000, "USD"), to_asset(10, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+
+   sellbastoken(trader, dodo_name, to_asset(100000000, "USD"), to_asset(10, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+
+   sellquote(trader, dodo_name, to_asset(1000000, "USD"), to_asset(999000000, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10001.000000");
+   check_balance("GBP", "9998.999999");
+
+   sellbastoken(trader, dodo_name, to_asset(100000000, "USD"), to_asset(10, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+
+   buybasetoken(trader, dodo_name, to_asset(100000000, "USD"), to_asset(10, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+
+   sellquote(trader, dodo_name, to_asset(1000000, "USD"), to_asset(999000000, "GBP"));
+   check_dodos(dodo_name);
+   check_balance("USD", "10001.000000");
+   check_balance("GBP", "9998.999999");
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(buysell_prod_1000_base_testparam_formula_tests, eosdos_tester) try {
+   stableCoinBefore3();
+   setprice(oracleadmin, to_sym("USD"), to_asset(730295, "GBP"));
+   name dodo_name = dodo_stablecoin_name;
+   //    std::vector<int64_t> params    = {1, 994984389360, 739567295754, 699279538448, 958398324877};
+   //    std::vector<int64_t> params = {1, 995476191021, 739572639728, 31458997125, 1455131405327};
+   std::vector<int64_t> params = {1, 952116302, 700018314, 926894600, 718454552};
+   // _ORACLE_PRICE_: 735475,
+   // _LP_FEE_RATE_: 595,
+   // _MT_FEE_RATE_: 105,
+   // _K_: 100,
+   // _R_STATUS_: 1,
+   // _TARGET_BASE_TOKEN_AMOUNT_: 952116302,
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: 700018314,
+   // _BASE_BALANCE_: 926894600,
+   // _QUOTE_BALANCE_: 718454552
+
+   // _ORACLE_PRICE_: 740000,
+   // _LP_FEE_RATE_: 595,
+   // _MT_FEE_RATE_: 105,
+   // _K_: 100,
+   // _R_STATUS_: 1,
+   // _TARGET_BASE_TOKEN_AMOUNT_: '89653704912',
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: '8806336154',
+   // _BASE_BALANCE_: '50012148922',
+   // _QUOTE_BALANCE_: '38143438303'
+
+   // "_R_STATUS_": 2,
+   // "_TARGET_BASE_TOKEN_AMOUNT_": "539568732936",
+   // "_TARGET_QUOTE_TOKEN_AMOUNT_": "341774972303",
+   // "_BASE_BALANCE_": "550568337469",
+   // "_QUOTE_BALANCE_": "333635284809"
+   // usd2gbp44444: {
+   //     _ORACLE_PRICE_: 0.74,
+   //     _LP_FEE_RATE_: 595,
+   //     _MT_FEE_RATE_: 105,
+   //     _K_: 100,
+   //     _R_STATUS_: 2,
+   //     _TARGET_BASE_TOKEN_AMOUNT_: '539568732936',
+   //     _TARGET_QUOTE_TOKEN_AMOUNT_: '341774972303',
+   //     _BASE_BALANCE_: '550568337469',
+   //     _QUOTE_BALANCE_: '333635284809'
+   //   },
+   // amount":{"quantity":"50556.060000 USD",,"maxPayQuote":{"quantity":"37415.680000 GBP"
+   // =buy2 = 50556060000   USD =by= GBP === 29298170168 =====
+   // usd2gbp44444: {
+   //     _ORACLE_PRICE_: 0.74,
+   //     _LP_FEE_RATE_: 595,
+   //     _MT_FEE_RATE_: 105,
+   //     _K_: 100,
+   //     _R_STATUS_: 1,
+   //     _TARGET_BASE_TOKEN_AMOUNT_: '995476191021',
+   //     _TARGET_QUOTE_TOKEN_AMOUNT_: '739572639728',
+   //     _BASE_BALANCE_: '31458997125',
+   //     _QUOTE_BALANCE_: '1455131405327'
+   //   },
 
    // _R_STATUS_: 1,
    // _TARGET_BASE_TOKEN_AMOUNT_: '994984389360',
@@ -1379,9 +1517,247 @@ BOOST_FIXTURE_TEST_CASE(buysell_base_testparam_formula_tests, eosdos_tester) try
    check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
-   buybasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_wei_asset(99999999, "GBP"), params);
+   //    buybasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_wei_asset(99999999, "GBP"), params);
+   // 50556.060000 USD",,"maxPayQuote":{"quantity":"37415.680000
+   // 37437536576BUY_BASE_COST_TOO_MUCH37415680000
+   //    buybasetest(trader, dodo_name, to_asset(50556060000, "USD"), to_asset(37415680000, "GBP"), params);
+   //    buybasetest(trader, dodo_name, to_asset(1060000, "USD"), to_asset(37415680000, "GBP"), params);
    //    sellbasetest(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"),params);
    //    sellbasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_asset(0, "GBP"),params);
+   sellbasetest(trader, dodo_name, to_asset(8500000, "USD"), to_asset(0, "GBP"), params);
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(buysell_base_testparam_formula_tests, eosdos_tester) try {
+   stableCoinBefore3();
+   name dodo_name = dodo_stablecoin_name;
+   //    std::vector<int64_t> params    = {1, 994984389360, 739567295754, 699279538448, 958398324877};
+   //    std::vector<int64_t> params = {1, 995476191021, 739572639728, 31458997125, 1455131405327};
+   std::vector<int64_t> params = {2, 539568732936, 341774972303, 550568337469, 333635284809};
+   // _ORACLE_PRICE_: 735475,
+   // _LP_FEE_RATE_: 595,
+   // _MT_FEE_RATE_: 105,
+   // _K_: 100,
+   // _R_STATUS_: 1,
+   // _TARGET_BASE_TOKEN_AMOUNT_: 952116302,
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: 700018314,
+   // _BASE_BALANCE_: 926894600,
+   // _QUOTE_BALANCE_: 718454552
+
+   // _ORACLE_PRICE_: 740000,
+   // _LP_FEE_RATE_: 595,
+   // _MT_FEE_RATE_: 105,
+   // _K_: 100,
+   // _R_STATUS_: 1,
+   // _TARGET_BASE_TOKEN_AMOUNT_: '89653704912',
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: '8806336154',
+   // _BASE_BALANCE_: '50012148922',
+   // _QUOTE_BALANCE_: '38143438303'
+
+   // "_R_STATUS_": 2,
+   // "_TARGET_BASE_TOKEN_AMOUNT_": "539568732936",
+   // "_TARGET_QUOTE_TOKEN_AMOUNT_": "341774972303",
+   // "_BASE_BALANCE_": "550568337469",
+   // "_QUOTE_BALANCE_": "333635284809"
+   // usd2gbp44444: {
+   //     _ORACLE_PRICE_: 0.74,
+   //     _LP_FEE_RATE_: 595,
+   //     _MT_FEE_RATE_: 105,
+   //     _K_: 100,
+   //     _R_STATUS_: 2,
+   //     _TARGET_BASE_TOKEN_AMOUNT_: '539568732936',
+   //     _TARGET_QUOTE_TOKEN_AMOUNT_: '341774972303',
+   //     _BASE_BALANCE_: '550568337469',
+   //     _QUOTE_BALANCE_: '333635284809'
+   //   },
+   // amount":{"quantity":"50556.060000 USD",,"maxPayQuote":{"quantity":"37415.680000 GBP"
+   // =buy2 = 50556060000   USD =by= GBP === 29298170168 =====
+   // usd2gbp44444: {
+   //     _ORACLE_PRICE_: 0.74,
+   //     _LP_FEE_RATE_: 595,
+   //     _MT_FEE_RATE_: 105,
+   //     _K_: 100,
+   //     _R_STATUS_: 1,
+   //     _TARGET_BASE_TOKEN_AMOUNT_: '995476191021',
+   //     _TARGET_QUOTE_TOKEN_AMOUNT_: '739572639728',
+   //     _BASE_BALANCE_: '31458997125',
+   //     _QUOTE_BALANCE_: '1455131405327'
+   //   },
+
+   // _R_STATUS_: 1,
+   // _TARGET_BASE_TOKEN_AMOUNT_: '994984389360',
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: '739567295754',
+   // _BASE_BALANCE_: '699279538448',
+   // _QUOTE_BALANCE_: '958398324877'
+
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+   //    buybasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_wei_asset(99999999, "GBP"), params);
+   // 50556.060000 USD",,"maxPayQuote":{"quantity":"37415.680000
+   // 37437536576BUY_BASE_COST_TOO_MUCH37415680000
+   //    buybasetest(trader, dodo_name, to_asset(50556060000, "USD"), to_asset(37415680000, "GBP"), params);
+   buybasetest(trader, dodo_name, to_asset(1060000, "USD"), to_asset(37415680000, "GBP"), params);
+   //    sellbasetest(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_asset(0, "GBP"),params);
+   //   sellbasetest(trader, dodo_name, to_asset(50556060000, "USD"), to_asset(0, "GBP"), params);
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(buysell_base_target_quote_wrong_testparam_formula_tests, eosdos_tester) try {
+   stableCoinBefore3();
+   name dodo_name = dodo_stablecoin_name;
+   //    std::vector<int64_t> params    = {1, 994984389360, 739567295754, 699279538448, 958398324877};
+   //    std::vector<int64_t> params = {1, 995476191021, 739572639728, 31458997125, 1455131405327};
+   //    std::vector<int64_t> params = {2, 539568732936, 341774972303, 550568337469, 333635284809};
+   std::vector<int64_t> params = {1, 89653704912, 8806336154, 50012148922, 38143438303};
+   ////lisheng2021 01 21 16:25
+   // _ORACLE_PRICE_: 740000,
+   // _LP_FEE_RATE_: 595,
+   // _MT_FEE_RATE_: 105,
+   // _K_: 100,
+   // _R_STATUS_: 1,
+   // _TARGET_BASE_TOKEN_AMOUNT_: '89653704912',
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: '8806336154',
+   // _BASE_BALANCE_: '50012148922',
+   // _QUOTE_BALANCE_: '38143438303'
+
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+   //    buybasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_wei_asset(99999999, "GBP"), params);
+   // 50556.060000 USD",,"maxPayQuote":{"quantity":"37415.680000
+   // 37437536576BUY_BASE_COST_TOO_MUCH37415680000
+   //    buybasetest(trader, dodo_name, to_asset(50556060000, "USD"), to_asset(37415680000, "GBP"), params);
+   buybasetest(trader, dodo_name, to_asset(1060000, "USD"), to_asset(37415680000, "GBP"), params);
+   //    sellbasetest(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_asset(0, "GBP"),params);
+   //   sellbasetest(trader, dodo_name, to_asset(50556060000, "USD"), to_asset(0, "GBP"), params);
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(sell_quote_testparam_formula_tests, eosdos_tester) try {
+   stableCoinBefore3();
+   name dodo_name = dodo_stablecoin_name;
+   //    std::vector<int64_t> params    = {1, 994984389360, 739567295754, 699279538448, 958398324877};
+   std::vector<int64_t> params = {2, 79273088, 1422247455, 1606481274, 292554542};
+
+   // _R_STATUS_: 2,
+   // _TARGET_BASE_TOKEN_AMOUNT_: 79273088,
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: 1422247455,
+   // _BASE_BALANCE_: 1606481274,
+   // _QUOTE_BALANCE_: 292554542
+
+   //    withdrawquote gbp sub_error
+   // {
+
+   //   usd2gbp44444: {
+   //     _ORACLE_PRICE_: 0.74,
+   //     _LP_FEE_RATE_: 595,
+   //     _MT_FEE_RATE_: 105,
+   //     _K_: 100,
+   //     _R_STATUS_: 2,
+   //     _TARGET_BASE_TOKEN_AMOUNT_: '446990433496',
+   //     _TARGET_QUOTE_TOKEN_AMOUNT_: '7364137088652',
+   //     _BASE_BALANCE_: '499915332763',
+   //     _QUOTE_BALANCE_: '7324978713912'
+   //   },
+
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+   //    buybasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_wei_asset(99999999, "GBP"), params);
+   //    sellbasetest(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_asset(0, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(4998500000, "USD"), to_asset(0, "GBP"), params);
+   sellquotetst(trader, dodo_name, to_asset(1, "USD"), to_asset(1060000, "GBP"), params);
+   // buybasetest(trader, dodo_name, to_asset(1434661, "USD"), to_wei_asset(99999999, "GBP"), params);
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(sell_quote_testparam_formula_tests1, eosdos_tester) try {
+   stableCoinBefore3();
+   name dodo_name = dodo_stablecoin_name;
+   //    std::vector<int64_t> params    = {1, 994984389360, 739567295754, 699279538448, 958398324877};
+   std::vector<int64_t> params = {2, 79273088, 1422247455, 1606481274, 292554542};
+
+   // _R_STATUS_: 2,
+   // _TARGET_BASE_TOKEN_AMOUNT_: 79273088,
+   // _TARGET_QUOTE_TOKEN_AMOUNT_: 1422247455,
+   // _BASE_BALANCE_: 1606481274,
+   // _QUOTE_BALANCE_: 292554542
+
+   //    withdrawquote gbp sub_error
+   // {
+
+   //   usd2gbp44444: {
+   //     _ORACLE_PRICE_: 0.74,
+   //     _LP_FEE_RATE_: 595,
+   //     _MT_FEE_RATE_: 105,
+   //     _K_: 100,
+   //     _R_STATUS_: 2,
+   //     _TARGET_BASE_TOKEN_AMOUNT_: '446990433496',
+   //     _TARGET_QUOTE_TOKEN_AMOUNT_: '7364137088652',
+   //     _BASE_BALANCE_: '499915332763',
+   //     _QUOTE_BALANCE_: '7324978713912'
+   //   },
+
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+   //    buybasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_wei_asset(99999999, "GBP"), params);
+   //    sellbasetest(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_asset(0, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(4998500000, "USD"), to_asset(0, "GBP"), params);
+   //    sellquotetst(trader, dodo_name, to_asset(1, "USD"), to_asset(1060000, "GBP"), params);
+   buybasetest(trader, dodo_name, to_asset(1434661, "USD"), to_wei_asset(99999999, "GBP"), params);
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(withdraw_quote_testparam_formula_tests, eosdos_tester) try {
+   stableCoinBefore3();
+   name dodo_name = dodo_stablecoin_name;
+   //    std::vector<int64_t> params    = {1, 994984389360, 739567295754, 699279538448, 958398324877};
+   std::vector<int64_t> params = {2, 446990433496, 7364137088652, 499915332763, 7324978713912};
+
+   //    withdrawquote gbp sub_error
+
+   //   usd2gbp44444: {
+   //     _ORACLE_PRICE_: 0.74,
+   //     _LP_FEE_RATE_: 595,
+   //     _MT_FEE_RATE_: 105,
+   //     _K_: 100,
+   //     _R_STATUS_: 2,
+   //     _TARGET_BASE_TOKEN_AMOUNT_: '446990433496',
+   //     _TARGET_QUOTE_TOKEN_AMOUNT_: '7364137088652',
+   //     _BASE_BALANCE_: '499915332763',
+   //     _QUOTE_BALANCE_: '7324978713912'
+   //   },
+
+   check_dodos(dodo_name);
+   check_balance("USD", "10000.000000");
+   check_balance("GBP", "10000.999998");
+   //    buybasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_wei_asset(99999999, "GBP"), params);
+   //    sellbasetest(trader, dodo_name, to_asset(199998500000, "USD"), to_asset(147858890000, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(698649560000, "USD"), to_asset(0, "GBP"),params);
+   //    sellbasetest(trader, dodo_name, to_asset(4998500000, "USD"), to_asset(0, "GBP"), params);
+   //    sellquotetst(trader, dodo_name, to_asset(999000000, "GBP"), to_asset(8500000, "USD"), params);
+   withdrawquot(lp, dodo_stablecoin_name, to_wei_asset(90000, "GBP"), params);
    check_dodos(dodo_name);
    check_balance("USD", "10000.000000");
    check_balance("GBP", "10000.999998");
@@ -1752,9 +2128,9 @@ FC_LOG_AND_RETHROW()
 BOOST_FIXTURE_TEST_CASE(setprice_tests, eosdos_tester) try {
 
    extended_asset ea = to_wei_asset(5, "MKR");
-   setprice(admin, to_sym("WETH"), ea);
-   setprice(admin, to_sym("DAI"), to_wei_asset(10, "MKR"));
-   setprice(admin, to_sym("MKR"), to_wei_asset(20, "WETH"));
+   setprice(oracleadmin, to_sym("WETH"), ea);
+   setprice(oracleadmin, to_sym("DAI"), to_wei_asset(10, "MKR"));
+   setprice(oracleadmin, to_sym("MKR"), to_wei_asset(20, "WETH"));
    auto bb = get_oracle_table(to_sym("WETH"), to_sym("MKR"));
    {
       auto a = TOKEN_DECIMALS_STR + "WETH"; // to_sym("WETH");

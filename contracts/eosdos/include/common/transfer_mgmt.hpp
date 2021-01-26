@@ -90,25 +90,20 @@ class transfer_mgmt {
       return get_issuer(exsym.get_contract(), exsym.get_symbol().code());
    }
 
- static int64_t
-   get_transfer_fee(const extended_asset& quantity, bool is_in = false, name contract = "eosdoseosdos"_n) {
-      my_print_f("==%=transfer_fee=1=%==", __FUNCTION__, quantity.quantity.amount);
-
-      if (quantity.contract != "roxe.ro"_n || !tokenize::is_exist_symbol(quantity.quantity.symbol.code(), contract)) {
-         my_print_f(
-             "==%=transfer_fee=2=%=%,%=", __FUNCTION__, quantity.contract, quantity.quantity.symbol.code(),
-             quantity.quantity.amount);
-         return 0;
-      }
+   static int64_t get_transfer_fee(const extended_asset& quantity, bool is_in = false) {
       name tokencontract = quantity.contract;
-      if (contract != "roxe.ro"_n) {
-         tokencontract = contract; // for Test use
+#ifdef EOSDOS_CONTRACT_DEBUG
+      tokencontract = "eosdoseosdos"_n; // for Test use
+#endif
+
+      if (quantity.contract != "roxe.ro"_n ||
+          !tokenize::is_exist_symbol(quantity.quantity.symbol.code(), tokencontract)) {
+         return 0;
       }
 
       ////transfer fee
 
       if (is_in) {
-         my_print_f("==%=transfer_fee=3=%==", __FUNCTION__, quantity.quantity.amount);
          auto fee = tokenize::estimate_fee_given_in(tokencontract, quantity.quantity);
 
          return fee.amount;
@@ -118,14 +113,17 @@ class transfer_mgmt {
       //  if (is_percent) {
       //     return static_cast<int64_t>(fee.amount * std::pow(10, default_precision)) / quantity.quantity.amount;
       //  }
-      my_print_f("==%=transfer_fee=4=%==", __FUNCTION__, quantity.quantity.amount);
+
       return fee.amount;
       //  action(
-      //      permission_level{from, "active"_n}, self, "transferfee"_n,
+      //      permission_level{from, "active"_n}, self, "sellquotediff"_n,
       //      std::make_tuple(from, "roxe.ro",
       //      extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee")) .send();
    }
 
+   void transfer_diff(int64_t diff) {
+      action(permission_level{self, "active"_n}, self, "transferdiff"_n, std::make_tuple(diff)).send();
+   }
 
    static void static_transfer(name from, name to, extended_asset quantity, std::string memo = "") {
       my_print_f("On static_transfer : % % % %", from, to, quantity, memo);

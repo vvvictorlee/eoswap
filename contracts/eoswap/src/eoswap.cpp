@@ -157,7 +157,7 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
    }
 
    ////////////////// roxe.ro transfer fee////////////////////////
-   [[eosio::action]] void transferfee(name from, name to, extended_asset quantity, std::string memo) {
+   [[eosio::action]] void sellquotediff(name from, name to, extended_asset quantity, std::string memo) {
       // no implementation only recorded on chain
    }
 

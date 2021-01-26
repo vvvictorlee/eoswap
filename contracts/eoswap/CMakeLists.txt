@@ -11,3 +11,4 @@ set_target_properties(eoswap
 # configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/ricardian/eoswap.contracts.md.in ${CMAKE_CURRENT_BINARY_DIR}/ricardian/eoswap.contracts.md @ONLY )
 
 # target_compile_options( eoswap PUBLIC -R${CMAKE_CURRENT_SOURCE_DIR}/ricardian -R${CMAKE_CURRENT_BINARY_DIR}/ricardian )
+target_compile_options( eoswap PUBLIC -D EOSWAP_CONTRACT_DEBUG)

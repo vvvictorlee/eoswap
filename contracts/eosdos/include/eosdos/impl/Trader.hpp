@@ -124,7 +124,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
          //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
       }
 
-      my_print_f(
+      DODO_DEBUG(
           ">>>>> =====SsellBaseToken stores._BASE_BALANCE_=%,stores._TARGET_BASE_TOKEN_AMOUNT_=%,newBaseTarget=%, "
           "amount=%=; ",
           stores._BASE_BALANCE_, stores._TARGET_BASE_TOKEN_AMOUNT_, newBaseTarget, amount);
@@ -140,7 +140,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
          stores._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
       }
       if (stores._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
-         my_print_f(
+         DODO_DEBUG(
              ">>>>> $$$$$SsellBaseToken stores._BASE_BALANCE_=%,stores._TARGET_BASE_TOKEN_AMOUNT_=%,newBaseTarget=%, "
              "newQuoteTarget=%=; ",
              stores._BASE_BALANCE_, stores._TARGET_BASE_TOKEN_AMOUNT_, newBaseTarget, newQuoteTarget);
@@ -202,6 +202,92 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       return static_cast<uint64_t>(payQuote);
    }
 
+   uint256 sellQuote(uint256 minReceiveBase, uint256 amountQuote, bytes data) {
+      my_print_f("sellQuote");
+      uint256 amount      = DecimalMath::divFloor(amountQuote, getOraclePrice());
+      uint256 maxPayQuote = amountQuote;
+
+      tradeAllowed();
+      buyingAllowed();
+      gasPriceLimit();
+      //   //preventReentrant();
+      // query price
+      uint256 payQuote;
+      uint256 lpFeeBase;
+      uint256 mtFeeBase;
+      uint8_t newRStatus;
+      uint256 newQuoteTarget;
+      uint256 newBaseTarget;
+
+      const uint64_t times            = 10; // tries
+      const uint64_t actual_diff      = 1;  //
+      uint256        quote_price      = 1;
+      uint256        previousamount   = amount;
+      uint256        previouspayQuote = amountQuote;
+      for (int i = 0; i < times; ++i) {
+         std::tie(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget) =
+             _queryBuyBaseToken(amount);
+
+         if (payQuote == 0 || payQuote == previouspayQuote || payQuote == amountQuote) {
+            break;
+         }
+
+         quote_price = DecimalMath::divFloor(amount, payQuote);
+
+         previousamount = amount;
+
+         if (payQuote > amountQuote) {
+            uint256 high = payQuote - amountQuote;
+            // uint256 newamount = amount- high*(amount/payQuote);
+            amount = amount - DecimalMath::mul(high, quote_price);
+         } else if (amountQuote - payQuote > actual_diff) {
+            uint256 low = amountQuote - payQuote;
+            amount      = amount + DecimalMath::mul(low, quote_price);
+         }
+
+         previouspayQuote = payQuote;
+      }
+
+      if (amountQuote != payQuote) {
+         _tokenTransferDiff(amountQuote - payQuote);
+         payQuote = amountQuote;
+      }
+
+      require(
+          amount >= minReceiveBase, std::to_string(static_cast<uint64_t>(amount)) + "BUY_BASE_COST_TOO_MUCH min" +
+                                        std::to_string(static_cast<uint64_t>(minReceiveBase)));
+      require(
+          payQuote <= maxPayQuote, std::to_string(static_cast<uint64_t>(payQuote)) + "BUY_BASE_COST_TOO_MUCH" +
+                                       std::to_string(static_cast<uint64_t>(maxPayQuote)));
+
+      // settle assets
+      _baseTokenTransferOut(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
+      if (data.size() > 0) {
+         //  IDODOCallee(getMsgSender()).dodoCall(true, amount, payQuote, data);
+      }
+      _quoteTokenTransferIn(getMsgSender(), extended_asset(static_cast<uint64_t>(payQuote), stores._QUOTE_TOKEN_));
+      if (mtFeeBase != 0) {
+         _baseTokenTransferOut(
+             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_));
+      }
+
+      // update TARGET
+      if (stores._TARGET_QUOTE_TOKEN_AMOUNT_ != newQuoteTarget) {
+         stores._TARGET_QUOTE_TOKEN_AMOUNT_ = newQuoteTarget;
+      }
+
+      if (stores._TARGET_BASE_TOKEN_AMOUNT_ != newBaseTarget) {
+         stores._TARGET_BASE_TOKEN_AMOUNT_ = newBaseTarget;
+      }
+      if (stores._R_STATUS_ != newRStatus) {
+         stores._R_STATUS_ = newRStatus;
+      }
+
+      _donateBaseToken(lpFeeBase);
+
+      return static_cast<uint64_t>(payQuote);
+   }
+
    // ============ Query Functions ============
 
    uint256 querySellBaseToken(uint256 amount) {
@@ -227,7 +313,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256 newBaseTarget;
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
 
-      my_print_f(
+      DODO_DEBUG(
           ">>>>>begin _querySellBaseToken stores._BASE_BALANCE_=%,stores._QUOTE_BALANCE_=%,newBaseTarget=%, "
           "newQuoteTarget=%=; ",
           stores._BASE_BALANCE_, stores._QUOTE_BALANCE_, newBaseTarget, newQuoteTarget);
@@ -237,14 +323,14 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       if (stores._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
          // R falls below one
-         my_print_f("                   [[[[[[1]]]]]] _querySellBaseToken stores._R_STATUS_ == Types::RStatus::ONE");
+         DODO_DEBUG("[[[[[[1]]]]]] _querySellBaseToken stores._R_STATUS_ == Types::RStatus::ONE");
          receiveQuote = _ROneSellBaseToken(sellBaseAmount, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
       } else if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          uint256 backToOnePayBase      = sub(newBaseTarget, stores._BASE_BALANCE_);
          uint256 backToOneReceiveQuote = sub(stores._QUOTE_BALANCE_, newQuoteTarget);
-         my_print_f(
-             "                   [[[[2]]]] _querySellBaseToken stores._R_STATUS_ == "
+         DODO_DEBUG(
+             "[[[[2]]]] _querySellBaseToken stores._R_STATUS_ == "
              "Types::RStatus::ABOVE_ONE:backToOnePayBase=%=,backToOneReceiveQuote=%=; ",
              backToOnePayBase, backToOneReceiveQuote);
 
@@ -254,29 +340,29 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
             // case 2.1: R status do not change
             receiveQuote = _RAboveSellBaseToken(sellBaseAmount, stores._BASE_BALANCE_, newBaseTarget);
             newRStatus   = Types::RStatus::ABOVE_ONE;
-            my_print_f("                   [[[[2.1]]]] _querySellBaseToken sellBaseAmount < backToOnePayBase");
+            DODO_DEBUG("[[[[2.1]]]] _querySellBaseToken sellBaseAmount < backToOnePayBase");
 
             if (receiveQuote > backToOneReceiveQuote) {
                // [Important corner case!] may enter this branch when some precision problem happens. And consequently
                // contribute to negative spare quote amount to make sure spare quote>=0, mannually set
                // receiveQuote=backToOneReceiveQuote
                receiveQuote = backToOneReceiveQuote;
-               my_print_f("                   [[[[2.1.1]]]] _querySellBaseToken receiveQuote > backToOneReceiveQuote");
+               DODO_DEBUG("[[[[2.1.1]]]] _querySellBaseToken receiveQuote > backToOneReceiveQuote");
             }
 
          } else if (sellBaseAmount == backToOnePayBase) {
             // case 2.2: R status changes to ONE
             receiveQuote = backToOneReceiveQuote;
             newRStatus   = Types::RStatus::ONE;
-            my_print_f("                   [[[[2.2]]]] _querySellBaseToken sellBaseAmount == backToOnePayBase");
+            DODO_DEBUG("[[[[2.2]]]] _querySellBaseToken sellBaseAmount == backToOnePayBase");
          } else {
             // case 2.3: R status changes to BELOW_ONE
             receiveQuote =
                 add(backToOneReceiveQuote, _ROneSellBaseToken(sub(sellBaseAmount, backToOnePayBase), newQuoteTarget));
             newRStatus = Types::RStatus::BELOW_ONE;
-            my_print_f("                   [[[[[2.3]]]]] _querySellBaseToken sellBaseAmount > backToOnePayBase");
-            my_print_f(
-                "                   _querySellBaseToken sellBaseAmount > "
+            DODO_DEBUG("[[[[[2.3]]]]] _querySellBaseToken sellBaseAmount > backToOnePayBase");
+            DODO_DEBUG(
+                "_querySellBaseToken sellBaseAmount > "
                 "backToOnePayBase:receiveQuote=%,backToOneReceiveQuote=%,sub(sellBaseAmount, "
                 "backToOnePayBase)=%,newQuoteTarget=%;||",
                 receiveQuote, backToOneReceiveQuote, sub(sellBaseAmount, backToOnePayBase), newQuoteTarget);
@@ -286,7 +372,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
          // case 3: R<1
          receiveQuote = _RBelowSellBaseToken(sellBaseAmount, stores._QUOTE_BALANCE_, newQuoteTarget);
          newRStatus   = Types::RStatus::BELOW_ONE;
-         my_print_f("                   [[[[3]]]] _querySellBaseToken _R_STATUS_ == Types::RStatus::BELOW_ONE");
+         DODO_DEBUG("[[[[3]]]] _querySellBaseToken _R_STATUS_ == Types::RStatus::BELOW_ONE");
       }
 
       // count fees
@@ -297,10 +383,10 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
 
       // transferfee
       extended_asset amountx      = extended_asset(static_cast<uint64_t>(receiveQuote), stores._QUOTE_TOKEN_);
-      int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx, false);
-      my_print_f("                   % receiveQuote=before transfer fee=%=",__FUNCTION__,receiveQuote);
+      int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx, true);
+      DODO_DEBUG("% receiveQuote=before transfer fee=%=", __FUNCTION__, receiveQuote);
       receiveQuote -= transfer_fee;
-      my_print_f("                   % receiveQuote=after transfer fee=%=",__FUNCTION__, receiveQuote);
+      DODO_DEBUG("% receiveQuote=after transfer fee=%=", __FUNCTION__, receiveQuote);
 
       return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
@@ -313,8 +399,8 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
       std::tie(newBaseTarget, newQuoteTarget) = getExpectedTarget();
-      my_print_f(
-          ">>>>>begin _queryBuyBaseToken stores._BASE_BALANCE_=%,stores._QUOTE_BALANCE_=%,newBaseTarget=%, "
+      DODO_DEBUG(
+          ">>>>>beginstores._BASE_BALANCE_=%,stores._QUOTE_BALANCE_=%,newBaseTarget=%, "
           "newQuoteTarget=%=; ",
           stores._BASE_BALANCE_, stores._QUOTE_BALANCE_, newBaseTarget, newQuoteTarget);
 
@@ -326,25 +412,25 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       // transferfee
       extended_asset amountx      = extended_asset(static_cast<uint64_t>(amount), stores._BASE_TOKEN_);
       int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx);
-      my_print_f("                   _queryBuyBaseToken buyBaseAmount=before transfer fee%=", buyBaseAmount);
+      DODO_DEBUG("_queryBuyBaseToken buyBaseAmount=before transfer fee%=", buyBaseAmount);
       buyBaseAmount += transfer_fee;
-      my_print_f("                   _queryBuyBaseToken buyBaseAmount=after transfer fee%=", buyBaseAmount);
+      DODO_DEBUG("_queryBuyBaseToken buyBaseAmount=after transfer fee%=", buyBaseAmount);
 
       if (stores._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
          payQuote   = _ROneBuyBaseToken(buyBaseAmount, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
-         my_print_f("                   [[[[1]]]] _queryBuyBaseToken _R_STATUS_ == Types::RStatus::ONE");
+         DODO_DEBUG("[[[[1]]]]_R_STATUS_ == Types::RStatus::ONE");
       } else if (stores._R_STATUS_ == Types::RStatus::ABOVE_ONE) {
          // case 2: R>1
          payQuote   = _RAboveBuyBaseToken(buyBaseAmount, stores._BASE_BALANCE_, newBaseTarget);
          newRStatus = Types::RStatus::ABOVE_ONE;
-         my_print_f("                   [[[[2]]]] _queryBuyBaseToken _R_STATUS_ == Types::RStatus::ABOVE_ONE");
+         DODO_DEBUG("[[[[2]]]]_R_STATUS_ == Types::RStatus::ABOVE_ONE");
       } else if (stores._R_STATUS_ == Types::RStatus::BELOW_ONE) {
          uint256 backToOnePayQuote    = sub(newQuoteTarget, stores._QUOTE_BALANCE_);
          uint256 backToOneReceiveBase = sub(stores._BASE_BALANCE_, newBaseTarget);
-         my_print_f(
-             "                    [[[[3]]]] _queryBuyBaseToken _R_STATUS_ == "
+         DODO_DEBUG(
+             " [[[[3]]]]_R_STATUS_ == "
              "Types::RStatus::BELOW_ONE==buyBaseAmount=%,backToOnePayQuote=%,backToOneReceiveBase=%,==",
              buyBaseAmount, backToOnePayQuote, backToOneReceiveBase);
          // case 3: R<1
@@ -354,18 +440,18 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
             // no need to check payQuote because spare base token must be greater than zero
             payQuote   = _RBelowBuyBaseToken(buyBaseAmount, stores._QUOTE_BALANCE_, newQuoteTarget);
             newRStatus = Types::RStatus::BELOW_ONE;
-            my_print_f("                   [[[[3.1]]]] _queryBuyBaseToken _R_STATUS_ == buyBaseAmount < backToOneReceiveBase");
+            DODO_DEBUG(" [[[[3.1]]]]  _R_STATUS_ == buyBaseAmount < backToOneReceiveBase");
          } else if (buyBaseAmount == backToOneReceiveBase) {
             // case 3.2: R status changes to ONE
             payQuote   = backToOnePayQuote;
             newRStatus = Types::RStatus::ONE;
-            my_print_f("                   [[[[[3.2]]]]] _queryBuyBaseToken buyBaseAmount == backToOneReceiveBase");
+            DODO_DEBUG("[[[[[3.2]]]]]  buyBaseAmount == backToOneReceiveBase");
          } else {
             // case 3.3: R status changes to ABOVE_ONE
             payQuote =
                 add(backToOnePayQuote, _ROneBuyBaseToken(sub(buyBaseAmount, backToOneReceiveBase), newBaseTarget));
             newRStatus = Types::RStatus::ABOVE_ONE;
-            my_print_f("                   *****[[[[3.3]]]]**** _queryBuyBaseToken buyBaseAmount > backToOneReceiveBase");
+            DODO_DEBUG("*****[[[[3.3]]]]****  buyBaseAmount > backToOneReceiveBase");
          }
       }
 

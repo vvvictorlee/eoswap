@@ -34,7 +34,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    //    static constexpr eosio::name     tokenissuer_account{"tokenissuer1"_n};
    //    static constexpr eosio::name     dostoken_account{"eosdosxtoken"_n};
    //    static constexpr eosio::name     maintainer_account{"maintainer11"_n};
-   //    static constexpr eosio::name     oracle_account{"eosdosoracle"_n};
+      static constexpr eosio::name     oracle_account{"orc.polygon"_n};
    static constexpr extended_symbol weth_symbol = {symbol(symbol_code("WETH"), 4), "eosdosxtoken"_n};
 
    eosdos(name s, name code, eosio::datastream<const char*> ds)
@@ -321,16 +321,26 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       });
    }
 
+   [[eosio::action]] void sellquote(
+       name msg_sender, name dodo_name, const extended_asset& minReceiveBase, const extended_asset& amount) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) {
+         dodo.check_base_token(minReceiveBase.get_extended_symbol());
+         dodo.check_quote_token(amount.get_extended_symbol());
+         (void)dodo.sellQuote(minReceiveBase.quantity.amount,amount.quantity.amount,{});
+      });
+   }
+
    ////////////////////   Oracle////////////////////////
    [[eosio::action]] void setprice(
        name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
-      check(_self == msg_sender, "no oracle admin");
+      check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_storage_mgmt().save_oracle_prices(msg_sender, basetoken, quotetoken);
    }
 
    [[eosio::action]] void moveoracle(name msg_sender) {
-      check(_self == msg_sender, "no oracle admin");
+      check(oracle_account == msg_sender, "no oracle admin");
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_storage_mgmt().move_oracle_price(msg_sender);
    }
@@ -367,7 +377,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
          dodo.check_base_token(amount.get_extended_symbol());
          dodo.check_quote_token(minReceiveQuote.get_extended_symbol());
          dodo.setTestParameters(params);
-         (void)dodo.sellBaseToken(amount.quantity.amount, minReceiveQuote.quantity.amount, {});
+         (void)dodo.sellBaseToken( amount.quantity.amount,minReceiveQuote.quantity.amount, {});
       });
    }
 
@@ -383,8 +393,30 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       });
    }
 
-   ////////////////// roxe.ro transfer fee////////////////////////
-   [[eosio::action]] void transferfee(name from, name to, extended_asset quantity, std::string memo) {
+   [[eosio::action]] void sellquotetst(
+       name msg_sender, name dodo_name, const extended_asset& minReceiveBase, const extended_asset& amount,
+       const std::vector<int64_t>& params) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) {
+         dodo.check_base_token(minReceiveBase.get_extended_symbol());
+         dodo.check_quote_token(amount.get_extended_symbol());
+         dodo.setTestParameters(params);
+         (void)dodo.sellQuote(minReceiveBase.quantity.amount, amount.quantity.amount,{});
+      });
+   }
+
+   [[eosio::action]] void withdrawquot(
+       name msg_sender, name dodo_name, const extended_asset& amt, const std::vector<int64_t>& params) {
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) {
+         dodo.check_quote_token(amt.get_extended_symbol());
+         dodo.setTestParameters(params);
+         (void)dodo.withdrawQuote(amt.quantity.amount);
+      });
+   }
+
+   ////////////////// roxe.ro sellquotediff////////////////////////
+   [[eosio::action]] void transferdiff(int64_t diff) {
       // no implementation only recorded on chain
    }
 

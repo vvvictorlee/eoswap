@@ -66,6 +66,10 @@ class Settlement : virtual public Storage {
       stores._QUOTE_BALANCE_ = sub(stores._QUOTE_BALANCE_, amount);
    }
 
+   void _tokenTransferDiff(int64_t diff) {
+      factory.get_transfer_mgmt().transfer_diff(diff);
+   }
+
    // ============ Donate to Liquidity Pool Functions ============
 
    void _donateBaseToken(uint256 amount) {

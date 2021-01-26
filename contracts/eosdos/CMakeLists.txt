@@ -11,3 +11,4 @@ set_target_properties(eosdos
 # configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/ricardian/eosdos.contracts.md.in ${CMAKE_CURRENT_BINARY_DIR}/ricardian/eosdos.contracts.md @ONLY )
 
 # target_compile_options( eosdos PUBLIC -R${CMAKE_CURRENT_SOURCE_DIR}/ricardian -R${CMAKE_CURRENT_BINARY_DIR}/ricardian )
+target_compile_options( eosdos PUBLIC -D EOSDOS_CONTRACT_DEBUG)
