@@ -66,9 +66,7 @@ class Settlement : virtual public Storage {
       stores._QUOTE_BALANCE_ = sub(stores._QUOTE_BALANCE_, amount);
    }
 
-   void _tokenTransferDiff(int64_t diff) {
-      factory.get_transfer_mgmt().transfer_diff(diff);
-   }
+   void _tokenTransferDiff(int64_t diff) { factory.get_transfer_mgmt().transfer_diff(diff); }
 
    // ============ Donate to Liquidity Pool Functions ============
 
@@ -81,12 +79,18 @@ class Settlement : virtual public Storage {
    }
 
    void donateBaseToken(const extended_asset& tokenamount) {
+      if (tokenamount.quantity.amount <= 0) {
+         return ;
+      }
       uint256 amount = tokenamount.quantity.amount;
       _baseTokenTransferIn(getMsgSender(), tokenamount);
       _donateBaseToken(amount);
    }
 
    void donateQuoteToken(const extended_asset& tokenamount) {
+      if (tokenamount.quantity.amount <= 0) {
+         return ;
+      }
       uint256 amount = tokenamount.quantity.amount;
       _quoteTokenTransferIn(getMsgSender(), tokenamount);
       _donateQuoteToken(amount);

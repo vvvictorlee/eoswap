@@ -177,8 +177,22 @@ class BPool : public BToken, public BMath {
          // In this case liquidity is being withdrawn, so charge EXIT_FEE
          uint64_t tokenBalanceWithdrawn = BMath::bsub(oldBalance, balance);
          uint64_t tokenExitFee          = BMath::bmul(tokenBalanceWithdrawn, EXIT_FEE);
-         _pushUnderlying(get_msg_sender(), extended_asset(BMath::bsub(tokenBalanceWithdrawn, tokenExitFee), exsym));
-         _pushUnderlying(pool_store.factory, extended_asset(tokenExitFee, exsym));
+         //  _pushUnderlying(get_msg_sender(), extended_asset(BMath::bsub(tokenBalanceWithdrawn, tokenExitFee), exsym));
+         //  if (tokenExitFee > 0) {
+         //     _pushUnderlying(pool_store.factory, extended_asset(tokenExitFee, exsym));
+         //  }
+         auto tokenBalanceWithdrawnx = extended_asset(BMath::bsub(tokenBalanceWithdrawn, tokenExitFee), exsym);
+         tokenBalanceWithdrawnx =
+             transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenBalanceWithdrawnx, -1), true);
+
+         _pushUnderlying(get_msg_sender(), tokenBalanceWithdrawnx);
+         if (tokenExitFee > 0) {
+            auto tokenExitFeex = extended_asset(tokenExitFee, exsym);
+            tokenExitFeex      = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenExitFeex, -1), true);
+            if (tokenExitFeex.quantity.amount > 0) {
+               _pushUnderlying(pool_store.factory, tokenExitFeex);
+            }
+         }
       }
    }
 
@@ -200,10 +214,19 @@ class BPool : public BToken, public BMath {
       pool_store.tokens[index]                           = pool_store.tokens[last];
       pool_store.records[pool_store.tokens[index]].index = index;
       pool_store.tokens.pop_back();
-      pool_store.records[token]    = Record({false, 0, 0, 0});
-      const extended_symbol& exsym = pool_store.records[token].exsym;
-      _pushUnderlying(get_msg_sender(), extended_asset(BMath::bsub(tokenBalance, tokenExitFee), exsym));
-      _pushUnderlying(pool_store.factory, extended_asset(tokenExitFee, exsym));
+      pool_store.records[token]            = Record({false, 0, 0, 0});
+      const extended_symbol& exsym         = pool_store.records[token].exsym;
+      auto                   tokenBalancex = extended_asset(BMath::bsub(tokenBalance, tokenExitFee), exsym);
+      tokenBalancex = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenBalancex, -1), true);
+
+      _pushUnderlying(get_msg_sender(), tokenBalancex);
+      if (tokenExitFee > 0) {
+         auto tokenExitFeex = extended_asset(tokenExitFee, exsym);
+         tokenExitFeex      = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenExitFeex, -1), true);
+         if (tokenExitFeex.quantity.amount > 0) {
+            _pushUnderlying(pool_store.factory, tokenExitFeex);
+         }
+      }
    }
 
    // Absorb any tokens that have been sent to this contract into the pool
@@ -288,11 +311,8 @@ class BPool : public BToken, public BMath {
          require(tokenAmountOut != 0, "ERR_MATH_APPROX");
          require(tokenAmountOut >= minAmountsOut[i], "ERR_LIMIT_OUT");
 
-         auto    extokenAmountOut = extended_asset(tokenAmountOut, pool_store.records[t].exsym);
-         int64_t transfer_fee     = transfer_mgmt::get_transfer_fee(convert_one_decimals(extokenAmountOut, -1), true);
-         my_print_f("==%=before transfer_fee==%==", __FUNCTION__, extokenAmountOut.quantity.amount);
-         extokenAmountOut.quantity.amount -= convert_one_decimals_i(extended_asset(transfer_fee, pool_store.records[t].exsym));
-         my_print_f("==%=afer transfer_fee==%==", __FUNCTION__, extokenAmountOut.quantity.amount);
+         auto extokenAmountOut = extended_asset(tokenAmountOut, pool_store.records[t].exsym);
+         extokenAmountOut      = transfer_mgmt::sub_transfer_fee(convert_one_decimals(extokenAmountOut, -1), true);
 
          pool_store.records[t].balance =
              BMath::bsub(pool_store.records[t].balance, round_one_decimals(extokenAmountOut));
@@ -349,10 +369,7 @@ class BPool : public BToken, public BMath {
               std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
               ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
-      int64_t transfer_fee = transfer_mgmt::get_transfer_fee(convert_one_decimals(tokenAmountOutx, -1), true);
-      my_print_f("==%=before transfer_fee==%==", __FUNCTION__, tokenAmountOutx.quantity.amount);
-      tokenAmountOutx.quantity.amount -= convert_one_decimals_i( extended_asset(transfer_fee, minAmountOutx.get_extended_symbol()));
-      my_print_f("==%=afer transfer_fee==%==", __FUNCTION__, tokenAmountOutx.quantity.amount);
+      tokenAmountOutx = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenAmountOutx, -1), true);
 
       _pullUnderlying(get_msg_sender(), tokenAmountInx);
       _pushUnderlying(get_msg_sender(), tokenAmountOutx);
@@ -363,10 +380,7 @@ class BPool : public BToken, public BMath {
    std::pair<uint64_t, uint64_t>
    swapExactAmountOut(const extended_asset& maxAmountInx, const extended_asset& tokenAmountOutxx, uint64_t maxPrice) {
       extended_asset tokenAmountOutx = tokenAmountOutxx;
-      int64_t        transfer_fee    = transfer_mgmt::get_transfer_fee(convert_one_decimals(tokenAmountOutx, -1));
-      my_print_f("==%=before transfer_fee==%==", __FUNCTION__, tokenAmountOutx.quantity.amount);
-      tokenAmountOutx.quantity.amount += convert_one_decimals_i(extended_asset(transfer_fee, tokenAmountOutx.get_extended_symbol()));
-      my_print_f("==%=after transfer_fee==%==", __FUNCTION__, tokenAmountOutx.quantity.amount);
+      tokenAmountOutx                = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenAmountOutx, -1));
 
       namesym  tokenIn        = to_namesym(maxAmountInx.get_extended_symbol());
       uint64_t maxAmountIn    = maxAmountInx.quantity.amount;

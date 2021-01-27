@@ -382,12 +382,12 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       receiveQuote = sub(sub(receiveQuote, lpFeeQuote), mtFeeQuote);
 
       // transferfee
-      extended_asset amountx      = extended_asset(static_cast<uint64_t>(receiveQuote), stores._QUOTE_TOKEN_);
-      int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx, true);
-      DODO_DEBUG("% receiveQuote=before transfer fee=%=", __FUNCTION__, receiveQuote);
-      receiveQuote -= transfer_fee;
-      DODO_DEBUG("% receiveQuote=after transfer fee=%=", __FUNCTION__, receiveQuote);
-
+      extended_asset amountx     = extended_asset(static_cast<uint64_t>(receiveQuote), stores._QUOTE_TOKEN_);
+      amountx                    = transfer_mgmt::sub_transfer_fee(amountx, true);
+      receiveQuote               = amountx.quantity.amount;
+      extended_asset mtFeeQuotex = extended_asset(static_cast<uint64_t>(mtFeeQuote), stores._QUOTE_TOKEN_);
+      mtFeeQuotex                = transfer_mgmt::sub_transfer_fee(mtFeeQuotex, true);
+      mtFeeQuote                 = mtFeeQuotex.quantity.amount;
       return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
 
@@ -410,11 +410,11 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256 buyBaseAmount = add(add(amount, lpFeeBase), mtFeeBase);
 
       // transferfee
-      extended_asset amountx      = extended_asset(static_cast<uint64_t>(amount), stores._BASE_TOKEN_);
-      int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx);
-      DODO_DEBUG("_queryBuyBaseToken buyBaseAmount=before transfer fee%=", buyBaseAmount);
-      buyBaseAmount += transfer_fee;
-      DODO_DEBUG("_queryBuyBaseToken buyBaseAmount=after transfer fee%=", buyBaseAmount);
+      extended_asset amountx = extended_asset(static_cast<uint64_t>(amount), stores._BASE_TOKEN_);
+      buyBaseAmount += transfer_mgmt::get_transfer_fee(amountx);
+      extended_asset mtFeeBasex = extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_);
+      mtFeeBasex                = transfer_mgmt::sub_transfer_fee(mtFeeBasex, true);
+      mtFeeBase = mtFeeBasex.quantity.amount;
 
       if (stores._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1

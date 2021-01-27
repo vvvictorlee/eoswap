@@ -130,11 +130,8 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       stores._TARGET_QUOTE_TOKEN_AMOUNT_ = sub(stores._TARGET_QUOTE_TOKEN_AMOUNT_, amount);
       _burnQuoteCapital(getMsgSender(), requireQuoteCapital);
       auto amountx = extended_asset(sub(amount, penalty), stores._QUOTE_TOKEN_);
-      int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx, true);
-      DODO_DEBUG("% =before transfer fee=%=", __FUNCTION__, amountx);
-      amountx.quantity.amount -= transfer_fee;
-      DODO_DEBUG("% =after transfer fee=%=", __FUNCTION__, amountx);
-
+      amountx = transfer_mgmt::sub_transfer_fee(amountx, true);
+      
       _quoteTokenTransferOut(to, amountx);
       _donateQuoteToken(penalty);
 
@@ -160,10 +157,7 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       stores._TARGET_BASE_TOKEN_AMOUNT_ = sub(stores._TARGET_BASE_TOKEN_AMOUNT_, amount);
       _burnBaseCapital(getMsgSender(), requireBaseCapital);
       auto amountx = extended_asset(sub(amount, penalty), stores._BASE_TOKEN_);
-      int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx, true);
-      DODO_DEBUG("% =before transfer fee=%=", __FUNCTION__, amountx);
-      amountx.quantity.amount -= transfer_fee;
-      DODO_DEBUG("% =after transfer fee=%=", __FUNCTION__, amountx);
+      amountx = transfer_mgmt::sub_transfer_fee(amountx, true);
       _baseTokenTransferOut(to, amountx);
       _donateBaseToken(penalty);
 
@@ -186,10 +180,8 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       stores._TARGET_QUOTE_TOKEN_AMOUNT_ = sub(stores._TARGET_QUOTE_TOKEN_AMOUNT_, withdrawAmount);
       _burnQuoteCapital(getMsgSender(), capital);
       auto amountx = extended_asset(sub(withdrawAmount, penalty), stores._QUOTE_TOKEN_);
-      int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx, true);
-      DODO_DEBUG("% =before transfer fee=%=", __FUNCTION__, amountx);
-      amountx.quantity.amount -= transfer_fee;
-      DODO_DEBUG("% =after transfer fee=%=", __FUNCTION__, amountx);
+      amountx = transfer_mgmt::sub_transfer_fee(amountx, true);
+      
       _quoteTokenTransferOut(to, amountx);
       _donateQuoteToken(penalty);
 
@@ -210,10 +202,8 @@ class LiquidityProvider : virtual public Storage, virtual public Pricing, virtua
       stores._TARGET_BASE_TOKEN_AMOUNT_ = sub(stores._TARGET_BASE_TOKEN_AMOUNT_, withdrawAmount);
       _burnBaseCapital(getMsgSender(), capital);
       auto amountx = extended_asset(sub(withdrawAmount, penalty), stores._BASE_TOKEN_);
-      int64_t        transfer_fee = transfer_mgmt::get_transfer_fee(amountx, true);
-      DODO_DEBUG("% =before transfer fee=%=", __FUNCTION__, amountx);
-      amountx.quantity.amount -= transfer_fee;
-      DODO_DEBUG("% =after transfer fee=%=", __FUNCTION__, amountx);
+      amountx = transfer_mgmt::sub_transfer_fee(amountx, true);
+      
       _baseTokenTransferOut(to, amountx);
       _donateBaseToken(penalty);
 
