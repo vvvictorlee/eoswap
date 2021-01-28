@@ -498,7 +498,7 @@ class eoswap_tester : public tester {
 
    uint256m to_wei(uint256m value, uint8_t decimal = ONE_DECIMALS) { return value * pow(10, decimal); }
 
-   uint256m to_weight(uint256m value, uint8_t decimal = 3) { return value * pow(10, decimal); }
+   uint256m to_weight(uint256m value, uint8_t decimal = 4) { return value * pow(10, decimal); }
 
    extended_asset to_pool_asset(name pool_name, int64_t value) {
       return extended_asset{asset{value, symbol{ONE_DECIMALS, default_lp_symbol.c_str()}}, pool_name};
@@ -1092,6 +1092,16 @@ BOOST_FIXTURE_TEST_CASE(bind_tests, eoswap_tester) try {
    mintBefore1();
    bind(newcontroller, N(dai2mkr11111), to_wei_asset(5, "BTC"), to_weight(5));
    bind(newcontroller, N(dai2mkr11111), to_wei_asset(200, "USD"), to_weight(5));
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(unbind_tests, eoswap_tester) try {
+   newpoolBefore();
+   mintBefore1();
+ bind(newcontroller, N(dai2mkr11111), to_wei_asset(5, "BTC"), to_weight(5));
+   bind(newcontroller, N(dai2mkr11111), to_wei_asset(200, "USD"), to_weight(5));
+//  bind(newcontroller, N(dai2mkr11111), to_wei_asset(200, "MKR"), to_weight(5));
+   unbind(newcontroller, N(dai2mkr11111), to_sym("BTC"));
 }
 FC_LOG_AND_RETHROW()
 

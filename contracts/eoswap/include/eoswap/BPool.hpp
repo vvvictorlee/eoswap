@@ -54,6 +54,11 @@ class BPool : public BToken, public BMath {
       createtoken();
    }
 
+   void setTestPrameter(const std::vector<int64_t>& params) {
+      pool_store.swapFee    = MIN_FEE;
+      pool_store.publicSwap = false;
+   }
+
    bool isPublicSwap() { return pool_store.publicSwap; }
 
    bool isFinalized() { return pool_store.finalized; }
@@ -183,12 +188,12 @@ class BPool : public BToken, public BMath {
          //  }
          auto tokenBalanceWithdrawnx = extended_asset(BMath::bsub(tokenBalanceWithdrawn, tokenExitFee), exsym);
          tokenBalanceWithdrawnx =
-             transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenBalanceWithdrawnx, -1), true);
+             transfer_mgmt::sub_transfer_fee(tokenBalanceWithdrawnx, true);
 
          _pushUnderlying(get_msg_sender(), tokenBalanceWithdrawnx);
          if (tokenExitFee > 0) {
             auto tokenExitFeex = extended_asset(tokenExitFee, exsym);
-            tokenExitFeex      = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenExitFeex, -1), true);
+            tokenExitFeex      = transfer_mgmt::sub_transfer_fee(tokenExitFeex, true);
             if (tokenExitFeex.quantity.amount > 0) {
                _pushUnderlying(pool_store.factory, tokenExitFeex);
             }
@@ -201,7 +206,6 @@ class BPool : public BToken, public BMath {
       require(get_msg_sender() == pool_store.controller, "ERR_NOT_CONTROLLER");
       require(pool_store.records[token].bound, "ERR_NOT_BOUND");
       require(!pool_store.finalized, "ERR_IS_FINALIZED");
-
       uint64_t tokenBalance = pool_store.records[token].balance;
       uint64_t tokenExitFee = BMath::bmul(tokenBalance, EXIT_FEE);
 
@@ -215,14 +219,12 @@ class BPool : public BToken, public BMath {
       pool_store.records[pool_store.tokens[index]].index = index;
       pool_store.tokens.pop_back();
       pool_store.records[token]            = Record({false, 0, 0, 0});
-      const extended_symbol& exsym         = pool_store.records[token].exsym;
-      auto                   tokenBalancex = extended_asset(BMath::bsub(tokenBalance, tokenExitFee), exsym);
-      tokenBalancex = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenBalancex, -1), true);
-
+      auto                   tokenBalancex = extended_asset(BMath::bsub(tokenBalance, tokenExitFee), tokenx);
+      tokenBalancex = transfer_mgmt::sub_transfer_fee(tokenBalancex, true);
       _pushUnderlying(get_msg_sender(), tokenBalancex);
       if (tokenExitFee > 0) {
-         auto tokenExitFeex = extended_asset(tokenExitFee, exsym);
-         tokenExitFeex      = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenExitFeex, -1), true);
+         auto tokenExitFeex = extended_asset(tokenExitFee, tokenx);
+         tokenExitFeex      = transfer_mgmt::sub_transfer_fee(tokenExitFeex, true);
          if (tokenExitFeex.quantity.amount > 0) {
             _pushUnderlying(pool_store.factory, tokenExitFeex);
          }
@@ -312,7 +314,7 @@ class BPool : public BToken, public BMath {
          require(tokenAmountOut >= minAmountsOut[i], "ERR_LIMIT_OUT");
 
          auto extokenAmountOut = extended_asset(tokenAmountOut, pool_store.records[t].exsym);
-         extokenAmountOut      = transfer_mgmt::sub_transfer_fee(convert_one_decimals(extokenAmountOut, -1), true);
+         extokenAmountOut      = transfer_mgmt::sub_transfer_fee(extokenAmountOut, true);
 
          pool_store.records[t].balance =
              BMath::bsub(pool_store.records[t].balance, round_one_decimals(extokenAmountOut));
@@ -369,7 +371,7 @@ class BPool : public BToken, public BMath {
               std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
               ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
-      tokenAmountOutx = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenAmountOutx, -1), true);
+      tokenAmountOutx = transfer_mgmt::sub_transfer_fee(tokenAmountOutx, true);
 
       _pullUnderlying(get_msg_sender(), tokenAmountInx);
       _pushUnderlying(get_msg_sender(), tokenAmountOutx);
@@ -380,7 +382,7 @@ class BPool : public BToken, public BMath {
    std::pair<uint64_t, uint64_t>
    swapExactAmountOut(const extended_asset& maxAmountInx, const extended_asset& tokenAmountOutxx, uint64_t maxPrice) {
       extended_asset tokenAmountOutx = tokenAmountOutxx;
-      tokenAmountOutx                = transfer_mgmt::sub_transfer_fee(convert_one_decimals(tokenAmountOutx, -1));
+      tokenAmountOutx                = transfer_mgmt::sub_transfer_fee(tokenAmountOutx);
 
       namesym  tokenIn        = to_namesym(maxAmountInx.get_extended_symbol());
       uint64_t maxAmountIn    = maxAmountInx.quantity.amount;

@@ -14,6 +14,7 @@ case "$1" in
 "close") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/close_tests -- --verbose ;;
 "s") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/swap_transfer_tests -- --verbose ;;
 "b") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/bind_decimal_tests -- --verbose ;;
+"u") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/unbind_tests -- --verbose ;;
 "bu") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/burn_tests -- --verbose ;;
 "e") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/extransfer_tests -- --verbose ;;
 "f") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/finalize_tests -- --verbose ;;

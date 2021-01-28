@@ -61,10 +61,6 @@ extended_asset convert_one_decimals(const extended_asset& exasset, int8_t signed
    return exasset;
 }
 
-int64_t convert_one_decimals_i(const extended_asset& exasset, int8_t signed_one = 1) {
-   return convert_one_decimals(exasset, signed_one).quantity.amount;
-}
-
 int64_t round_one_decimals(const extended_asset& exasset) {
    return convert_one_decimals(convert_one_decimals(exasset, -1)).quantity.amount;
 }

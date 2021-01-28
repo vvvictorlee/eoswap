@@ -102,7 +102,7 @@ class transfer_mgmt {
    }
 
    static extended_asset sub_transfer_fee(const extended_asset& quantity, bool is_in = false) {
-      extended_asset quantityx     = quantity;
+      extended_asset quantityx     = convert_one_decimals(quantity, -1);
       name           tokencontract = quantity.contract;
 #ifdef EOSWAP_CONTRACT_DEBUG
       tokencontract = "eoswapeoswap"_n; // for Test use
@@ -114,30 +114,21 @@ class transfer_mgmt {
       }
 
       asset fee;
+      int64_t signedOne = -1;
+
       ////transfer fee
       if (is_in) {
-         fee = tokenize::estimate_fee_given_in(tokencontract, quantity.quantity);
+         fee = tokenize::estimate_fee_given_in(tokencontract, quantityx.quantity);
       } else {
-         fee = tokenize::estimate_fee_given_out(tokencontract, quantity.quantity);
-      }
-
-      //  if (is_percent) {
-      //     return static_cast<int64_t>(fee.amount * std::pow(10, default_precision)) / quantity.quantity.amount;
-      //  }
-      check(quantityx.quantity.amount > fee.amount, "overdrawn balance in transfer fee");
-      int64_t signedOne = -1;
-      if (!is_in) {
          signedOne *= signedOne;
+         fee = tokenize::estimate_fee_given_out(tokencontract, quantityx.quantity);
       }
 
-      quantityx.quantity.amount +=
-          signedOne * convert_one_decimals_i(extended_asset(fee.amount, quantityx.get_extended_symbol()));
+      check(quantityx.quantity.amount > fee.amount, "overdrawn balance in transfer fee");
 
-      return quantityx;
-      //  action(
-      //      permission_level{from, "active"_n}, self, "sellquotediff"_n,
-      //      std::make_tuple(from, "roxe.ro",
-      //      extended_asset{fee.amount,extended_symbol(fee.symbol,quantity.contract)}, "transfer fee")) .send();
+      quantityx.quantity.amount += signedOne * fee.amount;
+
+      return convert_one_decimals(quantityx);
    }
 
    /**
