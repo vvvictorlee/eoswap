@@ -149,6 +149,33 @@ class [[eosio::contract("eoswap")]] eoswap : public eosio::contract {
           pool_name, [&](auto& pool) { pool.swapExactAmountOut(maxAmountIns, tokenAmountOuts, maxPrice); });
    }
 
+   ////////////////// TEST swapin out///////////////////////
+
+   [[eosio::action]] void tswapamtin(
+       name msg_sender, name pool_name, const extended_asset& tokenAmountIn, const extended_asset& minAmountOut,
+       uint64_t maxPrice, const std::vector<int64_t>& params) {
+      extended_asset tokenAmountIns = convert_one_decimals(tokenAmountIn);
+      extended_asset minAmountOuts  = convert_one_decimals(minAmountOut);
+
+      _instance_mgmt.setMsgSender(msg_sender);
+      _instance_mgmt.pool(pool_name, [&](auto& pool) {
+         pool.setTestParameter(params);
+         pool.swapExactAmountIn(tokenAmountIns, minAmountOuts, maxPrice);
+      });
+   }
+
+   [[eosio::action]] void tswapamtout(
+       name msg_sender, name pool_name, const extended_asset& maxAmountIn, const extended_asset& tokenAmountOut,
+       uint64_t maxPrice, const std::vector<int64_t>& params) {
+      extended_asset maxAmountIns    = convert_one_decimals(maxAmountIn);
+      extended_asset tokenAmountOuts = convert_one_decimals(tokenAmountOut);
+      _instance_mgmt.setMsgSender(msg_sender);
+      _instance_mgmt.pool(pool_name, [&](auto& pool) {
+         pool.setTestParameter(params);
+         pool.swapExactAmountOut(maxAmountIns, tokenAmountOuts, maxPrice);
+      });
+   }
+
    ////////////////// TEST pool storage///////////////////////
    [[eosio::action]] void cppool2table(name msg_sender, name pool_name) {
       //   check(admin_account == msg_sender, "no admin");

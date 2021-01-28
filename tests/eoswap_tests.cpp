@@ -361,6 +361,25 @@ class eoswap_tester : public tester {
               "tokenAmountOut", tokenAmountOut)("maxPrice", maxPrice));
    }
 
+/////////////////////Test   swap in out ///////////
+   action_result tswapamtin(
+       name msg_sender, name pool_name, const extended_asset& tokenAmountIn, const extended_asset& minAmountOut,
+       uint64_t maxPrice, const std::vector<int64_t>& params) {
+      return push_action(
+          msg_sender, N(tswapamtin),
+          mvo()("msg_sender", msg_sender)("pool_name", pool_name)("tokenAmountIn", tokenAmountIn)(
+              "minAmountOut", minAmountOut)("maxPrice", maxPrice)("params",params));
+   }
+
+   action_result tswapamtout(
+       name msg_sender, name pool_name, const extended_asset& maxAmountIn, const extended_asset& tokenAmountOut,
+       uint64_t maxPrice, const std::vector<int64_t>& params) {
+      return push_action(
+          msg_sender, N(tswapamtout),
+          mvo()("msg_sender", msg_sender)("pool_name", pool_name)("maxAmountIn", maxAmountIn)(
+              "tokenAmountOut", tokenAmountOut)("maxPrice", maxPrice)("params",params));
+   }
+
    action_result cppool2table(account_name msg_sender, account_name pool_name) {
       return push_action(msg_sender, N(cppool2table), mvo()("msg_sender", msg_sender)("pool_name", pool_name));
    }
