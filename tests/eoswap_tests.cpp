@@ -787,6 +787,48 @@ class eoswap_tester : public tester {
       finalize(newcontroller, pool_name);
    }
 
+void beforejoinpooleqbind() {
+      name pool_name = N(dai2mkr11111);
+      LINE_DEBUG;
+      newpool(admin, pool_name);
+      setcontroler(admin, pool_name, newcontroller);
+
+      LINE_DEBUG;
+      // await pool.setSwapFee(toWei('0.003'));
+      setswapfee(newcontroller, pool_name, 1000000);
+
+      std::vector<name>        users{admin, newcontroller, nonadmin, user1};
+      std::vector<std::string> tokens{"BTC", "USD"};
+      LINE_DEBUG;
+      for (auto token : tokens) {
+         newtoken(tokenissuer, to_maximum_supply(token));
+      }
+
+      for (auto token : tokens) {
+         for (auto user : users) {
+            mint(user, to_wei_asset(90000, token));
+         }
+      }
+
+      mint(user2, to_wei_asset(1, "BTC"));
+      mint(user2, to_wei_asset(1, "USD"));
+
+      std::vector<std::tuple<uint64_t, std::string, uint64_t>> bind_data{std::make_tuple(100, "BTC", 5),
+                                                                         std::make_tuple(200, "USD", 5)};
+      LINE_DEBUG;
+      for (auto d : bind_data) {
+         bind(newcontroller, pool_name, to_wei_asset(std::get<0>(d), std::get<1>(d)), to_wei(std::get<2>(d)));
+      }
+
+      LINE_DEBUG;
+      finalize(newcontroller, pool_name);
+
+    //   LINE_DEBUG;
+    //   std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
+    //   joinpool(user1, pool_name, to_weight(5), v);
+   }
+
+
    void initparam() {
       // "8,BTC"  0,30000,420,0,0,0
       // "9,ETH"  0,30000,160000,0,0,0
@@ -1137,6 +1179,39 @@ BOOST_FIXTURE_TEST_CASE(joinpool4maxsupply_tests, eoswap_tester) try {
    //    check_balances(pool_name, nonadmin, expected_token_balances);
 }
 FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(joinpooleq0_tests, eoswap_tester) try {
+
+   before4maxsupply();
+
+   name pool_name = N(dai2mkr11111);
+
+   LINE_DEBUG;
+   std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
+   joinpool(user1, pool_name, to_wei(0), v);
+
+//    joinpool(user1, pool_name, static_cast<int64_t>(pow(10, 5)), v);
+
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(joinpooleqbind_tests, eoswap_tester) try {
+
+   beforejoinpooleqbind();
+   name pool_name = N(dai2mkr11111);
+   std::vector<std::vector<std::string>> expected_token_balances{std::vector<std::string>{"BTC", "10000", "1000"},
+                                                                 std::vector<std::string>{"USD", "10000", "10000"}};
+
+    check_balances(pool_name, nonadmin, expected_token_balances);
+   LINE_DEBUG;
+   std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
+   joinpool(user1, pool_name, 10000, v);
+ check_balances(pool_name, nonadmin, expected_token_balances);
+//    joinpool(user1, pool_name, static_cast<int64_t>(pow(10, 5)), v);
+
+}
+FC_LOG_AND_RETHROW()
+
 
 BOOST_FIXTURE_TEST_CASE(exitpool_tests, eoswap_tester) try {
    newpoolBefore();

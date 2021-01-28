@@ -265,7 +265,7 @@ class BPool : public BToken, public BMath {
       uint64_t poolTotal = totalSupply();
       require(poolAmountOut > poolTotal / MIN_POOL_RATE, "poolAmountOutmust be greater than 1");
       require(poolAmountOut / poolTotal < MAX_POOL_RATE, "poolAmountOut must be less than10^15");
-      uint64_t ratio = BMath::rbdiv(poolAmountOut, poolTotal);
+      uint64_t ratio = BMath::bdiv(poolAmountOut, poolTotal);
       check(
           ratio != 0, "ERR_MATH_APPROX joinPool: poolAmountOut:" + std::to_string(poolAmountOut) +
                           "poolTotal:" + std::to_string(poolTotal));
@@ -297,7 +297,7 @@ class BPool : public BToken, public BMath {
       require(poolAmountIn / poolTotal < MAX_POOL_RATE, "poolAmountOut must be less than10^15");
       uint64_t exitFee         = BMath::bmul(poolAmountIn, EXIT_FEE);
       uint64_t pAiAfterExitFee = BMath::bsub(poolAmountIn, exitFee);
-      uint64_t ratio           = BMath::rbdiv(pAiAfterExitFee, poolTotal);
+      uint64_t ratio           = BMath::bdiv(pAiAfterExitFee, poolTotal);
       require(ratio != 0, "ERR_MATH_APPROX");
 
       _pullPoolShare(get_msg_sender(), poolAmountIn);
