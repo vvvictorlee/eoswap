@@ -19,7 +19,7 @@ using namespace eosio;
 using bytes = std::vector<char>;
 
 using address  = name;
-using uint256m = double;
+using uint256m = uint128_t;
 using namesym  = uint128_t;
 
 static constexpr const char* const default_lp_symbol_str = "EPT";

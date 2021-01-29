@@ -49,9 +49,9 @@ class BNum : public BConst {
       uint256m c2  = 0;
       uint256m ONE = (BONE); // static_cast<uint64_t>
       uint256m c0  = a * b;
-      //   require(a == 0 || c0 / a == b, "ERR_MUL_OVERFLOW ");
+        require(a == 0 || c0 / a == b, "ERR_MUL_OVERFLOW ");
       c1 = c0 + (ONE / 2);
-      //   require(c1 >= c0, "ERR_MUL_OVERFLOW >=");
+        require(c1 >= c0, "ERR_MUL_OVERFLOW >=");
       c2 = c1 / ONE;
       //   my_print_f("a %, b %, c0 %, c1 %, c2 %", static_cast<eosio::uint128_t>(a), b, c0, c1, c2);
       return c2;
@@ -66,9 +66,9 @@ class BNum : public BConst {
       uint256m ONE = static_cast<uint64_t>(BONE);
       require(b != 0, "ERR_DIV_ZERO");
       uint256m c0 = a * ONE;
-      //   require(a == 0 || c0 / a == ONE, "ERR_DIV_INTERNAL "); // bmul overflow
+        require(a == 0 || c0 / a == ONE, "ERR_DIV_INTERNAL "); // bmul overflow
       c1 = c0 + (b / 2);
-      //   require(c1 >= c0, "ERR_DIV_INTERNAL >="); //  badd require
+        require(c1 >= c0, "ERR_DIV_INTERNAL >="); //  badd require
       c2 = c1 / b;
       //   my_print_f("a %, b %, c0 %, c1 %, c2 %", a, b, c0, c1, c2);
       return (c2); // static_cast<uint64_t>

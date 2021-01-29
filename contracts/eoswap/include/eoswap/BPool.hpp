@@ -55,15 +55,19 @@ class BPool : public BToken, public BMath {
    }
 
    void setTestParameter(const std::vector<int64_t>& params) {
-      check(params.size() > 0, "params size is 0");
-      for (int i = 0; (i + 2) < params.size(); i += 3) {
-         int t = i % 3;
-         check(pool_store.records.end() != pool_store.records.find(t), "no symbol in records");
-         pool_store.records[t].denorm  = params[t + 1];
-         pool_store.records[t].balance = params[t + 2];
+      int64_t tw = 0;
+      for (auto& it : pool_store.records) {
+         auto& r = it.second;
+         int   i = r.index * 2;
+         check(params.size() > i + 1, "params size must be greater than index+1 ");
+         r.denorm  = params[i];
+         r.balance = params[i + 1];
+         tw+= r.denorm;
       }
 
-      pool_store.swapFee = params[params.size() - 1];
+      check(params.size() > 0, "params size is 0");
+      pool_store.swapFee     = params[params.size() - 1];
+      pool_store.totalWeight = tw;
    }
 
    bool isPublicSwap() { return pool_store.publicSwap; }
@@ -324,7 +328,7 @@ class BPool : public BToken, public BMath {
          pool_store.records[t].balance =
              BMath::bsub(pool_store.records[t].balance, round_one_decimals(extokenAmountOut));
 
-         extokenAmountOut      = transfer_mgmt::sub_transfer_fee(extokenAmountOut, true);
+         extokenAmountOut = transfer_mgmt::sub_transfer_fee(extokenAmountOut, true);
          _pushUnderlying(get_msg_sender(), extokenAmountOut);
       }
    }
@@ -352,18 +356,25 @@ class BPool : public BToken, public BMath {
 
       uint64_t spotPriceBefore =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);
-      check(
+           my_print_f("===minAmountOut==%==", minAmountOut);
+
+ check(
           spotPriceBefore <= maxPrice,
           std::to_string(maxPrice) + "ERR_BAD_LIMIT_PRICE:spotPriceBefore=" + std::to_string(spotPriceBefore));
 
       uint64_t tokenAmountOut = calcOutGivenIn(
           inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, tokenAmountIn, pool_store.swapFee);
-      check(
+            my_print_f("===minAmountOut==%==", minAmountOut);
+
+check(
           tokenAmountOut >= minAmountOut,
           std::to_string(minAmountOut) + "ERR_LIMIT_OUT:tokenAmountOut=" + std::to_string(tokenAmountOut));
       auto tokenAmountOutx = extended_asset(tokenAmountOut, minAmountOutx.get_extended_symbol());
       inRecord.balance     = BMath::badd(inRecord.balance, tokenAmountIn);
+      my_print_f("===minAmountOut==%==", minAmountOut);
+
       outRecord.balance    = BMath::bsub(outRecord.balance, round_one_decimals(tokenAmountOutx));
+      my_print_f("===minAmountOut==%==", minAmountOut);
 
       uint64_t spotPriceAfter =
           calcSpotPrice(inRecord.balance, inRecord.denorm, outRecord.balance, outRecord.denorm, pool_store.swapFee);

@@ -561,6 +561,218 @@ class eoswap_tester : public tester {
       return s;
    }
 
+   /////////////extended token///////////////////////
+   /////////////extended token////////////////////////
+   ////////////extended token///////////////////////
+
+   std::vector<std::string> parse_string(const std::string& source, const std::string& delimiter = " ") {
+      std::vector<std::string> results;
+      // const std::string delimiter = ",";
+      size_t prev = 0;
+      size_t next = 0;
+
+      while ((next = source.find_first_of(delimiter.c_str(), prev)) != std::string::npos) {
+         if (next - prev != 0) {
+            results.push_back(source.substr(prev, next - prev));
+         }
+         prev = next + 1;
+      }
+
+      if (prev < source.size()) {
+         results.push_back(source.substr(prev));
+      }
+
+      return results;
+   }
+
+   int64_t to_int(const std::string& str) {
+      bool        isOK   = false;
+      const char* nptr   = str.c_str();
+      char*       endptr = NULL;
+      errno              = 0;
+      int64_t val        = std::strtoll(nptr, &endptr, 10);
+      // error ocur
+      if ((errno == ERANGE && (val == ULLONG_MAX)) || (errno != 0 && val == 0)) {
+
+      }
+      // no digit find
+      else if (endptr == nptr) {
+
+      } else if (*endptr != '\0') {
+         // printf("Further characters after number: %s\n", endptr);
+      } else {
+         isOK = true;
+      }
+
+      return val;
+   }
+
+   extended_asset ext_asset_from_string(const std::string& tokenstr) {
+      std::vector<std::string> strvec = parse_string(tokenstr);
+      const int                len    = strvec.size();
+      BOOST_REQUIRE_EQUAL(len, 2);
+      std::string            str     = strvec[0];
+      std::string            sym     = strvec[1];
+      uint8_t                decmils = 0;
+      std::string::size_type pos     = str.find(".");
+      if (pos != std::string::npos) {
+         decmils = str.size() - pos - 1;
+      }
+
+      str.erase(std::remove(str.begin(), str.end(), '.'), str.end());
+      int64_t value = static_cast<int64_t>(to_int(str));
+      return extended_asset{asset{value, symbol{decmils, sym.c_str()}}, N(extendxtoken)};
+   }
+
+   extended_symbol ext_sym_from_string(const std::string& tokenstr) {
+
+      std::vector<std::string> strvec = parse_string(tokenstr, ",");
+      const int                len    = strvec.size();
+      BOOST_REQUIRE_EQUAL(len, 2);
+      std::string str     = strvec[0];
+      std::string sym     = strvec[1];
+      uint8_t     decmils = static_cast<uint8_t>(to_int(str));
+
+      return extended_symbol{symbol{decmils, sym.c_str()}, N(extendxtoken)};
+   }
+
+   symbol sym_from_string(const std::string& tokenstr) { return ext_sym_from_string(tokenstr).sym; }
+
+   std::string to_symbol_code_string(const std::string& tokenstr) {
+      std::vector<std::string> strvec = parse_string(tokenstr);
+      const int                len    = strvec.size();
+      BOOST_REQUIRE_EQUAL(len, 2);
+      std::string            str     = strvec[0];
+      std::string            sym     = strvec[1];
+      uint8_t                decmils = 0;
+      std::string::size_type pos     = str.find(".");
+      if (pos != std::string::npos) {
+         decmils = str.size() - pos - 1;
+      }
+      return std::to_string(decmils) + "," + sym;
+
+      //   str.erase(std::remove(str.begin(), str.end(), '.'), str.end());
+      //   int64_t value = static_cast<int64_t>(to_int(str));
+      //   return extended_asset{asset{value, symbol{decmils, sym.c_str()}}, name{"extendxtoken"}};
+   }
+
+   //    action_result push_action(const account_name& signer, const action_name& name, const variant_object& data) {
+   //       string action_type_name = abi_ser.get_action_type(name);
+
+   //       action act;
+   //       act.account = N(extendxtoken);
+   //       act.name    = name;
+   //       act.data    = abi_ser.variant_to_binary(action_type_name, data, abi_serializer_max_time);
+
+   //       return base_tester::push_action(std::move(act), signer.to_uint64_t());
+   //    }
+
+   fc::variant get_stats(const string& symbolname, name contract_name = N(extendxtoken)) {
+      auto         symb        = eosio::chain::symbol::from_string(symbolname);
+      auto         symbol_code = symb.to_symbol_code().value;
+      vector<char> data        = get_row_by_account(N(eoswapeoswap), contract_name, N(stat), account_name(symbol_code));
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("currency_stats", data, abi_serializer_max_time);
+   }
+
+   std::string get_account(account_name acc, const string& symbolname, name contract_name = N(extendxtoken)) {
+      //   auto         symb        = eosio::chain::symbol::from_string(symbolname);
+      //   auto         symbol_code = symb.to_symbol_code().value;
+      //   vector<char> data        = get_row_by_account(N(eoswapeoswap), acc, N(accounts),
+      //   account_name(symbol_code)); return data.empty() ? fc::variant() : abi_ser.binary_to_variant("account",
+      //   data, abi_serializer_max_time);
+      auto a = get_accountx(acc, symbolname);
+      return (a.is_null() ? "" : a.as_string());
+   }
+
+   fc::variant get_accountx(account_name acc, const string& symbolname) {
+      vector<char> data;
+      const auto&  db  = control->db();
+      namespace chain  = eosio::chain;
+      const auto* t_id = db.find<eosio::chain::table_id_object, chain::by_code_scope_table>(
+          boost::make_tuple(N(eoswapeoswap), acc, N(accounts)));
+      if (!t_id) {
+         LINE_DEBUG;
+         return fc::variant();
+      }
+
+      const auto& idx = db.get_index<chain::key_value_index, chain::by_scope_primary>();
+
+      auto itr = idx.lower_bound(boost::make_tuple(t_id->id, 0));
+      if (itr == idx.end() || itr->t_id != t_id->id || 0 != itr->primary_key) {
+         LINE_DEBUG;
+
+         return fc::variant();
+      }
+
+      for (; itr != idx.end(); ++itr) {
+         data.resize(itr->value.size());
+         memcpy(data.data(), itr->value.data(), data.size());
+         LINE_DEBUG;
+
+         if (!data.empty()) {
+            LINE_DEBUG;
+
+            auto d = abi_ser.binary_to_variant("account", data, abi_serializer_max_time);
+            // BOOST_TEST_CHECK(nullptr == d);
+            std::string str = to_symbol_code_string(d["balance"]["quantity"].as_string());
+            if (str == symbolname) {
+               LINE_DEBUG;
+
+               return d["balance"]["quantity"];
+            }
+         }
+      }
+      LINE_DEBUG;
+
+      return fc::variant();
+   }
+
+   action_result create(account_name issuer, extended_asset maximum_supply) {
+
+      return push_action(N(eoswapeoswap), N(create), mvo()("issuer", issuer)("maximum_supply", maximum_supply));
+   }
+
+   action_result issue(account_name issuer, extended_asset quantity, string memo) {
+      return push_action(issuer, N(issue), mvo()("to", issuer)("quantity", quantity)("memo", memo));
+   }
+
+   action_result retire(account_name issuer, extended_asset quantity, string memo) {
+      return push_action(issuer, N(retire), mvo()("quantity", quantity)("memo", memo));
+   }
+
+   action_result transfer(account_name from, account_name to, extended_asset quantity, string memo) {
+      return push_action(from, N(transfer), mvo()("from", from)("to", to)("quantity", quantity)("memo", memo));
+   }
+
+   action_result open(account_name owner, const extended_symbol& symbol, account_name ram_payer) {
+      return push_action(ram_payer, N(open), mvo()("owner", owner)("symbol", symbol)("ram_payer", ram_payer));
+   }
+
+   action_result close(account_name owner, const extended_symbol& symbol) {
+      return push_action(owner, N(close), mvo()("owner", owner)("symbol", symbol));
+   }
+
+   void check_pools(name pool_name) {
+#ifdef EOSWAP_DEBUG
+      auto pool = get_pool_table(pool_name);
+      BOOST_TEST_CHECK(nullptr == pool);
+#endif
+   }
+   void check_balances(name pool_name, name acc, const std::vector<std::vector<std::string>>& expected_token_balances) {
+#ifdef EOSWAP_DEBUG
+      BOOST_TEST_CHECK(acc == N(acc));
+      check_pools(pool_name);
+      for (auto token_name : expected_token_balances) {
+         auto r = records(pool_name, to_sym(token_name[0]));
+         BOOST_TEST_CHECK(token_name[1] == r["balance"].as_string());
+
+         const auto ab = get_balancex(acc, to_sym(token_name[0]).sym);
+         BOOST_TEST_CHECK(eosio::chain::asset::from_string(token_name[2] + " " + token_name[0]) == ab);
+      }
+#endif
+   }
+
+
    void newpoolBefore() {
       LINE_DEBUG;
       newpool(admin, N(dai2mkr11111));
@@ -868,215 +1080,47 @@ void beforejoinpooleqbind() {
       }
    }
 
-   /////////////extended token///////////////////////
-   /////////////extended token////////////////////////
-   ////////////extended token///////////////////////
 
-   std::vector<std::string> parse_string(const std::string& source, const std::string& delimiter = " ") {
-      std::vector<std::string> results;
-      // const std::string delimiter = ",";
-      size_t prev = 0;
-      size_t next = 0;
 
-      while ((next = source.find_first_of(delimiter.c_str(), prev)) != std::string::npos) {
-         if (next - prev != 0) {
-            results.push_back(source.substr(prev, next - prev));
-         }
-         prev = next + 1;
-      }
-
-      if (prev < source.size()) {
-         results.push_back(source.substr(prev));
-      }
-
-      return results;
-   }
-
-   int64_t to_int(const std::string& str) {
-      bool        isOK   = false;
-      const char* nptr   = str.c_str();
-      char*       endptr = NULL;
-      errno              = 0;
-      int64_t val        = std::strtoll(nptr, &endptr, 10);
-      // error ocur
-      if ((errno == ERANGE && (val == ULLONG_MAX)) || (errno != 0 && val == 0)) {
-
-      }
-      // no digit find
-      else if (endptr == nptr) {
-
-      } else if (*endptr != '\0') {
-         // printf("Further characters after number: %s\n", endptr);
-      } else {
-         isOK = true;
-      }
-
-      return val;
-   }
-
-   extended_asset ext_asset_from_string(const std::string& tokenstr) {
-      std::vector<std::string> strvec = parse_string(tokenstr);
-      const int                len    = strvec.size();
-      BOOST_REQUIRE_EQUAL(len, 2);
-      std::string            str     = strvec[0];
-      std::string            sym     = strvec[1];
-      uint8_t                decmils = 0;
-      std::string::size_type pos     = str.find(".");
-      if (pos != std::string::npos) {
-         decmils = str.size() - pos - 1;
-      }
-
-      str.erase(std::remove(str.begin(), str.end(), '.'), str.end());
-      int64_t value = static_cast<int64_t>(to_int(str));
-      return extended_asset{asset{value, symbol{decmils, sym.c_str()}}, N(extendxtoken)};
-   }
-
-   extended_symbol ext_sym_from_string(const std::string& tokenstr) {
-
-      std::vector<std::string> strvec = parse_string(tokenstr, ",");
-      const int                len    = strvec.size();
-      BOOST_REQUIRE_EQUAL(len, 2);
-      std::string str     = strvec[0];
-      std::string sym     = strvec[1];
-      uint8_t     decmils = static_cast<uint8_t>(to_int(str));
-
-      return extended_symbol{symbol{decmils, sym.c_str()}, N(extendxtoken)};
-   }
-
-   symbol sym_from_string(const std::string& tokenstr) { return ext_sym_from_string(tokenstr).sym; }
-
-   std::string to_symbol_code_string(const std::string& tokenstr) {
-      std::vector<std::string> strvec = parse_string(tokenstr);
-      const int                len    = strvec.size();
-      BOOST_REQUIRE_EQUAL(len, 2);
-      std::string            str     = strvec[0];
-      std::string            sym     = strvec[1];
-      uint8_t                decmils = 0;
-      std::string::size_type pos     = str.find(".");
-      if (pos != std::string::npos) {
-         decmils = str.size() - pos - 1;
-      }
-      return std::to_string(decmils) + "," + sym;
-
-      //   str.erase(std::remove(str.begin(), str.end(), '.'), str.end());
-      //   int64_t value = static_cast<int64_t>(to_int(str));
-      //   return extended_asset{asset{value, symbol{decmils, sym.c_str()}}, name{"extendxtoken"}};
-   }
-
-   //    action_result push_action(const account_name& signer, const action_name& name, const variant_object& data) {
-   //       string action_type_name = abi_ser.get_action_type(name);
-
-   //       action act;
-   //       act.account = N(extendxtoken);
-   //       act.name    = name;
-   //       act.data    = abi_ser.variant_to_binary(action_type_name, data, abi_serializer_max_time);
-
-   //       return base_tester::push_action(std::move(act), signer.to_uint64_t());
-   //    }
-
-   fc::variant get_stats(const string& symbolname, name contract_name = N(extendxtoken)) {
-      auto         symb        = eosio::chain::symbol::from_string(symbolname);
-      auto         symbol_code = symb.to_symbol_code().value;
-      vector<char> data        = get_row_by_account(N(eoswapeoswap), contract_name, N(stat), account_name(symbol_code));
-      return data.empty() ? fc::variant() : abi_ser.binary_to_variant("currency_stats", data, abi_serializer_max_time);
-   }
-
-   std::string get_account(account_name acc, const string& symbolname, name contract_name = N(extendxtoken)) {
-      //   auto         symb        = eosio::chain::symbol::from_string(symbolname);
-      //   auto         symbol_code = symb.to_symbol_code().value;
-      //   vector<char> data        = get_row_by_account(N(eoswapeoswap), acc, N(accounts),
-      //   account_name(symbol_code)); return data.empty() ? fc::variant() : abi_ser.binary_to_variant("account",
-      //   data, abi_serializer_max_time);
-      auto a = get_accountx(acc, symbolname);
-      return (a.is_null() ? "" : a.as_string());
-   }
-
-   fc::variant get_accountx(account_name acc, const string& symbolname) {
-      vector<char> data;
-      const auto&  db  = control->db();
-      namespace chain  = eosio::chain;
-      const auto* t_id = db.find<eosio::chain::table_id_object, chain::by_code_scope_table>(
-          boost::make_tuple(N(eoswapeoswap), acc, N(accounts)));
-      if (!t_id) {
-         LINE_DEBUG;
-         return fc::variant();
-      }
-
-      const auto& idx = db.get_index<chain::key_value_index, chain::by_scope_primary>();
-
-      auto itr = idx.lower_bound(boost::make_tuple(t_id->id, 0));
-      if (itr == idx.end() || itr->t_id != t_id->id || 0 != itr->primary_key) {
-         LINE_DEBUG;
-
-         return fc::variant();
-      }
-
-      for (; itr != idx.end(); ++itr) {
-         data.resize(itr->value.size());
-         memcpy(data.data(), itr->value.data(), data.size());
-         LINE_DEBUG;
-
-         if (!data.empty()) {
-            LINE_DEBUG;
-
-            auto d = abi_ser.binary_to_variant("account", data, abi_serializer_max_time);
-            // BOOST_TEST_CHECK(nullptr == d);
-            std::string str = to_symbol_code_string(d["balance"]["quantity"].as_string());
-            if (str == symbolname) {
-               LINE_DEBUG;
-
-               return d["balance"]["quantity"];
-            }
-         }
-      }
+   void before4testparam() {
+      name pool_name = N(dai2mkr11111);
       LINE_DEBUG;
+      newpool(admin, pool_name);
+      setcontroler(admin, pool_name, newcontroller);
 
-      return fc::variant();
-   }
+      LINE_DEBUG;
+      // await pool.setSwapFee(toWei('0.003'));
+      setswapfee(newcontroller, pool_name, 1000000);
 
-   action_result create(account_name issuer, extended_asset maximum_supply) {
-
-      return push_action(N(eoswapeoswap), N(create), mvo()("issuer", issuer)("maximum_supply", maximum_supply));
-   }
-
-   action_result issue(account_name issuer, extended_asset quantity, string memo) {
-      return push_action(issuer, N(issue), mvo()("to", issuer)("quantity", quantity)("memo", memo));
-   }
-
-   action_result retire(account_name issuer, extended_asset quantity, string memo) {
-      return push_action(issuer, N(retire), mvo()("quantity", quantity)("memo", memo));
-   }
-
-   action_result transfer(account_name from, account_name to, extended_asset quantity, string memo) {
-      return push_action(from, N(transfer), mvo()("from", from)("to", to)("quantity", quantity)("memo", memo));
-   }
-
-   action_result open(account_name owner, const extended_symbol& symbol, account_name ram_payer) {
-      return push_action(ram_payer, N(open), mvo()("owner", owner)("symbol", symbol)("ram_payer", ram_payer));
-   }
-
-   action_result close(account_name owner, const extended_symbol& symbol) {
-      return push_action(owner, N(close), mvo()("owner", owner)("symbol", symbol));
-   }
-
-   void check_pools(name pool_name) {
-#ifdef EOSWAP_DEBUG
-      auto pool = get_pool_table(pool_name);
-      BOOST_TEST_CHECK(nullptr == pool);
-#endif
-   }
-   void check_balances(name pool_name, name acc, const std::vector<std::vector<std::string>>& expected_token_balances) {
-#ifdef EOSWAP_DEBUG
-      BOOST_TEST_CHECK(acc == N(acc));
-      check_pools(pool_name);
-      for (auto token_name : expected_token_balances) {
-         auto r = records(pool_name, to_sym(token_name[0]));
-         BOOST_TEST_CHECK(token_name[1] == r["balance"].as_string());
-
-         const auto ab = get_balancex(acc, to_sym(token_name[0]).sym);
-         BOOST_TEST_CHECK(eosio::chain::asset::from_string(token_name[2] + " " + token_name[0]) == ab);
+      std::vector<name>        users{admin, newcontroller, nonadmin, user1};
+      std::vector<std::string> tokens{"BTC", "USD"};
+      LINE_DEBUG;
+      for (auto token : tokens) {
+         newtoken(tokenissuer, to_maximum_supply(token));
       }
-#endif
+
+      for (auto token : tokens) {
+         for (auto user : users) {
+            mint(user, to_wei_asset(900000000, token));
+         }
+      }
+
+      mint(user2, to_wei_asset(400, "BTC"));
+      mint(user2, to_wei_asset(400, "USD"));
+
+      std::vector<std::tuple<uint64_t, std::string, uint64_t>> bind_data{std::make_tuple(1004954399002085, "BTC", 5),
+                                                                         std::make_tuple(200489683601209, "USD", 5)};
+      LINE_DEBUG;
+      for (auto d : bind_data) {
+         bind(newcontroller, pool_name, to_asset(std::get<0>(d), std::get<1>(d)), to_wei(std::get<2>(d)));
+      }
+
+      LINE_DEBUG;
+      finalize(newcontroller, pool_name);
+
+      LINE_DEBUG;
+      std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
+      joinpool(user1, pool_name, to_weight(5), v);
    }
 
    /////////////extended token////////////////////
@@ -1324,6 +1368,48 @@ BOOST_FIXTURE_TEST_CASE(swapExactAmountOut_balance_not_enough_tests, eoswap_test
        swapamtout(user2, pool_name, to_wei_asset(4, "USD"), to_wei_asset(1, "BTC"), to_wei(50000000)));
 
    check_balances(pool_name, user1, expected_token_balances);
+}
+FC_LOG_AND_RETHROW()
+
+
+BOOST_FIXTURE_TEST_CASE(testswapExactAmountIn_tests, eoswap_tester) try {
+   before4testparam();
+   name                                  pool_name = N(dai2mkr11111);
+   std::vector<std::vector<std::string>> expected_token_balances{std::vector<std::string>{"BTC", "10000", "1000"},
+                                                                 std::vector<std::string>{"USD", "10000", "10000"}};
+   std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
+
+    // "BTC": {
+    //   "denorm": 5000000,
+    //   "balance": "10049543990020852"
+    // },
+    // "USD": {
+    //   "denorm": 5000000,
+    //   "balance": "200489683601209983"
+    // },
+    // "swapFee": 1000000,
+    // "totalWeight": 10000000
+
+   check_balances(pool_name, user1, expected_token_balances);
+
+   LINE_DEBUG;
+   tswapamtin(user1, pool_name, to_asset(210000, "BTC"), to_asset(100, "USD"), to_wei(50000000),test_parameters);
+
+   check_balances(pool_name, user1, expected_token_balances);
+
+   LINE_DEBUG;
+   tswapamtin(user1, pool_name, to_asset(2100, "BTC"), to_asset(10, "USD"), to_wei(50000000),test_parameters);
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(testswapExactAmountOut_tests, eoswap_tester) try {
+   before4testparam();
+   name pool_name = N(dai2mkr11111);
+   auto pool      = get_pool_table(pool_name);
+   std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
+   LINE_DEBUG;
+   tswapamtout(user1, pool_name, to_asset(43008800502, "USD"), to_asset(21000, "BTC"), to_wei(50000000),test_parameters);
+   pool = get_pool_table(pool_name);
 }
 FC_LOG_AND_RETHROW()
 
