@@ -91,9 +91,11 @@ class BMath : public BNum {
       double bar = 1 - foo;
       //   uint256m tokenAmountOut  = bmul(tokenBalanceOut, bar);
       double tokenAmountOut = double(tokenBalanceOut) / BONE * bar;
-    my_print_f("=weightRatio=%=,adjustedIn=%=,dtokenBalanceIn=%=, y=%=, foo=%=,bar=%=, tokenAmountOut=%=",weightRatio,adjustedIn,dtokenBalanceIn, y, foo,bar, tokenAmountOut);
+      my_print_f(
+          "=weightRatio=%=,adjustedIn=%=,dtokenBalanceIn=%=, y=%=, foo=%=,bar=%=, tokenAmountOut=%=", weightRatio,
+          adjustedIn, dtokenBalanceIn, y, foo, bar, tokenAmountOut);
 
-      return tokenAmountOut*BONE;
+      return tokenAmountOut * BONE;
    }
 
    /**********************************************************************************************
@@ -120,7 +122,34 @@ class BMath : public BNum {
       foo                    = bsub(foo, BONE);
       uint256m tokenAmountIn = bsub(BONE, swapFee);
       tokenAmountIn          = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
+      if (tokenAmountIn == 0) {
+         tokenAmountIn =
+             dcalcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);
+      }
+
       return tokenAmountIn;
+   }
+
+   double dcalcInGivenOut(
+       uint256m tokenBalanceIn, uint256m tokenWeightIn, uint256m tokenBalanceOut, uint256m tokenWeightOut,
+       uint256m tokenAmountOut, uint256m swapFee) {
+
+      //   uint256m weightRatio   = bdiv(tokenWeightOut, tokenWeightIn);
+      double weightRatio = double(tokenWeightOut) / tokenWeightIn;
+      //   uint256m diff          = bsub(tokenBalanceOut, tokenAmountOut);
+      double diff = tokenBalanceOut - tokenAmountOut;
+      //   uint256m y             = bdiv(tokenBalanceOut, diff);
+      double y = double(tokenBalanceOut) / diff / BONE;
+      //   uint256m foo           = bpow(y, weightRatio);
+      double foo = std::pow(y, weightRatio);
+      //   foo                    = bsub(foo, BONE);
+      foo = foo - 1;
+      //   uint256m tokenAmountIn = bsub(BONE, swapFee);
+      double tokenAmountIn = 1 - double(swapFee) / BONE;
+      //   tokenAmountIn          = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
+      tokenAmountIn = double(tokenBalanceIn)/BONE * foo / tokenAmountIn;
+
+      return tokenAmountIn * BONE;
    }
 
    /**********************************************************************************************
