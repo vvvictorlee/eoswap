@@ -52,17 +52,27 @@ class Settlement : virtual public Storage {
       stores._QUOTE_BALANCE_ = add(stores._QUOTE_BALANCE_, amount);
    }
 
-   void _baseTokenTransferOut(address to, const extended_asset& tokenamount) {
+   void _baseTokenTransferOut(address to, const extended_asset& tokenamount, bool is_withdraw = false) {
       uint256 amount = tokenamount.quantity.amount;
       //   IERC20(_BASE_TOKEN_).safeTransfer(to, amount);
-      transfer_mgmt::static_transfer(stores.dodo_name, to, tokenamount, "");
+      extended_asset amountx = tokenamount;
+      if (is_withdraw) {
+         amountx = transfer_mgmt::sub_transfer_fee(amountx, true);
+      }
+      transfer_mgmt::static_transfer(stores.dodo_name, to, amountx, "");
       stores._BASE_BALANCE_ = sub(stores._BASE_BALANCE_, amount);
    }
 
-   void _quoteTokenTransferOut(address to, const extended_asset& tokenamount) {
+   void _quoteTokenTransferOut(address to, const extended_asset& tokenamount, bool is_withdraw = false) {
       uint256 amount = tokenamount.quantity.amount;
       //   IERC20(_QUOTE_TOKEN_).safeTransfer(to, amount);
-      transfer_mgmt::static_transfer(stores.dodo_name, to, tokenamount, "");
+      extended_asset amountx = tokenamount;
+      if (is_withdraw) {
+         amountx = transfer_mgmt::sub_transfer_fee(amountx, true);
+      }
+
+      transfer_mgmt::static_transfer(stores.dodo_name, to, amountx, "");
+
       stores._QUOTE_BALANCE_ = sub(stores._QUOTE_BALANCE_, amount);
    }
 
@@ -80,7 +90,7 @@ class Settlement : virtual public Storage {
 
    void donateBaseToken(const extended_asset& tokenamount) {
       if (tokenamount.quantity.amount <= 0) {
-         return ;
+         return;
       }
       uint256 amount = tokenamount.quantity.amount;
       _baseTokenTransferIn(getMsgSender(), tokenamount);
@@ -89,7 +99,7 @@ class Settlement : virtual public Storage {
 
    void donateQuoteToken(const extended_asset& tokenamount) {
       if (tokenamount.quantity.amount <= 0) {
-         return ;
+         return;
       }
       uint256 amount = tokenamount.quantity.amount;
       _quoteTokenTransferIn(getMsgSender(), tokenamount);
