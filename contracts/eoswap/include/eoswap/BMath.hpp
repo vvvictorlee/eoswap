@@ -36,9 +36,28 @@ class BMath : public BNum {
       uint256m ratio     = bdiv(numer, denom);
       uint256m scale     = bdiv(BONE, bsub(BONE, swapFee));
       uint256m spotPrice = bmul(ratio, scale);
+      //   my_print_f("=numer=%=,denom=%=,ratio=%=,scale=%=,spotPrice=%=", numer, denom, ratio, scale, spotPrice);
+
       return spotPrice;
    }
 
+   uint256m dcalcSpotPrice(
+       uint256m tokenBalanceIn, uint256m tokenWeightIn, uint256m tokenBalanceOut, uint256m tokenWeightOut,
+       uint256m swapFee) {
+      //   uint256m numer     = bdiv(tokenBalanceIn, tokenWeightIn);
+      double numer = double(tokenBalanceIn) / tokenWeightIn;
+      //   uint256m denom     = bdiv(tokenBalanceOut, tokenWeightOut);
+      double denom = double(tokenBalanceOut) / tokenWeightOut;
+      //   uint256m ratio     = bdiv(numer, denom);
+      double ratio = numer / denom;
+      //   uint256m scale     = bdiv(BONE, bsub(BONE, swapFee));
+      double scale = 1 / double(1 - double(swapFee) / BONE);
+      //   uint256m spotPrice = bmul(ratio, scale);
+      double spotPrice = ratio * scale*BONE;
+      my_print_f("=numer=%=,denom=%=,ratio=%=,scale=%=,spotPrice=%=", numer, denom, ratio, scale, spotPrice);
+
+      return spotPrice;
+   }
    /**********************************************************************************************
    // calcOutGivenIn //
    // aO = tokenAmountOut //
@@ -125,6 +144,9 @@ class BMath : public BNum {
       if (tokenAmountIn == 0) {
          tokenAmountIn =
              dcalcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);
+         //   my_print_f(
+         //       "=weightRatio=%=,diff=%=,dtokenBalanceIn=%=, y=%=, foo=%=, tokenAmountIn=%=", weightRatio,
+         //       diff, tokenBalanceIn, y, foo,  tokenAmountIn);
       }
 
       return tokenAmountIn;
@@ -137,17 +159,21 @@ class BMath : public BNum {
       //   uint256m weightRatio   = bdiv(tokenWeightOut, tokenWeightIn);
       double weightRatio = double(tokenWeightOut) / tokenWeightIn;
       //   uint256m diff          = bsub(tokenBalanceOut, tokenAmountOut);
-      double diff = tokenBalanceOut - tokenAmountOut;
+      double diff = double(tokenBalanceOut - tokenAmountOut) / BONE;
       //   uint256m y             = bdiv(tokenBalanceOut, diff);
-      double y = double(tokenBalanceOut) / diff / BONE;
+      double y = double(tokenBalanceOut) / BONE / diff;
       //   uint256m foo           = bpow(y, weightRatio);
-      double foo = std::pow(y, weightRatio);
+      double foo1 = std::pow(y, weightRatio);
       //   foo                    = bsub(foo, BONE);
-      foo = foo - 1;
+      double foo = foo1 - 1;
       //   uint256m tokenAmountIn = bsub(BONE, swapFee);
       double tokenAmountIn = 1 - double(swapFee) / BONE;
       //   tokenAmountIn          = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
-      tokenAmountIn = double(tokenBalanceIn)/BONE * foo / tokenAmountIn;
+      tokenAmountIn = double(tokenBalanceIn) / BONE * foo / tokenAmountIn;
+
+      //   my_print_f(
+      //       "=dweightRatio=%=,diff=%=,dtokenBalanceIn=%=, y=%=, foo=%=,foo1=%=, tokenAmountIn=%=", weightRatio,
+      //       diff, tokenBalanceIn, y, foo,foo1,  tokenAmountIn);
 
       return tokenAmountIn * BONE;
    }

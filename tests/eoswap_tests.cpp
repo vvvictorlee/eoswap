@@ -1118,9 +1118,9 @@ void beforejoinpooleqbind() {
       LINE_DEBUG;
       finalize(newcontroller, pool_name);
 
-      LINE_DEBUG;
-      std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
-      joinpool(user1, pool_name, to_weight(5), v);
+    //   LINE_DEBUG;
+    //   std::vector<uint256m> v{uint256m(-1), uint256m(-1), uint256m(-1)};
+    //   joinpool(user1, pool_name, to_weight(5), v);
    }
 
    /////////////extended token////////////////////
@@ -1408,7 +1408,7 @@ BOOST_FIXTURE_TEST_CASE(testswapExactAmountOut_tests, eoswap_tester) try {
    auto pool      = get_pool_table(pool_name);
    std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
    LINE_DEBUG;
-   tswapamtout(user1, pool_name, to_asset(43008800502, "USD"), to_asset(21000, "BTC"), to_wei(50000000),test_parameters);
+   tswapamtout(user1, pool_name, to_asset(43008802, "USD"), to_asset(210000, "BTC"), to_wei(50000000),test_parameters);
    pool = get_pool_table(pool_name);
 }
 FC_LOG_AND_RETHROW()
