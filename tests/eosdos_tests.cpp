@@ -8,7 +8,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 #include <fc/variant_object.hpp>
 #include <sstream>
-// #define EOSDOS_DEBUG
+#define EOSDOS_DEBUG
 #ifdef EOSDOS_DEBUG
 #define LINE_DEBUG BOOST_TEST_CHECK(__LINE__ == 0);
 #else
@@ -91,7 +91,7 @@ class eosdos_tester : public tester {
 
       create_accounts({N(alice), N(bob), N(carol), N(eosdoseosdos), N(eosdosoracle), N(ethbasemkr11), N(ethquotemkr1),
                        N(daimkrdaimkr), N(maintainer11), N(tokenissuer1), N(dodoowner111)});
-      create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(roxe.ro), N(orc.polygon)});
+      create_accounts({N(weth), N(dai), N(mkr), N(xxx), N(roxe.ro), N(orc.polygon), N(newprovider1)});
       produce_blocks(2);
       oracleadmin = N(orc.polygon);
       admin       = N(eosdoseosdos);
@@ -137,17 +137,17 @@ class eosdos_tester : public tester {
       create_account_with_resources(N(carol1111111), N(eosio), core_sym::from_string("1.0000"), false);
       create_account_with_resources(N(david1111111), N(eosio), core_sym::from_string("1.0000"), false);
 
-      set_code(N(roxe.ro), contracts::token_wasm());
-      set_abi(N(roxe.ro), contracts::token_abi().data());
+      set_code(N(roxe.ro), contracts::tokenize_wasm());
+      set_abi(N(roxe.ro), contracts::tokenize_abi().data());
 
-      set_code(N(ethbasemkr11), contracts::token_wasm());
-      set_abi(N(ethbasemkr11), contracts::token_abi().data());
+    //   set_code(N(ethbasemkr11), contracts::token_wasm());
+    //   set_abi(N(ethbasemkr11), contracts::token_abi().data());
 
-      set_code(N(ethquotemkr1), contracts::token_wasm());
-      set_abi(N(ethquotemkr1), contracts::token_abi().data());
+    //   set_code(N(ethquotemkr1), contracts::token_wasm());
+    //   set_abi(N(ethquotemkr1), contracts::token_abi().data());
 
-      set_code(N(daimkrdaimkr), contracts::token_wasm());
-      set_abi(N(daimkrdaimkr), contracts::token_abi().data());
+    //   set_code(N(daimkrdaimkr), contracts::token_wasm());
+    //   set_abi(N(daimkrdaimkr), contracts::token_abi().data());
 
       std::vector<string> accounts  = {"alice1111111", "bob111111111", "carol1111111", "david1111111"};
       std::vector<name>   taccounts = {N(alice), N(bob), N(eosdoseosdos)};
@@ -493,6 +493,10 @@ class eosdos_tester : public tester {
           msg_sender, N(setprice), mvo()("msg_sender", msg_sender)("basetoken", basetoken)("quotetoken", quotetoken));
    }
 
+   action_result setoracle(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken,name newprovider) {
+      return push_action(
+          msg_sender, N(setoracle), mvo()("msg_sender", msg_sender)("basetoken", basetoken)("quotetoken", quotetoken)("newprovider", newprovider));
+   }
    action_result moveoracle(name msg_sender) {
       return push_action(msg_sender, N(moveoracle), mvo()("msg_sender", msg_sender));
    }
@@ -687,8 +691,8 @@ class eosdos_tester : public tester {
 
    fc::variant get_oracle_table(const extended_symbol& basetoken, const extended_symbol& quotetoken) {
       uint64_t    key = get_hash_key(get_checksum256(
-          basetoken.contract.to_uint64_t(), basetoken.sym.value(), quotetoken.contract.to_uint64_t(),
-          quotetoken.sym.value()));
+          basetoken.contract.to_uint64_t(), basetoken.sym.to_symbol_code().value, quotetoken.contract.to_uint64_t(),
+          quotetoken.sym.to_symbol_code().value));
       const auto& db  = control->db();
       const auto* tbl = db.find<table_id_object, by_code_scope_table>(
           boost::make_tuple(N(eosdoseosdos), N(eosdoseosdos), N(oracleprices)));
@@ -948,6 +952,7 @@ class eosdos_tester : public tester {
    }
 
    void mintStableBefore() {
+    LINE_DEBUG;
       mint(lp, to_wei_asset(10000, "DAI"));
       LINE_DEBUG;
 
@@ -2143,7 +2148,10 @@ BOOST_FIXTURE_TEST_CASE(setprice_tests, eosdos_tester) try {
       BOOST_REQUIRE_EQUAL(b, a);
    }
 
-   moveoracle(admin);
+   setoracle(oracleadmin, to_sym("MKR"), to_wei_asset(30, "WETH"),N(newprovider1));
+   setprice(N(newprovider1), to_sym("MKR"), to_wei_asset(30, "WETH"));
+
+   moveoracle(oracleadmin);
 }
 FC_LOG_AND_RETHROW()
 

@@ -34,7 +34,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
    //    static constexpr eosio::name     tokenissuer_account{"tokenissuer1"_n};
    //    static constexpr eosio::name     dostoken_account{"eosdosxtoken"_n};
    //    static constexpr eosio::name     maintainer_account{"maintainer11"_n};
-      static constexpr eosio::name     oracle_account{"orc.polygon"_n};
+   static constexpr eosio::name     oracle_account{"orc.polygon"_n};
    static constexpr extended_symbol weth_symbol = {symbol(symbol_code("WETH"), 4), "eosdosxtoken"_n};
 
    eosdos(name s, name code, eosio::datastream<const char*> ds)
@@ -327,20 +327,37 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       _instance_mgmt.get_dodo(msg_sender, dodo_name, [&](auto& dodo) {
          dodo.check_base_token(minReceiveBase.get_extended_symbol());
          dodo.check_quote_token(amount.get_extended_symbol());
-         (void)dodo.sellQuote(minReceiveBase.quantity.amount,amount.quantity.amount,{});
+         (void)dodo.sellQuote(minReceiveBase.quantity.amount, amount.quantity.amount, {});
       });
    }
 
    ////////////////////   Oracle////////////////////////
    [[eosio::action]] void setprice(
        name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
-      check(oracle_account == msg_sender, "no oracle admin");
+      bool s = _self == msg_sender || oracle_account == msg_sender ||
+               _instance_mgmt.get_storage_mgmt().check_oracle_provider(msg_sender, basetoken, quotetoken);
+      check(
+          _self == msg_sender || oracle_account == msg_sender ||
+              _instance_mgmt.get_storage_mgmt().check_oracle_provider(msg_sender, basetoken, quotetoken),
+          "no oracle admin");
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_storage_mgmt().save_oracle_prices(msg_sender, basetoken, quotetoken);
    }
 
+   [[eosio::action]] void setoracle(
+       name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken, name newprovider) {
+
+      check(
+          _self == msg_sender || oracle_account == msg_sender ||
+              _instance_mgmt.get_storage_mgmt().check_oracle_provider(msg_sender, basetoken, quotetoken),
+          "no oracle admin provider");
+
+      proxy.setMsgSender(msg_sender);
+      _instance_mgmt.get_storage_mgmt().save_oracle_prices(msg_sender, basetoken, quotetoken, newprovider);
+   }
+
    [[eosio::action]] void moveoracle(name msg_sender) {
-      check(oracle_account == msg_sender, "no oracle admin");
+      check(oracle_account == msg_sender, "no oracle admin in moveoracle");
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_storage_mgmt().move_oracle_price(msg_sender);
    }
@@ -366,6 +383,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
       proxy.setMsgSender(msg_sender);
       _instance_mgmt.get_token<TestERC20>(
           msg_sender, amt.get_extended_symbol(), [&](auto& _token_) { _token_.mint(msg_sender, amt.quantity.amount); });
+      my_print_f("==mint======");
    }
 
    //    /////test  BUY&SELL interface /////
@@ -377,7 +395,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
          dodo.check_base_token(amount.get_extended_symbol());
          dodo.check_quote_token(minReceiveQuote.get_extended_symbol());
          dodo.setTestParameters(params);
-         (void)dodo.sellBaseToken( amount.quantity.amount,minReceiveQuote.quantity.amount, {});
+         (void)dodo.sellBaseToken(amount.quantity.amount, minReceiveQuote.quantity.amount, {});
       });
    }
 
@@ -401,7 +419,7 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
          dodo.check_base_token(minReceiveBase.get_extended_symbol());
          dodo.check_quote_token(amount.get_extended_symbol());
          dodo.setTestParameters(params);
-         (void)dodo.sellQuote(minReceiveBase.quantity.amount, amount.quantity.amount,{});
+         (void)dodo.sellQuote(minReceiveBase.quantity.amount, amount.quantity.amount, {});
       });
    }
 
@@ -422,6 +440,16 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
 
    [[eosio::action]] void setparametera(const symbol& symbol, const std::vector<int64_t> params) {
       _tokenize.setparameter(symbol, params);
+      name tokencontract = "roxe.ro"_n;
+      action(
+          permission_level{tokencontract, "active"_n}, tokencontract, "setfeeper"_n, std::make_tuple(symbol, params[1]))
+          .send();
+      action(
+          permission_level{tokencontract, "active"_n}, tokencontract, "setminfee"_n, std::make_tuple(symbol, params[2]))
+          .send();
+      action(
+          permission_level{tokencontract, "active"_n}, tokencontract, "setmaxfee"_n, std::make_tuple(symbol, params[3]))
+          .send();
    }
 
    ////////////////////on_notify////////////////////

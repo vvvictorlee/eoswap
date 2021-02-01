@@ -7,6 +7,7 @@ case "$1" in
 "ex") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/exitpool_tests -- --verbose ;;
 "ti") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/testswapExactAmountIn_tests -- --verbose ;;
 "to") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/testswapExactAmountOut_tests -- --verbose ;;
+"tt") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/testswapExactAmount* -- --verbose ;;
 "i") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/swapExactAmountIn_tests -- --verbose ;;
 "o") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/swapExactAmountOut_balance_not_enough_tests -- --verbose ;;
 "is") ./build/tests/unit_test --log_level=test_suite --run_test=eoswap_tests/issue_tests -- --verbose ;;

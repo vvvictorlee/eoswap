@@ -1397,8 +1397,54 @@ BOOST_FIXTURE_TEST_CASE(testswapExactAmountIn_tests, eoswap_tester) try {
 
    check_balances(pool_name, user1, expected_token_balances);
 
+//    LINE_DEBUG;
+//    tswapamtin(user1, pool_name, to_asset(2100, "BTC"), to_asset(10, "USD"), to_wei(50000000),test_parameters);
+}
+FC_LOG_AND_RETHROW()
+
+
+BOOST_FIXTURE_TEST_CASE(testswapExactAmountIn1_tests, eoswap_tester) try {
+   before4testparam();
+   name                                  pool_name = N(dai2mkr11111);
+   std::vector<std::vector<std::string>> expected_token_balances{std::vector<std::string>{"BTC", "10000", "1000"},
+                                                                 std::vector<std::string>{"USD", "10000", "10000"}};
+   std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
+ 
+   check_balances(pool_name, user1, expected_token_balances);
+
    LINE_DEBUG;
-   tswapamtin(user1, pool_name, to_asset(2100, "BTC"), to_asset(10, "USD"), to_wei(50000000),test_parameters);
+   tswapamtin(user1, pool_name, to_wei_asset(1, "BTC"), to_asset(100, "USD"), to_wei(50000000),test_parameters);
+   check_balances(pool_name, user1, expected_token_balances);
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(testswapExactAmountIn100_tests, eoswap_tester) try {
+   before4testparam();
+   name                                  pool_name = N(dai2mkr11111);
+   std::vector<std::vector<std::string>> expected_token_balances{std::vector<std::string>{"BTC", "10000", "1000"},
+                                                                 std::vector<std::string>{"USD", "10000", "10000"}};
+   std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
+ 
+   check_balances(pool_name, user1, expected_token_balances);
+
+   LINE_DEBUG;
+   tswapamtin(user1, pool_name, to_wei_asset(100, "BTC"), to_asset(100, "USD"), to_wei(50000000),test_parameters);
+   check_balances(pool_name, user1, expected_token_balances);
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(testswapExactAmountIn10000_tests, eoswap_tester) try {
+   before4testparam();
+   name                                  pool_name = N(dai2mkr11111);
+   std::vector<std::vector<std::string>> expected_token_balances{std::vector<std::string>{"BTC", "10000", "1000"},
+                                                                 std::vector<std::string>{"USD", "10000", "10000"}};
+   std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
+ 
+   check_balances(pool_name, user1, expected_token_balances);
+
+   LINE_DEBUG;
+   tswapamtin(user1, pool_name, to_wei_asset(10000, "BTC"), to_asset(100, "USD"), to_wei(50000000),test_parameters);
+   check_balances(pool_name, user1, expected_token_balances);
 }
 FC_LOG_AND_RETHROW()
 
@@ -1409,6 +1455,40 @@ BOOST_FIXTURE_TEST_CASE(testswapExactAmountOut_tests, eoswap_tester) try {
    std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
    LINE_DEBUG;
    tswapamtout(user1, pool_name, to_asset(43008802, "USD"), to_asset(210000, "BTC"), to_wei(50000000),test_parameters);
+   pool = get_pool_table(pool_name);
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(testswapExactAmountOut1_tests, eoswap_tester) try {
+   before4testparam();
+   name pool_name = N(dai2mkr11111);
+   auto pool      = get_pool_table(pool_name);
+   std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
+   LINE_DEBUG;
+   tswapamtout(user1, pool_name, to_wei_asset(43008802, "USD"), to_wei_asset(1, "BTC"), to_wei(50000000),test_parameters);
+   pool = get_pool_table(pool_name);
+}
+FC_LOG_AND_RETHROW()
+
+BOOST_FIXTURE_TEST_CASE(testswapExactAmountOut100_tests, eoswap_tester) try {
+   before4testparam();
+   name pool_name = N(dai2mkr11111);
+   auto pool      = get_pool_table(pool_name);
+   std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
+   LINE_DEBUG;
+   tswapamtout(user1, pool_name, to_wei_asset(43008802, "USD"), to_wei_asset(100, "BTC"), to_wei(50000000),test_parameters);
+   pool = get_pool_table(pool_name);
+}
+FC_LOG_AND_RETHROW()
+
+
+BOOST_FIXTURE_TEST_CASE(testswapExactAmountOut10000_tests, eoswap_tester) try {
+   before4testparam();
+   name pool_name = N(dai2mkr11111);
+   auto pool      = get_pool_table(pool_name);
+   std::vector<int64_t> test_parameters{ 5000000, 10049543990020852,5000000, 200489683601209983,1000000};
+   LINE_DEBUG;
+   tswapamtout(user1, pool_name, to_wei_asset(43008802, "USD"), to_wei_asset(10000, "BTC"), to_wei(50000000),test_parameters);
    pool = get_pool_table(pool_name);
 }
 FC_LOG_AND_RETHROW()

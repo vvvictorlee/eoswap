@@ -19,6 +19,7 @@ case "$1" in
 "se") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buysell_base_testparam_formula_tests -- --verbose ;;
 "w1") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buysell_base_target_quote_wrong_testparam_formula_tests -- --verbose ;;
 "s1") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/buysell_prod_1000_base_testparam_formula_tests -- --verbose ;;
+"sa") ./build/tests/unit_test --log_level=test_suite --run_test=eosdos_tests/setadmin_tests -- --verbose ;;
 
 
 

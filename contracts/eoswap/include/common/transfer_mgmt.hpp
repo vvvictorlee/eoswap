@@ -113,7 +113,7 @@ class transfer_mgmt {
          return quantity;
       }
 
-      asset fee;
+      asset   fee;
       int64_t signedOne = -1;
 
       ////transfer fee
@@ -183,12 +183,19 @@ class transfer_mgmt {
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
       check(memo.size() <= 256, "memo has more than 256 bytes");
       auto issuer = get_issuer(quantity.get_extended_symbol());
-      action(
-          permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
-          std::make_tuple(issuer, quantity.quantity, memo))
-          .send();
-      if (to != issuer) {
-         transfer(issuer, to, quantity, memo);
+      if (quantity.contract == "roxe.ro"_n) {
+         action(
+             permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
+             std::make_tuple(issuer, to, quantity.quantity, memo))
+             .send();
+      } else {
+         action(
+             permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
+             std::make_tuple(issuer, quantity.quantity, memo))
+             .send();
+         if (to != issuer) {
+            transfer(issuer, to, quantity, memo);
+         }
       }
    }
 

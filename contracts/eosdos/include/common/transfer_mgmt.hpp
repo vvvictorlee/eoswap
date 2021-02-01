@@ -145,6 +145,8 @@ class transfer_mgmt {
           std::make_tuple(from, to, quantity.quantity, memo))
           .send();
 
+      my_print_f("==static_transfer end======");
+
       //   token::transfer_action transfer_act{ token_account, { {bidder, active_permission} } };
       //   transfer_act.send( bidder, names_account, bid, std::string("bid name ")+ newname.to_string() );
 
@@ -172,12 +174,20 @@ class transfer_mgmt {
       check(quantity.quantity.amount > 0, "must transfer positive quantity");
       check(memo.size() <= 256, "memo has more than 256 bytes");
       auto issuer = get_issuer(quantity.get_extended_symbol());
-      action(
-          permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
-          std::make_tuple(issuer, quantity.quantity, memo))
-          .send();
-      if (to != issuer) {
-         static_transfer(issuer, to, quantity, memo);
+      if (quantity.contract == "roxe.ro"_n) {
+         action(
+             permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
+             std::make_tuple(issuer, to, quantity.quantity, memo))
+             .send();
+      } else {
+         action(
+             permission_level{issuer, "active"_n}, quantity.contract, "issue"_n,
+             std::make_tuple(issuer, quantity.quantity, memo))
+             .send();
+         if (to != issuer) {
+            my_print_f("==On static_issue static_transfer :  % % %", to, quantity, memo);
+            static_transfer(issuer, to, quantity, memo);
+         }
       }
    }
 
@@ -192,9 +202,23 @@ class transfer_mgmt {
       if (burnee != issuer) {
          static_transfer(burnee, issuer, quantity, memo);
       }
-      action(
-          permission_level{issuer, "active"_n}, quantity.contract, "retire"_n, std::make_tuple(quantity.quantity, memo))
-          .send();
+
+      if (quantity.contract == "roxe.ro"_n) {
+         //  action(
+         //      permission_level{burnee, "active"_n}, quantity.contract, "retire"_n,
+         //      std::make_tuple(burnee,quantity.quantity, memo))
+         //      .send();
+         action(
+             permission_level{issuer, "active"_n}, quantity.contract, "retire"_n,
+             std::make_tuple(issuer, quantity.quantity, memo))
+             .send();
+
+      } else {
+         action(
+             permission_level{issuer, "active"_n}, quantity.contract, "retire"_n,
+             std::make_tuple(quantity.quantity, memo))
+             .send();
+      }
    }
 
    void d_transfer(name from, name to, extended_asset quantity, std::string memo = "") { //, bool is_deferred = false)

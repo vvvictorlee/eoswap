@@ -380,7 +380,7 @@ class BPool : public BToken, public BMath {
 
       uint64_t p = BMath::bdiv(tokenAmountIn, tokenAmountOut);
       check(
-          spotPriceBefore <= BMath::bdiv(tokenAmountIn, tokenAmountOut),
+          spotPriceBefore/BMath::MIN_BALANCE <= BMath::bdiv(tokenAmountIn, tokenAmountOut)/BMath::MIN_BALANCE,
           "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) + ":tokenAmountOut=" +
               std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
               ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));

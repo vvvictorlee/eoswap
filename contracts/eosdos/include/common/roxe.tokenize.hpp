@@ -21,10 +21,10 @@ using std::vector;
 // using eosiosystem::system_contract;
 
 /**
- * eosio.tokenize contract defines the structures and actions that allow users to create, issue, and manage
+ * roxe.tokenize contract defines the structures and actions that allow users to create, issue, and manage
  * tokens on eosio based blockchains.
  */
-// class [[eosio::contract("eosio.tokenize")]] tokenize : public contract {
+// class [[eosio::contract("roxe.tokenize")]] tokenize : public contract {
 class tokenize {
    name self;
 

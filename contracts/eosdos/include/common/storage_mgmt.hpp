@@ -162,6 +162,14 @@ class storage_mgmt {
       }
    }
 
+   bool check_oracle_provider(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
+      uint64_t            key = convert_to_key(basetoken, quotetoken.get_extended_symbol());
+      oracle_prices_table oraclepricestable(self, self.value);
+      auto                oracle = oraclepricestable.find(key);
+      check(oracle != oraclepricestable.end(), "no pair");
+      return msg_sender == oracle->_OWNER_ || msg_sender == oracle->_NEW_OWNER_;
+   }
+
    void clean_oracle_prices(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
       uint64_t            key = convert_to_key(basetoken, quotetoken.get_extended_symbol());
       oracle_prices_table oraclepricestable(self, self.value);
@@ -187,7 +195,9 @@ class storage_mgmt {
       return key;
    }
 
-   void save_oracle_prices(name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken) {
+   void save_oracle_prices(
+       name msg_sender, const extended_symbol& basetoken, const extended_asset& quotetoken,
+       name newprovider = name(0)) {
       clean_oracle_prices(msg_sender, basetoken, quotetoken);
       uint64_t            key = convert_to_key(basetoken, quotetoken.get_extended_symbol());
       oracle_prices_table oraclepricestable(self, self.value);
@@ -198,11 +208,17 @@ class storage_mgmt {
             o.pair_token_hash_key = key;
             o.basetoken           = basetoken;
             o.quotetoken          = quotetoken;
+            if (newprovider != name(0)) {
+               o._NEW_OWNER_ = newprovider;
+            }
          });
       } else {
          oraclepricestable.modify(oracle, same_payer, [&](auto& o) {
             o.basetoken  = basetoken;
             o.quotetoken = quotetoken;
+            if (newprovider != name(0)) {
+               o._NEW_OWNER_ = newprovider;
+            }
          });
       }
    }
