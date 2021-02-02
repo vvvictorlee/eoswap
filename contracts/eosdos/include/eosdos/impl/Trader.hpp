@@ -119,7 +119,8 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
           "SELL_BASE_RECEIVE_NOT_ENOUGH" + std::to_string(static_cast<uint64_t>(receiveQuote)));
 
       // settle assets
-      _quoteTokenTransferOut(getMsgSender(), extended_asset(static_cast<uint64_t>(receiveQuote), stores._QUOTE_TOKEN_),true);
+      _quoteTokenTransferOut(
+          getMsgSender(), extended_asset(static_cast<uint64_t>(receiveQuote), stores._QUOTE_TOKEN_), true);
       if (data.size() > 0) {
          //  IDODOCallee(getMsgSender()).dodoCall(false, amount, receiveQuote, data);
       }
@@ -132,7 +133,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       _baseTokenTransferIn(getMsgSender(), extended_asset(amount, stores._BASE_TOKEN_));
       if (mtFeeQuote != 0) {
          _quoteTokenTransferOut(
-             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeQuote), stores._QUOTE_TOKEN_),true);
+             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeQuote), stores._QUOTE_TOKEN_), true);
       }
 
       // update TARGET
@@ -166,10 +167,12 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256 payQuote;
       uint256 lpFeeBase;
       uint256 mtFeeBase;
+      uint256 transferFeeBase;
       uint8_t newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
-      std::tie(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget) = _queryBuyBaseToken(amount);
+      std::tie(payQuote, lpFeeBase, mtFeeBase, transferFeeBase, newRStatus, newQuoteTarget, newBaseTarget) =
+          _queryBuyBaseToken(amount);
       require(
           payQuote <= maxPayQuote, std::to_string(static_cast<uint64_t>(payQuote)) + "BUY_BASE_COST_TOO_MUCH" +
                                        std::to_string(static_cast<uint64_t>(maxPayQuote)));
@@ -182,7 +185,11 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       _quoteTokenTransferIn(getMsgSender(), extended_asset(static_cast<uint64_t>(payQuote), stores._QUOTE_TOKEN_));
       if (mtFeeBase != 0) {
          _baseTokenTransferOut(
-             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_),true);
+             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_), true);
+      }
+
+      if (transferFeeBase != 0) {
+         _baseTokenTransferFee(transferFeeBase);
       }
 
       // update TARGET
@@ -215,6 +222,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256 payQuote;
       uint256 lpFeeBase;
       uint256 mtFeeBase;
+      uint256 transferFeeBase;
       uint8_t newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
@@ -225,7 +233,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       uint256        previousamount   = amount;
       uint256        previouspayQuote = amountQuote;
       for (int i = 0; i < times; ++i) {
-         std::tie(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget) =
+         std::tie(payQuote, lpFeeBase, mtFeeBase, transferFeeBase, newRStatus, newQuoteTarget, newBaseTarget) =
              _queryBuyBaseToken(amount);
 
          if (payQuote == 0 || payQuote == previouspayQuote || payQuote == amountQuote) {
@@ -268,7 +276,11 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       _quoteTokenTransferIn(getMsgSender(), extended_asset(static_cast<uint64_t>(payQuote), stores._QUOTE_TOKEN_));
       if (mtFeeBase != 0) {
          _baseTokenTransferOut(
-             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_),true);
+             stores._MAINTAINER_, extended_asset(static_cast<uint64_t>(mtFeeBase), stores._BASE_TOKEN_), true);
+      }
+
+      if (transferFeeBase != 0) {
+         _baseTokenTransferFee(transferFeeBase);
       }
 
       // update TARGET
@@ -300,7 +312,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
 
    uint256 queryBuyBaseToken(uint256 amount) {
       uint256 payQuote                                                                    = 0;
-      std::tie(payQuote, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = _queryBuyBaseToken(amount);
+      std::tie(payQuote, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = _queryBuyBaseToken(amount);
       return payQuote;
    }
 
@@ -384,10 +396,11 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
 
-   std::tuple<uint256, uint256, uint256, uint8_t, uint256, uint256> _queryBuyBaseToken(uint256 amount) {
+   std::tuple<uint256, uint256, uint256,uint256, uint8_t, uint256, uint256> _queryBuyBaseToken(uint256 amount) {
       uint256 payQuote;
       uint256 lpFeeBase;
       uint256 mtFeeBase;
+      uint256 transferFeeBase;
       uint8_t newRStatus;
       uint256 newQuoteTarget;
       uint256 newBaseTarget;
@@ -398,14 +411,13 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
           stores._BASE_BALANCE_, stores._QUOTE_BALANCE_, newBaseTarget, newQuoteTarget);
 
       // charge fee from user receive amount
-      lpFeeBase             = DecimalMath::mul(amount, stores._LP_FEE_RATE_);
-      mtFeeBase             = DecimalMath::mul(amount, stores._MT_FEE_RATE_);
-      uint256 buyBaseAmount = add(add(amount, lpFeeBase), mtFeeBase);
-
+      lpFeeBase = DecimalMath::mul(amount, stores._LP_FEE_RATE_);
+      mtFeeBase = DecimalMath::mul(amount, stores._MT_FEE_RATE_);
       // transferfee
       extended_asset amountx = extended_asset(static_cast<uint64_t>(amount), stores._BASE_TOKEN_);
-      buyBaseAmount += transfer_mgmt::get_transfer_fee(amountx);
+      transferFeeBase        = transfer_mgmt::get_transfer_fee(amountx);
 
+      uint256 buyBaseAmount = add(add(add(amount, lpFeeBase), mtFeeBase), transferFeeBase);
 
       if (stores._R_STATUS_ == Types::RStatus::ONE) {
          // case 1: R=1
@@ -446,6 +458,6 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
          }
       }
 
-      return std::make_tuple(payQuote, lpFeeBase, mtFeeBase, newRStatus, newQuoteTarget, newBaseTarget);
+      return std::make_tuple(payQuote, lpFeeBase, mtFeeBase,transferFeeBase, newRStatus, newQuoteTarget, newBaseTarget);
    }
 };

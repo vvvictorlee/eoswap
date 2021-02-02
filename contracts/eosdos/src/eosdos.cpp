@@ -445,11 +445,12 @@ class [[eosio::contract("eosdos")]] eosdos : public eosio::contract {
           permission_level{tokencontract, "active"_n}, tokencontract, "setfeeper"_n, std::make_tuple(symbol, params[1]))
           .send();
       action(
-          permission_level{tokencontract, "active"_n}, tokencontract, "setminfee"_n, std::make_tuple(symbol, params[2]))
+          permission_level{tokencontract, "active"_n}, tokencontract, "setmaxfee"_n, std::make_tuple(symbol, params[2]))
           .send();
       action(
-          permission_level{tokencontract, "active"_n}, tokencontract, "setmaxfee"_n, std::make_tuple(symbol, params[3]))
+          permission_level{tokencontract, "active"_n}, tokencontract, "setminfee"_n, std::make_tuple(symbol, params[3]))
           .send();
+
    }
 
    ////////////////////on_notify////////////////////

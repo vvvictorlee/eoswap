@@ -31,12 +31,12 @@ void tokenize::create(const name& issuer, const asset& maximum_supply) {
       s.authors       = authors;
 
       s.fee     = default_tx_fee;
-      s.fixed   = true;
+      s.fixed   = false;
       s.percent = 0;
       s.maxfee  = 0;
       s.minfee  = 0;
 
-      s.useroc = true;
+      s.useroc = false;
    });
 }
 
@@ -115,7 +115,7 @@ void tokenize::transfer(const name& from, const name& to, const asset& quantity,
 
 //    symbol fee_sym = st.supply.symbol;
    symbol fee_sym = st.useroc ? system_contract::get_core_symbol() : st.supply.symbol;
-   int64_t fee_amount = st.fixed ? st.fee : quantity.amount * st.percent / 100;
+   int64_t fee_amount = st.fee + quantity.amount * st.percent / percent_decimal;
 
    if (fee_amount < st.minfee)
       fee_amount = st.minfee;
@@ -131,17 +131,20 @@ void tokenize::transfer(const name& from, const name& to, const asset& quantity,
       if (st.useroc) {
          // inline transfer from payer's token balance
          {
-            eosio::name            roxeCode{"active"};
-            token::transfer_action transfer_act{system_contract::token_account, {payer, roxeCode}};
-            transfer_act.send(payer, system_contract::saving_account, fee, "transfer fee");
+            // eosio::name            roxeCode{"active"};
+            // token::transfer_action transfer_act{system_contract::token_account, {payer, roxeCode}};
+            // transfer_act.send(payer, system_contract::saving_account, fee, "transfer fee");
+            print_f("===============================tokenize===========useroc =- =");
          }
       } else {
+            print_f("===============================tokenize===========%",fee,payer);
+
          sub_balance(payer, fee);
          // FIXME to eosio.system:to_saving
          add_balance(system_contract::saving_account, fee, payer);
       }
    }
-
+  print_f("===============================tokenize======from=%, quantity=====%",from, quantity);
    sub_balance(from, quantity);
    add_balance(to, quantity, payer);
 }

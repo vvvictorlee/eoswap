@@ -96,8 +96,8 @@ class eoswap_tester : public tester {
       create_account_with_resources(N(david1111111), N(eosio), core_sym::from_string("1.0000"), false);
       create_account_with_resources(N(dai2mkr11111), N(eosio), core_sym::from_string("1.0000"), false);
 
-      set_code(N(roxe.ro), contracts::token_wasm());
-      set_abi(N(roxe.ro), contracts::token_abi().data());
+      set_code(N(roxe.ro), contracts::tokenize_wasm());
+      set_abi(N(roxe.ro), contracts::tokenize_abi().data());
 
       std::vector<string> accounts  = {"alice1111111", "bob111111111", "carol1111111", "david1111111"};
       std::vector<name>   taccounts = {N(alice), N(bob), N(eoswapeoswap)};

@@ -1066,7 +1066,7 @@ class eosdos_tester : public tester {
 
    void stableCoinBefore3() {
       std::vector<name>        users{lp, trader};
-      std::vector<std::string> tokens{"USD", "GBP"};
+      std::vector<std::string> tokens{"USD", "GBP","ETH","HKD","BTC"};
       LINE_DEBUG;
       for (auto token : tokens) {
          newtoken(tokenissuer, to_maximum_supply(token));
@@ -1117,10 +1117,10 @@ class eosdos_tester : public tester {
 #endif
    }
 
-   void check_balance(std::string token_name, std::string amount) {
+   void check_balance(std::string token_name, std::string amount,name acc = N(bob)) {
       auto sym = to_sym_from_string(token_name);
       auto c   = eosio::chain::asset::from_string(amount + " " + token_name);
-      auto b   = get_balancex(trader, sym);
+      auto b   = get_balancex(acc, sym);
       BOOST_TEST_CHECK(c == b);
    }
 
@@ -1384,16 +1384,17 @@ BOOST_FIXTURE_TEST_CASE(transfer_fee_tests, eosdos_tester) try {
    name dodo_name = dodo_stablecoin_name;
 
    check_dodos(dodo_name);
-
+   check_balance("USD", "10000.000000",dodo_name);
+   check_balance("GBP", "10000.999998",dodo_name);
    buybasetoken(trader, dodo_name, to_asset(1000000, "USD"), to_asset(999000000, "GBP"));
    check_dodos(dodo_name);
-   check_balance("USD", "10001.000000");
-   check_balance("GBP", "9998.999999");
+   check_balance("USD", "10001.000000",dodo_name);
+   check_balance("GBP", "9998.999999",dodo_name);
 
-   sellbastoken(trader, dodo_name, to_asset(1000000, "USD"), to_asset(10, "GBP"));
-   check_dodos(dodo_name);
-   check_balance("USD", "10000.000000");
-   check_balance("GBP", "10000.999998");
+//    sellbastoken(trader, dodo_name, to_asset(1000000, "USD"), to_asset(10, "GBP"));
+//    check_dodos(dodo_name);
+//    check_balance("USD", "10000.000000");
+//    check_balance("GBP", "10000.999998");
 }
 FC_LOG_AND_RETHROW()
 

@@ -63,6 +63,9 @@ class Settlement : virtual public Storage {
       stores._BASE_BALANCE_ = sub(stores._BASE_BALANCE_, amount);
    }
 
+   void _baseTokenTransferFee(uint256 amount) {
+      stores._BASE_BALANCE_ = sub(stores._BASE_BALANCE_, amount);
+   }
    void _quoteTokenTransferOut(address to, const extended_asset& tokenamount, bool is_withdraw = false) {
       uint256 amount = tokenamount.quantity.amount;
       //   IERC20(_QUOTE_TOKEN_).safeTransfer(to, amount);
