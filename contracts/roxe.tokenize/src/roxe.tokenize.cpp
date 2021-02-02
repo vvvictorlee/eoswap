@@ -131,20 +131,17 @@ void tokenize::transfer(const name& from, const name& to, const asset& quantity,
       if (st.useroc) {
          // inline transfer from payer's token balance
          {
-            // eosio::name            roxeCode{"active"};
-            // token::transfer_action transfer_act{system_contract::token_account, {payer, roxeCode}};
-            // transfer_act.send(payer, system_contract::saving_account, fee, "transfer fee");
-            print_f("===============================tokenize===========useroc =- =");
+            eosio::name            roxeCode{"active"};
+            token::transfer_action transfer_act{system_contract::token_account, {payer, roxeCode}};
+            transfer_act.send(payer, system_contract::saving_account, fee, "transfer fee");
          }
       } else {
-            print_f("===============================tokenize===========%",fee,payer);
 
          sub_balance(payer, fee);
          // FIXME to eosio.system:to_saving
          add_balance(system_contract::saving_account, fee, payer);
       }
    }
-  print_f("===============================tokenize======from=%, quantity=====%",from, quantity);
    sub_balance(from, quantity);
    add_balance(to, quantity, payer);
 }
