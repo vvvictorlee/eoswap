@@ -378,12 +378,13 @@ class BPool : public BToken, public BMath {
                                                  ":spotPriceBefore=" + std::to_string(spotPriceBefore));
       check(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE:spotPriceAfter=" + std::to_string(spotPriceAfter));
 
-      uint64_t p = BMath::bdiv(tokenAmountIn, tokenAmountOut);
-      check(
-          spotPriceBefore/BMath::MIN_BALANCE <= BMath::bdiv(tokenAmountIn, tokenAmountOut)/BMath::MIN_BALANCE,
-          "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) + ":tokenAmountOut=" +
-              std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
-              ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
+    //not support smaller amount 
+    //   uint64_t p = BMath::bdiv(tokenAmountIn, tokenAmountOut);
+    //   check(
+    //       spotPriceBefore/BMath::MIN_BALANCE <= BMath::bdiv(tokenAmountIn, tokenAmountOut)/BMath::MIN_BALANCE,
+    //       "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) + ":tokenAmountOut=" +
+    //           std::to_string(tokenAmountOut) + ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
+    //           ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p));
 
       tokenAmountOutx = transfer_mgmt::sub_transfer_fee(tokenAmountOutx, true);
 
@@ -437,12 +438,13 @@ class BPool : public BToken, public BMath {
           spotPriceAfter >= spotPriceBefore, "ERR_MATH_APPROX:spotPriceAfter=" + std::to_string(spotPriceAfter) +
                                                  ":spotPriceBefore=" + std::to_string(spotPriceBefore));
       check(spotPriceAfter <= maxPrice, "ERR_LIMIT_PRICE:spotPriceAfter=" + std::to_string(spotPriceAfter));
-      uint64_t p  = BMath::bdiv(tokenAmountIn, tokenAmountOut);
-      check(
-          spotPriceBefore/BMath::MIN_BALANCE <= p/BMath::MIN_BALANCE, "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) +
-                                    ":tokenAmountOut=" + std::to_string(tokenAmountOut) +
-                                    ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
-                                    ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p)+"==dspotPriceBefore==" + std::to_string(dspotPriceBefore));
+     //not support smaller amount 
+     //   uint64_t p  = BMath::bdiv(tokenAmountIn, tokenAmountOut);
+    //   check(
+    //       spotPriceBefore/BMath::MIN_BALANCE <= p/BMath::MIN_BALANCE, "ERR_MATH_APPROX:tokenAmountIn=" + std::to_string(tokenAmountIn) +
+    //                                 ":tokenAmountOut=" + std::to_string(tokenAmountOut) +
+    //                                 ":spotPriceBefore=" + std::to_string(spotPriceBefore) +
+    //                                 ":BMath::bdiv(tokenAmountIn, tokenAmountOut)=" + std::to_string(p)+"==dspotPriceBefore==" + std::to_string(dspotPriceBefore));
 
       _pullUnderlying(get_msg_sender(), tokenAmountInx);
       _pushUnderlying(get_msg_sender(), tokenAmountOutxx);
