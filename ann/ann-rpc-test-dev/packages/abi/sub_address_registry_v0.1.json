@@ -1,0 +1,820 @@
+{
+  "source": {
+    "hash": "0xbfa8fb0cb8354822558109384ba240a13e1bcc418b10540707799a434cdb6a6c",
+    "language": "ink! 3.3.1",
+    "compiler": "rustc 1.65.0-nightly"
+  },
+  "contract": {
+    "name": "sub_address_registry",
+    "version": "0.1.0",
+    "authors": [
+      "Parity Technologies <admin@parity.io>"
+    ]
+  },
+  "V3": {
+    "spec": {
+      "constructors": [
+        {
+          "args": [],
+          "docs": [
+            "Creates a new Address registry contract."
+          ],
+          "label": "new",
+          "payable": false,
+          "selector": "0x9bae9d5e"
+        }
+      ],
+      "docs": [],
+      "events": [],
+      "messages": [
+        {
+          "args": [
+            {
+              "label": "new_owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [],
+          "label": "transfer_ownership",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0x107e33ea"
+        },
+        {
+          "args": [
+            {
+              "label": "artion",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update artion contract address",
+            " Only admin",
+            " # Fields",
+            " artion  new artion contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     ",
+            " - If  the artion does not  support ERC-721 .     "
+          ],
+          "label": "update_artion",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0x79751520"
+        },
+        {
+          "args": [
+            {
+              "label": "auction",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update auction contract address",
+            " Only admin",
+            " # Fields",
+            " auction  new auction contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_auction",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0x0a8662f3"
+        },
+        {
+          "args": [
+            {
+              "label": "marketplace",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update Marketplace contract address",
+            " Only admin",
+            " # Fields",
+            " marketplace  new marketplace contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_marketplace",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0xc003a070"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_marketplace",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update BundleMarketplace contract address",
+            " Only admin",
+            " # Fields",
+            " bundle_marketplace  new bundle marketplace contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_bundle_marketplace",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0xc0091715"
+        },
+        {
+          "args": [
+            {
+              "label": "factory",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update nft factory contract address",
+            " Only admin",
+            " # Fields",
+            " factory  new factory contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_nft_factory",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0xa0668d30"
+        },
+        {
+          "args": [
+            {
+              "label": "private_factory",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update NFT factory private contract address",
+            " Only admin",
+            " # Fields",
+            " private_factory  new  NFTfactory private  contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_nft_factory_private",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0xe99a25f3"
+        },
+        {
+          "args": [
+            {
+              "label": "art_factory",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update Art factory  contractaddress",
+            " Only admin",
+            " # Fields",
+            " art_factory  new  Art factory   contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_art_factory",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0x33e6e030"
+        },
+        {
+          "args": [
+            {
+              "label": "private_art_factory",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update Art factory private contract address",
+            " Only admin",
+            " # Fields",
+            " private_art_factory  new  Art factory private  contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_art_factory_private",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0x35042d85"
+        },
+        {
+          "args": [
+            {
+              "label": "token_registry",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update token registry contract address",
+            " Only admin",
+            " # Fields",
+            " token_registry  new  token registry contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_token_registry",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0x9b8d9ac7"
+        },
+        {
+          "args": [
+            {
+              "label": "price_seed",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 0
+              }
+            }
+          ],
+          "docs": [
+            " Update price seed contract address",
+            " Only admin",
+            " # Fields",
+            " price_seed  new  price seed contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_price_seed",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 3
+          },
+          "selector": "0x8a2901ab"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying artion contract address",
+            " # return artion contract address"
+          ],
+          "label": "artion",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0xc501376a"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying auction contract address",
+            " # return auction contract address"
+          ],
+          "label": "auction",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0x65439b42"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying marketplace contract address",
+            " # return marketplace contract address"
+          ],
+          "label": "marketplace",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0x980bd6ab"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying bundle marketplace contract address",
+            " # return bundle marketplace contract address"
+          ],
+          "label": "bundle_marketplace",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0x2b55c241"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying nft factory contract address",
+            " # return nft factory contract address"
+          ],
+          "label": "nft_factory",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0x06b29a1f"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying nft factory private contract address",
+            " # return nft factory private contract address"
+          ],
+          "label": "nft_factory_private",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0xad4032dd"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying art factory contract address",
+            " # return art factory contract address"
+          ],
+          "label": "art_factory",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0xa70088fc"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying art factory private contract address",
+            " # return art factory private contract address"
+          ],
+          "label": "art_factory_private",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0xf97fd63a"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying token registry contract address",
+            " # return token registry contract address"
+          ],
+          "label": "token_registry",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0x4424a1a1"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying price seed contract address",
+            " # return price seed contract address"
+          ],
+          "label": "price_seed",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0x47c7cdd0"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get owner",
+            " # Return",
+            "  owner  owner"
+          ],
+          "label": "owner",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 0
+          },
+          "selector": "0xfeaea4fa"
+        }
+      ]
+    },
+    "storage": {
+      "struct": {
+        "fields": [
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "artion"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0100000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "auction"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0200000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "marketplace"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0300000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "bundle_marketplace"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0400000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "factory"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0500000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "private_factory"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0600000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "art_factory"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0700000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "private_art_factory"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0800000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "token_registry"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0900000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "price_seed"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0a00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "owner"
+          },
+          {
+            "layout": {
+              "array": {
+                "cellsPerElem": 1,
+                "layout": {
+                  "cell": {
+                    "key": "0x0f00000000000000000000000000000000000000000000000000000000000000",
+                    "ty": 2
+                  }
+                },
+                "len": 4,
+                "offset": "0x0b00000000000000000000000000000000000000000000000000000000000000"
+              }
+            },
+            "name": "test_support_interface"
+          }
+        ]
+      }
+    },
+    "types": [
+      {
+        "id": 0,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 1,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_env",
+            "types",
+            "AccountId"
+          ]
+        }
+      },
+      {
+        "id": 1,
+        "type": {
+          "def": {
+            "array": {
+              "len": 32,
+              "type": 2
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "type": {
+          "def": {
+            "primitive": "u8"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 4
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 5
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 4
+            },
+            {
+              "name": "E",
+              "type": 5
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 4,
+        "type": {
+          "def": {
+            "tuple": []
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "index": 0,
+                  "name": "OnlyOwner"
+                },
+                {
+                  "index": 1,
+                  "name": "NotERC721"
+                },
+                {
+                  "index": 2,
+                  "name": "TransactionFailed"
+                },
+                {
+                  "index": 3,
+                  "name": "NewOwnerIsTheZeroAddress"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_address_registry",
+            "sub_address_registry",
+            "Error"
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "substrate-ink-contract-ts-deployer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@rust.github.com:rust-0x0/substrate-ink-contract-ts-deployer.git",
+  "author": "rust-0x0 <rust.0x0@gmail.com>",
+  "license": "MIT",
+ "scripts": {
+    "dp": "ts-node ./utils/deploy.ts"
+  },
+  "dependencies": {
+    "@types/node": "^18.0.0",
+    "child_process": "^1.0.2",
+    "fs": "^0.0.1-security",
+    "util": "^0.12.4"
+  }
+}

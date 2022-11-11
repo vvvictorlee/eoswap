@@ -1,0 +1,2782 @@
+{
+  "source": {
+    "hash": "0xb49f197014808d425f70df9071a3652f0ca1da2e84811343cdd05490230938c4",
+    "language": "ink! 3.3.0",
+    "compiler": "rustc 1.65.0-nightly"
+  },
+  "contract": {
+    "name": "sub_bundle_marketplace",
+    "version": "0.1.0",
+    "authors": [
+      "Parity Technologies <admin@parity.io>"
+    ]
+  },
+  "V3": {
+    "spec": {
+      "constructors": [
+        {
+          "args": [
+            {
+              "label": "platform_fee",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "label": "fee_recipient",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            "Creates a new bundle marketplace contract."
+          ],
+          "label": "new",
+          "payable": false,
+          "selector": "0x9bae9d5e"
+        }
+      ],
+      "docs": [],
+      "events": [
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "start_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when an item listed occurs."
+          ],
+          "label": "ItemListed"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "seller",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "buyer",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "unit_price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when an item sold occurs."
+          ],
+          "label": "ItemSold"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "nft_addresses",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 7
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "token_ids",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 8
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "quantities",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 8
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "new_price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when an item updated occurs."
+          ],
+          "label": "ItemUpdated"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when an item canceled occurs."
+          ],
+          "label": "ItemCanceled"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "creator",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "deadline",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when an offer created occurs."
+          ],
+          "label": "OfferCreated"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "creator",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when an offer canceled occurs."
+          ],
+          "label": "OfferCanceled"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "platform_fee",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when update platform fee occurs."
+          ],
+          "label": "UpdatePlatformFee"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "fee_recipient",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when update platform fee recipient occurs."
+          ],
+          "label": "UpdatePlatformFeeRecipient"
+        }
+      ],
+      "messages": [
+        {
+          "args": [
+            {
+              "label": "new_owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [],
+          "label": "transfer_ownership",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x107e33ea"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "nft_addresses",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 7
+              }
+            },
+            {
+              "label": "token_ids",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 8
+              }
+            },
+            {
+              "label": "quantities",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 8
+              }
+            },
+            {
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "label": "start_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            "  Method for listing NFT bundle",
+            "  # Fields",
+            "  bundle_id Bundle ID",
+            "  nft_addresses Addresses of NFT contract",
+            "  token_ids Token IDs of NFT",
+            "  quantities token amounts to list (needed for ERC-1155 NFTs, set as 1 for ERC-721)",
+            "  price sale price for bundle",
+            "  start_time scheduling for a future sale",
+            "",
+            " # Errors",
+            "",
+            " - If the length of `nft_addresses` is not equal to the length of `token_ids` or the length of `quantities` is not equal to the length of `token_ids` .",
+            " - If the owner of the specified bundle id  is not zero address  and the caller is not  the owner of the specified bundle id  ",
+            "      or the price of the listing of  the specified bundle id is greater than zero.",
+            " - If  the `address_registry` is zero address",
+            " - If the `pay_token` is not enabled in the token registry contract when the `pay_token` is not zero address.",
+            " - If the `nft_address` support neither ERC-721  nor ERC-1155.",
+            " - If the contract is not approved by the caller in the  contract in the following ERC-721 standard.",
+            " - If the caller is not the owner of `nft_address` and the `token_id` in the  contract in the following ERC-721 standard.",
+            " - If the contract is not approved by the caller in the  contract in the following ERC-1155 standard.",
+            " - If the quantity is greater than  the balance  of the caller  in the `nft_address` contract in the following ERC-721 standard."
+          ],
+          "label": "list_item",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x3593c305"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Method for canceling listed NFT bundle",
+            "  # Fields",
+            "  nft_address Address of NFT contract",
+            "",
+            " # Errors",
+            "",
+            " - If the price of the listing of  the specified bundle id is  zero."
+          ],
+          "label": "cancel_listing",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x4c60a390"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "new_price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            "  Method for updating listed NFT bundle",
+            "  # Fields",
+            "  bundle_id Bundle ID",
+            "  pay_token payment token",
+            "  new_price New sale price for bundle",
+            "",
+            " # Errors",
+            "",
+            " - If the price of the listing of  the specified bundle id is  zero.",
+            " - If the `pay_token` is not enabled in the token registry contract when the `pay_token` is not zero address."
+          ],
+          "label": "update_listing",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0xa1005747"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            "  Method for buying listed NFT bundle",
+            "  # Fields",
+            "  bundle_id Bundle ID",
+            "  pay_token payment token",
+            "",
+            " # Errors",
+            "",
+            " - If the owner of the specified bundle id  is  zero address  .",
+            " - If `pay_token` is not the `pay_token` of the listing of `nft_address` and `bundle_id`  .",
+            " - If the price of the listing of  the specified bundle id is  zero.",
+            " - If the `nft_address` support neither ERC-721  nor ERC-1155.",
+            " - If the contract is not approved by the caller in the  contract in the following ERC-721 standard.",
+            " - If the caller is not the owner of `nft_address` and the `token_id` in the  contract in the following ERC-721 standard.",
+            " - If the quantity is greater than  the balance  of the caller  in the `nft_address` contract in the following ERC-721 standard.",
+            " - If the start time  of the listing of  the specified bundle id is  greater than the current time.",
+            " - If it failed when the contract transfer platform fee to the `fee_recipient`  in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer platform fee to the `fee_recipient`  in the native token .",
+            " - If it failed when the contract transfer pay amount to the owner in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer pay amount to the owner in the native token .",
+            " - If it failed when the owner of `nft_address` and `token_id` transfer  token id  to the caller in the `nft_address` erc721 contract .",
+            " - If it failed when the owner of `nft_address` and `token_id` transfer  token id  to the caller  in the `nft_address` erc1155 contract ."
+          ],
+          "label": "buy_item",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0xd3d19cfc"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "label": "deadline",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            "  Method for offering bundle item",
+            "  # Fields",
+            "  bundle_id Bundle ID",
+            "  pay_token Paying token",
+            "  price Price",
+            "  deadline Offer expiration",
+            "",
+            " # Errors",
+            "",
+            " - If the owner of the specified bundle id  is  zero address  .",
+            " - If `deadline` is less than or equal to the current time .",
+            " - If the price of the listing of  the specified bundle id is  zero.",
+            " - If `deadline` of the listing of `bundle_id` and the caller is greater than  the current time ."
+          ],
+          "label": "create_offer",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x7f170b70"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Method for canceling the bundle offer",
+            "  # Fields",
+            "  bundle_id Bundle ID",
+            "",
+            " # Errors",
+            "",
+            " - If `deadline` of the listing  of `bundle_id` and the caller is less than or equal to  the current time ."
+          ],
+          "label": "cancel_offer",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0xf30df088"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "creator",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            "  Method for accepting the bundle offer",
+            "  # Fields",
+            "  bundle_id Bundle ID",
+            "  creator Offer creator address",
+            "",
+            " # Errors",
+            "",
+            " - If the caller is not the owner of the specified bundle id   .",
+            " - If `deadline` of the listing  of `bundle_id` and the creator is less than or equal to  the current time .",
+            " - If it failed when the caller transfer platform fee to the `fee_recipient`  in the `pay_token` erc20 contract .",
+            " - If it failed when the caller transfer  pay amount to the owner in the `pay_token` erc20 contract .",
+            " - If it failed when the caller transfer  token id  to the creator in the `nft_address` erc721 contract .",
+            " - If it failed when the caller transfer  token id  to the creator  in the `nft_address` erc1155 contract .",
+            " - If the `validate_item_sold` executes failed."
+          ],
+          "label": "accept_offer",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x00cf33d5"
+        },
+        {
+          "args": [
+            {
+              "label": "platform_fee",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            "  Method for updating platform fee",
+            "  # Fields",
+            "  Only admin",
+            "  platform_fee the platform fee to set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_platform_fee",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x8d205d08"
+        },
+        {
+          "args": [
+            {
+              "label": "fee_recipient",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating platform fee address",
+            " Only admin",
+            " # Fields",
+            " fee_recipient payable address the address to sends the funds to",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_platform_fee_recipient",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x9e1445b4"
+        },
+        {
+          "args": [
+            {
+              "label": "address_registry",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            " Update SubAddressRegistry contract",
+            " Only admin",
+            " # Fields",
+            " address_registry the address of address registry contract",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_address_registry",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x14fe148b"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "label": "quantity",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            " Validate and cancel listing",
+            " Only marketplace can access",
+            " # Fields",
+            " nft_address NFT contract address",
+            " token_id Token Id",
+            " quantity The quantity of NFTs",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the address of the marketplace contract ."
+          ],
+          "label": "validate_item_sold",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x5e383194"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            "  Method for get NFT bundle listing",
+            " # Fields",
+            "  owner Owner address",
+            "  bundle_id Bundle ID"
+          ],
+          "label": "get_listing",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Listing"
+            ],
+            "type": 6
+          },
+          "selector": "0xfd34226e"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Get owner of the specified bundle id",
+            " # Fields",
+            "  bundle_id Bundle ID",
+            " # Return",
+            "  owner  owner"
+          ],
+          "label": "owner_of",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 2
+          },
+          "selector": "0x99720c1e"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            " Get items of the specified bundle id and token id",
+            " # Fields",
+            "  bundle_id Bundle ID",
+            " token_id Token Id",
+            " # Return",
+            "  items  items"
+          ],
+          "label": "items_of",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "BTreeSet"
+            ],
+            "type": 14
+          },
+          "selector": "0x5355977f"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [
+            " Get indices of the specified bundle id and token id",
+            " # Fields",
+            "  bundle_id Bundle ID",
+            " nft_address NFT contract address",
+            " token_id Token Id",
+            " # Return",
+            "  indices  indices"
+          ],
+          "label": "indices_of",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "u128"
+            ],
+            "type": 9
+          },
+          "selector": "0x6a948e00"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "creator",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            " Method for getting the offer of the specified nft token contract address .",
+            " # Fields",
+            "  bundle_id Bundle ID",
+            "  creator creator address"
+          ],
+          "label": "offer_of",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Offer"
+            ],
+            "type": 21
+          },
+          "selector": "0xb42f76a7"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Get bundle_ids of the specified bundle id",
+            " # Fields",
+            "  bundle_id Bundle ID",
+            " # Return",
+            "  bundle_ids  bundle_ids"
+          ],
+          "label": "bundle_ids_of",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "String"
+            ],
+            "type": 5
+          },
+          "selector": "0x2197afb8"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_id",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [],
+          "label": "get_bundle_ids",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "String"
+            ],
+            "type": 5
+          },
+          "selector": "0xc4fd4ae7"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get platform_fee",
+            " # Return",
+            "  platform_fee  platform_fee"
+          ],
+          "label": "platform_fee",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Balance"
+            ],
+            "type": 9
+          },
+          "selector": "0x36eb7cd9"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get fee_recipient",
+            " # Return",
+            "  fee_recipient  fee_recipient"
+          ],
+          "label": "fee_recipient",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 2
+          },
+          "selector": "0x828999b7"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get address_registry",
+            " # Return",
+            "  address_registry  address_registry"
+          ],
+          "label": "address_registry",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 2
+          },
+          "selector": "0x4120b359"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get owner",
+            " # Return",
+            "  owner  owner"
+          ],
+          "label": "owner",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 2
+          },
+          "selector": "0xfeaea4fa"
+        },
+        {
+          "args": [
+            {
+              "label": "token_contract",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "bid_amount",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [],
+          "label": "test_erc20_transfer_from",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0xd0fbe43a"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "label": "seller",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "buyer",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [],
+          "label": "test_marketplace_validate_item_sold",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0xc0266617"
+        },
+        {
+          "args": [
+            {
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [],
+          "label": "test_marketplace_get_price",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 35
+          },
+          "selector": "0x8de08359"
+        },
+        {
+          "args": [
+            {
+              "label": "token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "from",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "to",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 9
+              }
+            },
+            {
+              "label": "value",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [],
+          "label": "test_erc1155_transfer_from",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x786c16c5"
+        },
+        {
+          "args": [],
+          "docs": [
+            "  tick the  flag",
+            "  Only admin",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "tick",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 33
+          },
+          "selector": "0x857706ba"
+        },
+        {
+          "args": [
+            {
+              "label": "token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 9
+              }
+            }
+          ],
+          "docs": [],
+          "label": "test_erc1155_balance_of",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 35
+          },
+          "selector": "0x7ea55708"
+        },
+        {
+          "args": [
+            {
+              "label": "token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "operator",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [],
+          "label": "test_erc1155_is_approved_for_all",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 36
+          },
+          "selector": "0xa1dfee39"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get current timestamp",
+            " # Return",
+            "  current time  timestamp (s)"
+          ],
+          "label": "now_timestamp",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "u128"
+            ],
+            "type": 9
+          },
+          "selector": "0xc8887534"
+        }
+      ]
+    },
+    "storage": {
+      "struct": {
+        "fields": [
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "listings"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0100000000000000000000000000000000000000000000000000000000000000",
+                "ty": 11
+              }
+            },
+            "name": "owners"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0200000000000000000000000000000000000000000000000000000000000000",
+                "ty": 12
+              }
+            },
+            "name": "bundle_ids_per_item"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0300000000000000000000000000000000000000000000000000000000000000",
+                "ty": 16
+              }
+            },
+            "name": "nft_indices"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0400000000000000000000000000000000000000000000000000000000000000",
+                "ty": 18
+              }
+            },
+            "name": "bundle_ids"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0500000000000000000000000000000000000000000000000000000000000000",
+                "ty": 19
+              }
+            },
+            "name": "offers"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0600000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "address_registry"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0700000000000000000000000000000000000000000000000000000000000000",
+                "ty": 9
+              }
+            },
+            "name": "platform_fee"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0800000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "fee_recipient"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0900000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "owner"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0a00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 22
+              }
+            },
+            "name": "tick"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0b00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 23
+              }
+            },
+            "name": "test_token_owner"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0c00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 24
+              }
+            },
+            "name": "test_enabled"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0d00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 25
+              }
+            },
+            "name": "test_operator_approvals"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0e00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 28
+              }
+            },
+            "name": "test_transfer_fail"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0f00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "test_contract_id"
+          },
+          {
+            "layout": {
+              "array": {
+                "cellsPerElem": 1,
+                "layout": {
+                  "cell": {
+                    "key": "0x1400000000000000000000000000000000000000000000000000000000000000",
+                    "ty": 4
+                  }
+                },
+                "len": 4,
+                "offset": "0x1000000000000000000000000000000000000000000000000000000000000000"
+              }
+            },
+            "name": "test_support_interface"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x1400000000000000000000000000000000000000000000000000000000000000",
+                "ty": 30
+              }
+            },
+            "name": "test_balances"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x1500000000000000000000000000000000000000000000000000000000000000",
+                "ty": 22
+              }
+            },
+            "name": "test_marketplace_validate_item_sold_failed"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x1600000000000000000000000000000000000000000000000000000000000000",
+                "ty": 31
+              }
+            },
+            "name": "test_auctions"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x1700000000000000000000000000000000000000000000000000000000000000",
+                "ty": 24
+              }
+            },
+            "name": "test_exists"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x1800000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "test_marketplace"
+          }
+        ]
+      }
+    },
+    "types": [
+      {
+        "id": 0,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 1
+            },
+            {
+              "name": "V",
+              "type": 6
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 1,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              5
+            ]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 3,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_env",
+            "types",
+            "AccountId"
+          ]
+        }
+      },
+      {
+        "id": 3,
+        "type": {
+          "def": {
+            "array": {
+              "len": 32,
+              "type": 4
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": {
+          "def": {
+            "primitive": "u8"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": {
+          "def": {
+            "primitive": "str"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "nft_addresses",
+                  "type": 7,
+                  "typeName": "Vec<AccountId>"
+                },
+                {
+                  "name": "token_ids",
+                  "type": 8,
+                  "typeName": "Vec<TokenId>"
+                },
+                {
+                  "name": "quantities",
+                  "type": 8,
+                  "typeName": "Vec<u128>"
+                },
+                {
+                  "name": "pay_token",
+                  "type": 2,
+                  "typeName": "AccountId"
+                },
+                {
+                  "name": "price",
+                  "type": 9,
+                  "typeName": "Balance"
+                },
+                {
+                  "name": "start_time",
+                  "type": 9,
+                  "typeName": "u128"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_bundle_marketplace",
+            "sub_bundle_marketplace",
+            "Listing"
+          ]
+        }
+      },
+      {
+        "id": 7,
+        "type": {
+          "def": {
+            "sequence": {
+              "type": 2
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "type": {
+          "def": {
+            "sequence": {
+              "type": 9
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "type": {
+          "def": {
+            "primitive": "u128"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 3,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_primitives",
+            "Key"
+          ]
+        }
+      },
+      {
+        "id": 11,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 5
+            },
+            {
+              "name": "V",
+              "type": 2
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 12,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 13
+            },
+            {
+              "name": "V",
+              "type": 14
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 13,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              9
+            ]
+          }
+        }
+      },
+      {
+        "id": 14,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 15
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 5
+            }
+          ],
+          "path": [
+            "BTreeSet"
+          ]
+        }
+      },
+      {
+        "id": 15,
+        "type": {
+          "def": {
+            "sequence": {
+              "type": 5
+            }
+          }
+        }
+      },
+      {
+        "id": 16,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 17
+            },
+            {
+              "name": "V",
+              "type": 9
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 17,
+        "type": {
+          "def": {
+            "tuple": [
+              5,
+              2,
+              9
+            ]
+          }
+        }
+      },
+      {
+        "id": 18,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 5
+            },
+            {
+              "name": "V",
+              "type": 5
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 19,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 20
+            },
+            {
+              "name": "V",
+              "type": 21
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 20,
+        "type": {
+          "def": {
+            "tuple": [
+              5,
+              2
+            ]
+          }
+        }
+      },
+      {
+        "id": 21,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "pay_token",
+                  "type": 2,
+                  "typeName": "AccountId"
+                },
+                {
+                  "name": "price",
+                  "type": 9,
+                  "typeName": "Balance"
+                },
+                {
+                  "name": "deadline",
+                  "type": 9,
+                  "typeName": "u128"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_bundle_marketplace",
+            "sub_bundle_marketplace",
+            "Offer"
+          ]
+        }
+      },
+      {
+        "id": 22,
+        "type": {
+          "def": {
+            "primitive": "bool"
+          }
+        }
+      },
+      {
+        "id": 23,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 9
+            },
+            {
+              "name": "V",
+              "type": 2
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 24,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 2
+            },
+            {
+              "name": "V",
+              "type": 22
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 25,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 26
+            },
+            {
+              "name": "V",
+              "type": 27
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 26,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              2
+            ]
+          }
+        }
+      },
+      {
+        "id": 27,
+        "type": {
+          "def": {
+            "tuple": []
+          }
+        }
+      },
+      {
+        "id": 28,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 29
+            },
+            {
+              "name": "V",
+              "type": 27
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 29,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              2,
+              2,
+              9,
+              9
+            ]
+          }
+        }
+      },
+      {
+        "id": 30,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 13
+            },
+            {
+              "name": "V",
+              "type": 9
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 31,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 10,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 13
+            },
+            {
+              "name": "V",
+              "type": 32
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 32,
+        "type": {
+          "def": {
+            "tuple": [
+              9,
+              22
+            ]
+          }
+        }
+      },
+      {
+        "id": 33,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 27
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 34
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 27
+            },
+            {
+              "name": "E",
+              "type": 34
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 34,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "index": 0,
+                  "name": "InvalidPayToken"
+                },
+                {
+                  "index": 1,
+                  "name": "NotOwningItem"
+                },
+                {
+                  "index": 2,
+                  "name": "InvalidNFTAddress"
+                },
+                {
+                  "index": 3,
+                  "name": "AlreadyListed"
+                },
+                {
+                  "index": 4,
+                  "name": "ItemNotApproved"
+                },
+                {
+                  "index": 5,
+                  "name": "MustHoldEnoughNFTs"
+                },
+                {
+                  "index": 6,
+                  "name": "NotListedItem"
+                },
+                {
+                  "index": 7,
+                  "name": "ItemNotBuyable"
+                },
+                {
+                  "index": 8,
+                  "name": "InsufficientBalanceOrNotApproved"
+                },
+                {
+                  "index": 9,
+                  "name": "OnlyOwner"
+                },
+                {
+                  "index": 10,
+                  "name": "OfferAlreadyCreated"
+                },
+                {
+                  "index": 11,
+                  "name": "CannotPlaceAnOfferIfAuctionIsGoingOn"
+                },
+                {
+                  "index": 12,
+                  "name": "InvalidExpiration"
+                },
+                {
+                  "index": 13,
+                  "name": "OfferNotExistsOrExpired"
+                },
+                {
+                  "index": 14,
+                  "name": "InvalidRoyalty"
+                },
+                {
+                  "index": 15,
+                  "name": "RoyaltyAlreadySet"
+                },
+                {
+                  "index": 16,
+                  "name": "InvalidCreatorAddress"
+                },
+                {
+                  "index": 17,
+                  "name": "SenderMustBeAuctionOrMarketplace"
+                },
+                {
+                  "index": 18,
+                  "name": "InvalidData"
+                },
+                {
+                  "index": 19,
+                  "name": "InvalidId"
+                },
+                {
+                  "index": 20,
+                  "name": "InvalidPrice"
+                },
+                {
+                  "index": 21,
+                  "name": "InsufficientFunds"
+                },
+                {
+                  "index": 22,
+                  "name": "FeeTransferFailed"
+                },
+                {
+                  "index": 23,
+                  "name": "OwnerFeeTransferFailed"
+                },
+                {
+                  "index": 24,
+                  "name": "TransactionFailed"
+                },
+                {
+                  "index": 25,
+                  "name": "ERC20TransferFromFeeAmountFailed"
+                },
+                {
+                  "index": 26,
+                  "name": "ERC20TransferFromRoyaltyFeeFailed"
+                },
+                {
+                  "index": 27,
+                  "name": "ERC20TransferFromCollectionRoyaltyFeeFailed"
+                },
+                {
+                  "index": 28,
+                  "name": "ERC20TransferFromPayAmountFailed"
+                },
+                {
+                  "index": 29,
+                  "name": "ERC721TransferFromTokenIdFailed"
+                },
+                {
+                  "index": 30,
+                  "name": "ERC1155TransferFromTokenIdFailed"
+                },
+                {
+                  "index": 31,
+                  "name": "BundleMarketplaceValidateItemSoldFailed"
+                },
+                {
+                  "index": 32,
+                  "name": "NewOwnerIsTheZeroAddress"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_bundle_marketplace",
+            "sub_bundle_marketplace",
+            "Error"
+          ]
+        }
+      },
+      {
+        "id": 35,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 9
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 34
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 9
+            },
+            {
+              "name": "E",
+              "type": 34
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 36,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 22
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 34
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 22
+            },
+            {
+              "name": "E",
+              "type": 34
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      }
+    ]
+  }
+}

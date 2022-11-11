@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  hex-space-protocol-front-end:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rust0x0/hex-space-protocol-front-end:0.1
+    container_name: hex-space-protocol-front-end
+    restart: unless-stopped
+    env_file: .env
+    ports: 
+      - "8100:8100"
+    environment:
+      - REACT_APP_CONTRACT_ADDRESS=5H4rkHhc6w1A95GDMDuFoTQ6MZcjxY4N5aHiUrSncXDrSasR
+
+
+
+
+
+

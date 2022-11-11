@@ -1,0 +1,16 @@
+version: "3.2"
+
+services:
+  dev:
+    image: substrate-contracts-node
+    working_dir: /var/www/substrate-contracts-node
+    ports:
+      - "9944:9944"
+    environment:
+      - CARGO_HOME=/var/www/substrate-contracts-node/.cargo
+    volumes:
+      - .:/var/www/substrate-contracts-node
+      - type: bind
+        source: ./.local
+        target: /root/.local
+    command: bash -c "cargo build --release && ./target/release/substrate-contracts-node --dev --ws-external"

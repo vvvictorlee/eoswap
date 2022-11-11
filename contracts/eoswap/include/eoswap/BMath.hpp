@@ -53,7 +53,7 @@ class BMath : public BNum {
       //   uint256m scale     = bdiv(BONE, bsub(BONE, swapFee));
       double scale = 1 / double(1 - double(swapFee) / BONE);
       //   uint256m spotPrice = bmul(ratio, scale);
-      double spotPrice = ratio * scale*BONE;
+      double spotPrice = ratio * scale * BONE;
       my_print_f("=numer=%=,denom=%=,ratio=%=,scale=%=,spotPrice=%=", numer, denom, ratio, scale, spotPrice);
 
       return spotPrice;
@@ -73,19 +73,22 @@ class BMath : public BNum {
    uint256m calcOutGivenIn(
        uint256m tokenBalanceIn, uint256m tokenWeightIn, uint256m tokenBalanceOut, uint256m tokenWeightOut,
        uint256m tokenAmountIn, uint256m swapFee) {
-      uint256m weightRatio = bdiv(tokenWeightIn, tokenWeightOut);
-      my_print_f("=BONE=%, swapFee=%=", BONE, swapFee);
-      uint256m adjustedIn = bsub(BONE, swapFee);
-      adjustedIn          = bmul(tokenAmountIn, adjustedIn);
-      uint256m y          = bdiv(tokenBalanceIn, badd(tokenBalanceIn, adjustedIn));
-      uint256m foo        = bpow(y, weightRatio);
-      my_print_f("=y=%,weightRatio=%, foo=%=", y, weightRatio, foo);
+      my_print_f("=calcOutGivenIn=tokenBalanceIn=%=,  tokenWeightIn=%=,  tokenBalanceOut=%=,  tokenWeightOut=%=,tokenAmountIn = %=,swapFee       = %= ", tokenBalanceIn,  tokenWeightIn,  tokenBalanceOut,  tokenWeightOut,
+          tokenAmountIn,
+          swapFee);
+      uint256m weightRatio    = bdiv(tokenWeightIn, tokenWeightOut);
+      uint256m adjustedIn0    = bsub(BONE, swapFee);
+      uint256m adjustedIn     = bmul(tokenAmountIn, adjustedIn0);
+      uint256m y              = bdiv(tokenBalanceIn, badd(tokenBalanceIn, adjustedIn));
+      uint256m foo            = bpow(y, weightRatio);
       uint256m bar            = bsub(BONE, foo);
       uint256m tokenAmountOut = bmul(tokenBalanceOut, bar);
+      my_print_f("=calcOutGivenIn=weightRatio=%=,adjustedIn0=%=,adjustedIn=%=,y=%=,  foo=%=,bar=%=,tokenAmountOut=%=", weightRatio,
+          adjustedIn0, adjustedIn, y, foo, bar, tokenAmountOut);
       if (tokenAmountOut == 0) {
          tokenAmountOut =
              dcalcOutGivenIn(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountIn, swapFee);
-         my_print_f("=y=%,tokenAmountOut == 0 tokenAmountOut=%, foo=%=", y, tokenAmountOut, foo);
+         my_print_f("=calcOutGivenIn=y=%,tokenAmountOut == 0 tokenAmountOut=%, foo=%=", y, tokenAmountOut, foo);
       }
 
       return tokenAmountOut;
@@ -134,13 +137,19 @@ class BMath : public BNum {
    uint256m calcInGivenOut(
        uint256m tokenBalanceIn, uint256m tokenWeightIn, uint256m tokenBalanceOut, uint256m tokenWeightOut,
        uint256m tokenAmountOut, uint256m swapFee) {
-      uint256m weightRatio   = bdiv(tokenWeightOut, tokenWeightIn);
-      uint256m diff          = bsub(tokenBalanceOut, tokenAmountOut);
-      uint256m y             = bdiv(tokenBalanceOut, diff);
-      uint256m foo           = bpow(y, weightRatio);
-      foo                    = bsub(foo, BONE);
-      uint256m tokenAmountIn = bsub(BONE, swapFee);
-      tokenAmountIn          = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn);
+      my_print_f("=calcInGivenOut=calcInGivenOut=tokenBalanceIn=%=,  tokenWeightIn=%=,  tokenBalanceOut=%=,  tokenWeightOut=%=,tokenAmountOut = %=,swapFee        = %= ", tokenBalanceIn,  tokenWeightIn,  tokenBalanceOut,  tokenWeightOut,
+          tokenAmountOut,
+          swapFee);
+      uint256m weightRatio    = bdiv(tokenWeightOut, tokenWeightIn);
+      uint256m diff           = bsub(tokenBalanceOut, tokenAmountOut);
+      uint256m y              = bdiv(tokenBalanceOut, diff);
+      uint256m foo0           = bpow(y, weightRatio);
+      uint256m foo            = bsub(foo0, BONE);
+      uint256m tokenAmountIn0 = bsub(BONE, swapFee);
+      uint256m tokenAmountIn  = bdiv(bmul(tokenBalanceIn, foo), tokenAmountIn0);
+      my_print_f("=calcInGivenOut=weightRatio=%=,diff=%=,y=%=,  foo0=%=, foo=%=,tokenAmountIn0=%=,tokenAmountIn=%=", weightRatio, diff, y,
+          foo0, foo, tokenAmountIn0, tokenAmountIn);
+
       if (tokenAmountIn == 0) {
          tokenAmountIn =
              dcalcInGivenOut(tokenBalanceIn, tokenWeightIn, tokenBalanceOut, tokenWeightOut, tokenAmountOut, swapFee);

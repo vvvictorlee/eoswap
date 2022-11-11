@@ -1,0 +1,610 @@
+{
+  "source": {
+    "hash": "0xc5394e47951a440557a075787715c71eaa38afb899abddcee3ccc87847adc4c9",
+    "language": "ink! 3.3.0",
+    "compiler": "rustc 1.65.0-nightly"
+  },
+  "contract": {
+    "name": "sub_price_seed",
+    "version": "0.1.0",
+    "authors": [
+      "Parity Technologies <admin@parity.io>"
+    ]
+  },
+  "V3": {
+    "spec": {
+      "constructors": [
+        {
+          "args": [
+            {
+              "label": "address_registry",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "wrapped_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            "Creates a new price seed contract."
+          ],
+          "label": "new",
+          "payable": false,
+          "selector": "0x9bae9d5e"
+        }
+      ],
+      "docs": [],
+      "events": [],
+      "messages": [
+        {
+          "args": [
+            {
+              "label": "new_owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "transfer_ownership",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x107e33ea"
+        },
+        {
+          "args": [
+            {
+              "label": "token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "oracle",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            "Register oracle contract to token",
+            " Only owner can register oracle",
+            " # Fields",
+            "token ERC20 token address",
+            "oracle Oracle address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    ",
+            " - If the `pay_token` is not enabled in the token registry contract when the `pay_token` is not zero address.",
+            " - If the `oracle`  already set."
+          ],
+          "label": "register_oracle",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x7b26665a"
+        },
+        {
+          "args": [
+            {
+              "label": "token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "oracle",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            "Update oracle address for token",
+            " Only owner can update oracle",
+            " # Fields",
+            "token ERC20 token address",
+            "oracle Oracle address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .  ",
+            " - If the `oracle`  does not set.  "
+          ],
+          "label": "update_oracle",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0xe11dfa7e"
+        },
+        {
+          "args": [
+            {
+              "label": "address_registry",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            "Update address registry contract",
+            " Only admin",
+            " # Fields",
+            " address_registry new address registry contract address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    "
+          ],
+          "label": "update_address_registry",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x14fe148b"
+        },
+        {
+          "args": [
+            {
+              "label": "token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            "Get price from the oracle  contract",
+            " # Fields",
+            " token token contract address"
+          ],
+          "label": "get_price",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [],
+            "type": 11
+          },
+          "selector": "0xf23d4b6c"
+        },
+        {
+          "args": [],
+          "docs": [
+            "  ERC20 contract  address  of Wrapped_ native token",
+            " #return token contract address"
+          ],
+          "label": "wrapped_token",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 1
+          },
+          "selector": "0xd9bc1250"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get address_registry",
+            " # Return",
+            "  address_registry  address_registry"
+          ],
+          "label": "address_registry",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 1
+          },
+          "selector": "0x4120b359"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get owner",
+            " # Return",
+            "  owner  owner"
+          ],
+          "label": "owner",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 1
+          },
+          "selector": "0xfeaea4fa"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "oracles",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Vec"
+            ],
+            "type": 5
+          },
+          "selector": "0x97751cbb"
+        }
+      ]
+    },
+    "storage": {
+      "struct": {
+        "fields": [
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "oracles"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0100000000000000000000000000000000000000000000000000000000000000",
+                "ty": 5
+              }
+            },
+            "name": "tokens"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0200000000000000000000000000000000000000000000000000000000000000",
+                "ty": 1
+              }
+            },
+            "name": "address_registry"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0300000000000000000000000000000000000000000000000000000000000000",
+                "ty": 1
+              }
+            },
+            "name": "wrapped_token"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0400000000000000000000000000000000000000000000000000000000000000",
+                "ty": 1
+              }
+            },
+            "name": "owner"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0500000000000000000000000000000000000000000000000000000000000000",
+                "ty": 6
+              }
+            },
+            "name": "test_enabled"
+          }
+        ]
+      }
+    },
+    "types": [
+      {
+        "id": 0,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 4,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 1
+            },
+            {
+              "name": "V",
+              "type": 1
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 1,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 2,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_env",
+            "types",
+            "AccountId"
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "type": {
+          "def": {
+            "array": {
+              "len": 32,
+              "type": 3
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": {
+          "def": {
+            "primitive": "u8"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 2,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_primitives",
+            "Key"
+          ]
+        }
+      },
+      {
+        "id": 5,
+        "type": {
+          "def": {
+            "sequence": {
+              "type": 1
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 4,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 1
+            },
+            {
+              "name": "V",
+              "type": 7
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 7,
+        "type": {
+          "def": {
+            "primitive": "bool"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 9
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 10
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 9
+            },
+            {
+              "name": "E",
+              "type": 10
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "type": {
+          "def": {
+            "tuple": []
+          }
+        }
+      },
+      {
+        "id": 10,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "index": 0,
+                  "name": "OnlyOwner"
+                },
+                {
+                  "index": 1,
+                  "name": "OracleAlreadySet"
+                },
+                {
+                  "index": 2,
+                  "name": "InvalidPayToken"
+                },
+                {
+                  "index": 3,
+                  "name": "OracleNotSet"
+                },
+                {
+                  "index": 4,
+                  "name": "TransactionFailed"
+                },
+                {
+                  "index": 5,
+                  "name": "NewOwnerIsTheZeroAddress"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_price_seed",
+            "sub_price_seed",
+            "Error"
+          ]
+        }
+      },
+      {
+        "id": 11,
+        "type": {
+          "def": {
+            "tuple": [
+              12,
+              13
+            ]
+          }
+        }
+      },
+      {
+        "id": 12,
+        "type": {
+          "def": {
+            "primitive": "u128"
+          }
+        }
+      },
+      {
+        "id": 13,
+        "type": {
+          "def": {
+            "primitive": "u32"
+          }
+        }
+      }
+    ]
+  }
+}

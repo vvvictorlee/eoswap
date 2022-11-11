@@ -1,0 +1,1889 @@
+{
+  "source": {
+    "hash": "0x7ef83104a46c3700a386b73f424d3ce91c7473cd4ef6175e630b914a8ff4b10c",
+    "language": "ink! 3.3.1",
+    "compiler": "rustc 1.65.0-nightly"
+  },
+  "contract": {
+    "name": "sub_contract_management",
+    "version": "0.1.0",
+    "authors": [
+      "Parity Technologies <admin@parity.io>"
+    ]
+  },
+  "V3": {
+    "spec": {
+      "constructors": [
+        {
+          "args": [],
+          "docs": [
+            "Creates a new Address registry contract."
+          ],
+          "label": "new",
+          "payable": false,
+          "selector": "0x9bae9d5e"
+        }
+      ],
+      "docs": [],
+      "events": [],
+      "messages": [
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_address_registry_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0xa5e2003b"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            "  Method for deploying new SubArtTradablePrivate contract",
+            " # Fields",
+            "  name Name of NFT contract",
+            "  symbol Symbol of NFT contract",
+            "",
+            " # Errors",
+            "",
+            " - If the transferred value is less than the `platform_fee`.",
+            " - If it failed when the contract trasfer to  fee_recipient in native token.",
+            " - If `instantiate_contract` failed ."
+          ],
+          "label": "instantiate_art_factory_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x6a0c6182"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_art_factory_private_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x651b2120"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_artion_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0xb4b049e5"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_auction_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0xea10aaae"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_bundle_marketplace_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x1259aa7b"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_marketplace_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x7851b5d7"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_nft_factory_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0xc0405f57"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_nft_factory_private_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x2824fa37"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_price_seed_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0xc3146afa"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_token_registry_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x8f851d20"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_erc20_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x058c49ed"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_oracle_contract",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0xfa015890"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "transfer_ownership_of_address_registry",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x5024d87e"
+        },
+        {
+          "args": [
+            {
+              "label": "address_registry",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [],
+          "label": "update_address_registry",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x14fe148b"
+        },
+        {
+          "args": [
+            {
+              "label": "auction",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [
+            " Update auction contract address",
+            " Only admin",
+            " # Fields",
+            " auction  new auction contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_auction",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x0a8662f3"
+        },
+        {
+          "args": [
+            {
+              "label": "bundle_marketplace",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [
+            " Update BundleMarketplace contract",
+            " Only admin",
+            " # Fields",
+            " bundle_marketplace  new bundle marketplace contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    "
+          ],
+          "label": "update_bundle_marketplace",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xc0091715"
+        },
+        {
+          "args": [
+            {
+              "label": "marketplace",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [
+            " Update Marketplace contract",
+            " Only admin",
+            " # Fields",
+            " marketplace  new marketplace contract  address",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    "
+          ],
+          "label": "update_marketplace",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xc003a070"
+        },
+        {
+          "args": [
+            {
+              "label": "endowment_amount",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 6
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating instantiate contract endowment amount",
+            " Only admin",
+            " # Fields",
+            " endowment_amount the endowment amountto set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    "
+          ],
+          "label": "update_endowment_amount",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x8272e09a"
+        },
+        {
+          "args": [
+            {
+              "label": "wrapped_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating wrapped_token",
+            " Only admin",
+            " # Fields",
+            " wrapped_token wrapped_token",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_wrapped_token",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xd1137ef9"
+        },
+        {
+          "args": [
+            {
+              "label": "token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating oracle contract  token",
+            " Only admin",
+            " # Fields",
+            " token the token to set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    "
+          ],
+          "label": "update_token",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x90c3ef3a"
+        },
+        {
+          "args": [
+            {
+              "label": "art_tradable_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating art_tradable_hash",
+            " Only admin",
+            " # Fields",
+            " art_tradable_hash art_tradable_hash",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_art_tradable_hash",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xcde79afb"
+        },
+        {
+          "args": [
+            {
+              "label": "art_tradable_private_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating art_tradable_private_hash",
+            " Only admin",
+            " # Fields",
+            " art_tradable_private_hash art_tradable_private_hash",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_art_tradable_private_hash",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xf467bc7c"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_tradable_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating nft_tradable_hash",
+            " Only admin",
+            " # Fields",
+            " nft_tradable_hash nft_tradable_hash",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_nft_tradable_hash",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x6d1e29bf"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_tradable_private_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating nft_tradable_private_hash",
+            " Only admin",
+            " # Fields",
+            " nft_tradable_private_hash nft_tradable_private_hash",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_nft_tradable_private_hash",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xb52ab119"
+        },
+        {
+          "args": [
+            {
+              "label": "mint_fee",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 6
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating mint fee",
+            " Only admin",
+            " # Fields",
+            " mint_fee the mint fee to set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_mint_fee",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x9d94f13a"
+        },
+        {
+          "args": [
+            {
+              "label": "platform_fee",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 6
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating platform fee",
+            " Only admin",
+            " # Fields",
+            " platform_fee the platform fee to set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    "
+          ],
+          "label": "update_platform_fee",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x8d205d08"
+        },
+        {
+          "args": [
+            {
+              "label": "fee_recipient",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating platform fee address",
+            " Only admin",
+            " # Fields",
+            " fee_recipient payable address the address to sends the funds to  ",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .     "
+          ],
+          "label": "update_platform_fee_recipient",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x9e1445b4"
+        },
+        {
+          "args": [
+            {
+              "label": "initial_supply",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 6
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating initial_supply",
+            " Only admin",
+            " # Fields",
+            " initial_supply the initial_supply to set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_initial_supply",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xf8087e7f"
+        },
+        {
+          "args": [
+            {
+              "label": "version",
+              "type": {
+                "displayName": [
+                  "u32"
+                ],
+                "type": 7
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating instantiate contract version",
+            " Only admin",
+            " # Fields",
+            " version the version to set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    "
+          ],
+          "label": "update_version",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x7d7e2259"
+        },
+        {
+          "args": [
+            {
+              "label": "decimals",
+              "type": {
+                "displayName": [
+                  "u32"
+                ],
+                "type": 7
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating oracle contract  decimals",
+            " Only admin",
+            " # Fields",
+            " decimals the decimals to set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract .    "
+          ],
+          "label": "update_decimals",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0x0efd31ec"
+        },
+        {
+          "args": [
+            {
+              "label": "art_tradable_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "art_tradable_private_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "nft_tradable_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "nft_tradable_private_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "update_parameters",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xedbe4954"
+        },
+        {
+          "args": [
+            {
+              "label": "address_registry_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "art_factory_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "art_factory_private_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "artion_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "auction_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "bundle_marketplace_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "marketplace_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "nft_factory_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "nft_factory_private_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "price_seed_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "token_registry_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "erc20_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "oracle_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "instantiate_contracts",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 10
+          },
+          "selector": "0xf16a593e"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying artion contract address",
+            " # return artion contract address"
+          ],
+          "label": "address_registry",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0x4120b359"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying auction contract address",
+            " # return auction contract address"
+          ],
+          "label": "auction",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0x65439b42"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying marketplace contract address",
+            " # return marketplace contract address"
+          ],
+          "label": "marketplace",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0x980bd6ab"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying bundle marketplace contract address",
+            " # return bundle marketplace contract address"
+          ],
+          "label": "bundle_marketplace",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0x2b55c241"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying art_tradable_hash",
+            " # return bundle art_tradable_hash"
+          ],
+          "label": "art_tradable_hash",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Hash"
+            ],
+            "type": 1
+          },
+          "selector": "0x0d0e72ef"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying art_tradable_private_hash",
+            " # return bundle art_tradable_private_hash"
+          ],
+          "label": "art_tradable_private_hash",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Hash"
+            ],
+            "type": 1
+          },
+          "selector": "0x2daf912b"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying nft_tradable_hash",
+            " # return bundle nft_tradable_hash"
+          ],
+          "label": "nft_tradable_hash",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Hash"
+            ],
+            "type": 1
+          },
+          "selector": "0x3e2dd0ca"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying nft_tradable_private_hash",
+            " # return bundle nft_tradable_private_hash"
+          ],
+          "label": "nft_tradable_private_hash",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Hash"
+            ],
+            "type": 1
+          },
+          "selector": "0x12e2bd90"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Querying wrapped_token contract address",
+            " # return wrapped_token contract address"
+          ],
+          "label": "wrapped_token",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0xd9bc1250"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "initial_supply",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Balance"
+            ],
+            "type": 6
+          },
+          "selector": "0x1e172bd1"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "mint_fee",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Balance"
+            ],
+            "type": 6
+          },
+          "selector": "0xfb6a22ef"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "platform_fee",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Balance"
+            ],
+            "type": 6
+          },
+          "selector": "0x36eb7cd9"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "fee_recipient",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0x828999b7"
+        },
+        {
+          "args": [
+            {
+              "label": "code_hash",
+              "type": {
+                "displayName": [
+                  "Hash"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "address_by_code_hash",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0x20e4cd6a"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "owner",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0xfeaea4fa"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "token",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 4
+          },
+          "selector": "0x7b3efc0a"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "decimals",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "u32"
+            ],
+            "type": 7
+          },
+          "selector": "0x81c09d87"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "version",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "u32"
+            ],
+            "type": 7
+          },
+          "selector": "0xec6d41e1"
+        },
+        {
+          "args": [],
+          "docs": [],
+          "label": "endowment_amount",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Balance"
+            ],
+            "type": 6
+          },
+          "selector": "0xe4ff436a"
+        }
+      ]
+    },
+    "storage": {
+      "struct": {
+        "fields": [
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "hash_address"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0100000000000000000000000000000000000000000000000000000000000000",
+                "ty": 4
+              }
+            },
+            "name": "address_registry"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0200000000000000000000000000000000000000000000000000000000000000",
+                "ty": 4
+              }
+            },
+            "name": "auction"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0300000000000000000000000000000000000000000000000000000000000000",
+                "ty": 4
+              }
+            },
+            "name": "marketplace"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0400000000000000000000000000000000000000000000000000000000000000",
+                "ty": 4
+              }
+            },
+            "name": "bundle_marketplace"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0500000000000000000000000000000000000000000000000000000000000000",
+                "ty": 1
+              }
+            },
+            "name": "art_tradable_hash"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0600000000000000000000000000000000000000000000000000000000000000",
+                "ty": 1
+              }
+            },
+            "name": "art_tradable_private_hash"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0700000000000000000000000000000000000000000000000000000000000000",
+                "ty": 1
+              }
+            },
+            "name": "nft_tradable_hash"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0800000000000000000000000000000000000000000000000000000000000000",
+                "ty": 1
+              }
+            },
+            "name": "nft_tradable_private_hash"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0900000000000000000000000000000000000000000000000000000000000000",
+                "ty": 6
+              }
+            },
+            "name": "initial_supply"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0a00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 4
+              }
+            },
+            "name": "wrapped_token"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0b00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 6
+              }
+            },
+            "name": "mint_fee"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0c00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 6
+              }
+            },
+            "name": "platform_fee"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0d00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 4
+              }
+            },
+            "name": "token"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0e00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 7
+              }
+            },
+            "name": "decimals"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0f00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 4
+              }
+            },
+            "name": "fee_recipient"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x1000000000000000000000000000000000000000000000000000000000000000",
+                "ty": 6
+              }
+            },
+            "name": "endowment_amount"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x1100000000000000000000000000000000000000000000000000000000000000",
+                "ty": 7
+              }
+            },
+            "name": "version"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x1200000000000000000000000000000000000000000000000000000000000000",
+                "ty": 4
+              }
+            },
+            "name": "owner"
+          }
+        ]
+      }
+    },
+    "types": [
+      {
+        "id": 0,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 5,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 1
+            },
+            {
+              "name": "V",
+              "type": 4
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 1,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 2,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_env",
+            "types",
+            "Hash"
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "type": {
+          "def": {
+            "array": {
+              "len": 32,
+              "type": 3
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": {
+          "def": {
+            "primitive": "u8"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 2,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_env",
+            "types",
+            "AccountId"
+          ]
+        }
+      },
+      {
+        "id": 5,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 2,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_primitives",
+            "Key"
+          ]
+        }
+      },
+      {
+        "id": 6,
+        "type": {
+          "def": {
+            "primitive": "u128"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "type": {
+          "def": {
+            "primitive": "u32"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 4
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 9
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 4
+            },
+            {
+              "name": "E",
+              "type": 9
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "index": 0,
+                  "name": "OnlyOwner"
+                },
+                {
+                  "index": 1,
+                  "name": "TransactionFailed"
+                },
+                {
+                  "index": 2,
+                  "name": "TransferOwnershipFailed"
+                },
+                {
+                  "index": 3,
+                  "name": "UpdateFailed"
+                },
+                {
+                  "index": 4,
+                  "name": "GetAuctionFailed"
+                },
+                {
+                  "index": 5,
+                  "name": "GetMarketplaceFailed"
+                },
+                {
+                  "index": 6,
+                  "name": "GetBundleMarketplaceFailed"
+                },
+                {
+                  "index": 7,
+                  "name": "GetFeeRecipientFailed"
+                },
+                {
+                  "index": 8,
+                  "name": "GetArtTradableFailed"
+                },
+                {
+                  "index": 9,
+                  "name": "GetArtTradablePrivateFailed"
+                },
+                {
+                  "index": 10,
+                  "name": "GetNFTTradableFailed"
+                },
+                {
+                  "index": 11,
+                  "name": "GetNFTTradablePrivateFailed"
+                },
+                {
+                  "index": 12,
+                  "name": "GetWrappedTokenFailed"
+                },
+                {
+                  "index": 13,
+                  "name": "GeAddressRegistryFailed"
+                },
+                {
+                  "index": 14,
+                  "name": "GetInitialSupplyFailed"
+                },
+                {
+                  "index": 15,
+                  "name": "GetTokenFailed"
+                },
+                {
+                  "index": 16,
+                  "name": "GetDecimalsFailed"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_contract_management",
+            "sub_contract_management",
+            "Error"
+          ]
+        }
+      },
+      {
+        "id": 10,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 11
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 9
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 11
+            },
+            {
+              "name": "E",
+              "type": 9
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 11,
+        "type": {
+          "def": {
+            "tuple": []
+          }
+        }
+      }
+    ]
+  }
+}

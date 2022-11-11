@@ -1,0 +1,52 @@
+# ===== BUILD ======
+
+FROM phusion/baseimage:0.10.2 as builder
+LABEL maintainer="rust.0x0@gmail.com"
+
+
+ARG PROFILE=release
+
+RUN apt-get update && \
+	apt-get dist-upgrade -y -o Dpkg::Options::="--force-confold" && \
+	apt-get install -y cmake pkg-config libssl-dev git clang build-essential clang libclang-dev curl
+
+# Get project and run it
+RUN mkdir substrate-contracts-node
+WORKDIR /substrate-contracts-node
+COPY . .
+
+# RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
+# China Mainland config begin
+RUN  curl https://sh.rustup.rs -sSf | sed "s/https:\/\/static.rust-lang.org\/rustup\/dist/https:\/\/mirrors.tuna.tsinghua.edu.cn\/rust-static\/rustup\/dist/g" | sh -s -- -y && \
+echo "[source.crates-io]" >> $HOME/.cargo/config  && \
+echo "registry = \"https://github.com/rust-lang/crates.io-index\" " >> $HOME/.cargo/config  && \
+echo "replace-with = 'ustc' " >> $HOME/.cargo/config  && \
+echo "[source.ustc] " >> $HOME/.cargo/config  && \
+echo "registry = \"https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git\" " >> $HOME/.cargo/config  && \
+# China Mainland config end
+export PATH="$PATH:$HOME/.cargo/bin" && \
+    rustup toolchain install nightly && \
+	rustup target add wasm32-unknown-unknown --toolchain nightly && \
+	rustup default nightly && \
+	rustup default stable 
+RUN	export PATH="$PATH:$HOME/.cargo/bin" && \
+ export CARGO_HTTP_MULTIPLEXING=false && \
+    cargo build "--$PROFILE" 
+
+
+RUN cd target/release && ls -la
+
+# ===== RUN ======
+
+FROM phusion/baseimage:0.10.2
+ARG PROFILE=release
+
+COPY --from=builder /substrate-contracts-node/target/$PROFILE/substrate-contracts-node /usr/local/bin
+
+EXPOSE 9944
+VOLUME ["/node-data"]
+
+# Copy and run start script
+COPY ["./run.sh", "./run.sh"]
+RUN chmod +x ./run.sh
+CMD ["bash", "-c", "./run.sh"]

@@ -1,0 +1,2586 @@
+{
+  "source": {
+    "hash": "0x6c95a3f893dae95bbe5fb3fc21310b39461b44c0facbbc8b0c63a7774880d80b",
+    "language": "ink! 3.3.0",
+    "compiler": "rustc 1.65.0-nightly"
+  },
+  "contract": {
+    "name": "sub_auction",
+    "version": "0.1.0",
+    "authors": [
+      "Parity Technologies <admin@parity.io>"
+    ]
+  },
+  "V3": {
+    "spec": {
+      "constructors": [
+        {
+          "args": [
+            {
+              "label": "platform_fee",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "fee_recipient",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            "Creates a new auction contract."
+          ],
+          "label": "new",
+          "payable": false,
+          "selector": "0x9bae9d5e"
+        }
+      ],
+      "docs": [],
+      "events": [
+        {
+          "args": [],
+          "docs": [
+            " Event emitted when a contract deployed occurs."
+          ],
+          "label": "SubAuctionContractDeployed"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "is_paused",
+              "type": {
+                "displayName": [
+                  "bool"
+                ],
+                "type": 7
+              }
+            }
+          ],
+          "docs": [],
+          "label": "PauseToggled"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when a auction created occurs."
+          ],
+          "label": "AuctionCreated"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "end_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when update auction end time occurs."
+          ],
+          "label": "UpdateAuctionEndTime"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "start_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when update auction start time occurs."
+          ],
+          "label": "UpdateAuctionStartTime"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "reserve_price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when update auction reserve price occurs."
+          ],
+          "label": "UpdateAuctionReservePrice"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "platform_fee",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when  update platform fee occurs."
+          ],
+          "label": "UpdatePlatformFee"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "fee_recipient",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when  update platform fee recipient occurs."
+          ],
+          "label": "UpdatePlatformFeeRecipient"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "min_bid_increment",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when update bid withdrawal lock time occurs."
+          ],
+          "label": "UpdateMinBidIncrement"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bid_withdrawal_lock_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when update bid withdrawal lock time occurs."
+          ],
+          "label": "UpdateBidWithdrawalLockTime"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "bidder",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bid",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when a bid is placed."
+          ],
+          "label": "BidPlaced"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "bidder",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bid",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when bid withdrawn occurs."
+          ],
+          "label": "BidWithdrawn"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "bidder",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "bid",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when a bid refunded occurs."
+          ],
+          "label": "BidRefunded"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "old_owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "winner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "unit_price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "winning_bid",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when auction resulted occurs."
+          ],
+          "label": "AuctionResulted"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "docs": [],
+              "indexed": true,
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            " Event emitted when  auction cancelled occurs."
+          ],
+          "label": "AuctionCancelled"
+        }
+      ],
+      "messages": [
+        {
+          "args": [
+            {
+              "label": "new_owner",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [],
+          "label": "transfer_ownership",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x107e33ea"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "reserve_price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "start_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "min_bid_reserve",
+              "type": {
+                "displayName": [
+                  "bool"
+                ],
+                "type": 7
+              }
+            },
+            {
+              "label": "end_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Creates a new auction for a given item",
+            "  Only the owner of item can create an auction and must have approved the contract",
+            "  In addition to owning the item, the sender also has to have the owner role.",
+            "  End time for the auction must be in the future.",
+            "",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the item being auctioned",
+            "  pay_token Paying token",
+            "  reserve_price Item cannot be sold for less than this or minBidIncrement, whichever is higher",
+            "  start_time Unix epoch in seconds for the auction start time",
+            "  min_bid_reserve Unix epoch in seconds for the auction end time.",
+            "",
+            " # Errors",
+            "",
+            " - If the contract is paused.",
+            " - If  the caller is not  the owner of the specified nft contract address and token id  .",
+            " - If the contract is not approved by the caller in the  contract in the following ERC-721 standard.",
+            " - If the `pay_token` is not enabled in the token registry contract when the `pay_token` is not zero address.",
+            " - If  the end time of the auction  of the specified nft contract address and token id is not zero.",
+            " - If the specified `end_time`  is less than 'start_time'+300.",
+            " - If the specified `start_time`  is greater than the current time."
+          ],
+          "label": "create_auction",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0xd6cd59d7"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Places a new bid, out bidding the existing bidder if found and criteria is reached",
+            "  Only callable when the auction is open",
+            "  Bids from smart contracts are prohibited to prevent griefing with always reverting receiver",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the item being auctioned",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is a contract.",
+            " - If  the start time  of  the auction (the specified `nft_address` and `token_id`) is greater than the current time.",
+            " - If  the end time  of  the auction (the specified `nft_address` and `token_id`) is less than the current time.",
+            " - If  the pay token of the auction (the specified `nft_address` and `token_id`)  is not zero address.",
+            " - If the contract is paused.",
+            " - If  the `bid_amount` is  less than the reserve price of the the auction (the specified `nft_address` and `token_id`) .",
+            " - If  the `bid_amount` is  less than the sum of the minimum bid increment and the  bid of the the highest bid (the specified `nft_address` and `token_id`) .",
+            " - If  it failed when the caller transfer to the contract  in the `pay_token` erc20 contract .",
+            " - If the `current_highest_bid`  is greater than the balance of  the contract .",
+            " - If it failed when the contract transfer  to the `current_highest_bidder`  in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer  to the `current_highest_bidder`  in the native token ."
+          ],
+          "label": "place_bid_native",
+          "mutates": true,
+          "payable": true,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0xb99c9a46"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "bid_amount",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Places a new bid, out bidding the existing bidder if found and criteria is reached",
+            "  Only callable when the auction is open",
+            "  Bids from smart contracts are prohibited to prevent griefing with always reverting receiver",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the item being auctioned",
+            "  bid_amount Bid amount",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is a contract.",
+            " - If  the start time  of  the auction (the specified `nft_address` and `token_id`) is greater than the current time.",
+            " - If  the end time  of  the auction (the specified `nft_address` and `token_id`) is less than the current time.",
+            " - If  the pay token of the auction (the specified `nft_address` and `token_id`)  is zero address.",
+            " - If the contract is paused.",
+            " - If  the `bid_amount` is  less than the reserve price of the the auction (the specified `nft_address` and `token_id`) .",
+            " - If  the `bid_amount` is  less than the sum of the minimum bid increment and the  bid of the the highest bid (the specified `nft_address` and `token_id`) .",
+            " - If  it failed when the caller transfer to the contract  in the `pay_token` erc20 contract .",
+            " - If the `current_highest_bid`  is greater than the balance of  the contract .",
+            " - If it failed when the contract transfer  to the `current_highest_bidder`  in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer  to the `current_highest_bidder`  in the native token ."
+          ],
+          "label": "place_bid",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x441cccf2"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Allows the hightest bidder to withdraw the bid (after 12 hours post auction's end)",
+            "  Only callable by the existing top bidder",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the item being auctioned",
+            "",
+            " # Errors",
+            "",
+            " - If the contract is paused.",
+            " - If  the caller is not the bidder of  the highest bid (the specified `nft_address` and `token_id`) .",
+            " - If  the sum of `bid_withdrawal_lock_time` and the end time  of  the auction (the specified `nft_address` and `token_id`) is greater than the current time.",
+            " - If the `current_highest_bid`  is greater than the balance of  the contract .",
+            " - If it failed when  the contract transfer to the `current_highest_bidder` in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer to the `current_highest_bidder` in the native token ."
+          ],
+          "label": "withdraw_bid",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0xc4e6a41b"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Closes a finished auction and rewards the highest bidder",
+            "  Only admin or smart contract",
+            "  Auction can only be resulted if there has been a bidder and reserve met.",
+            "  If there have been no bids, the auction needs to be cancelled instead using `cancelAuction()`",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the item being auctioned",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the specified nft contract address and token id  .",
+            " - If the caller is not the owner  by the auction of the specified nft contract address and token id .",
+            " - If the `pay_token` is not enabled in the token registry contract when the `pay_token` is not zero address.",
+            " - If  the end time of the auction  of the specified nft contract address and token id is zero.",
+            " - If  the end time of the auction  of the specified nft contract address and token id is greater than or equal to the current time.",
+            " - If  the resulted of the auction  of the specified nft contract address and token id is true.",
+            " - If  the bidder of  the highest bid (the specified `nft_address` and `token_id`) is zero address .",
+            " - If  the reserve price of the auction of the specified nft contract address and token id is greater than the bid of the the highest bid (the specified `nft_address` and `token_id`) .",
+            " - If the contract is not approved by the caller in the  contract in the following ERC-721 standard.",
+            " - If it failed when the contract transfer platform fee to the `fee_recipient`  in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer platform fee to the `fee_recipient`  in the native token .",
+            " - If it failed when the contract transfer  royalty fee to the `minter`  in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer  royalty fee to the `minter`  in the native token .",
+            " - If it failed when the contract transfer collection royalty fee to the `minter`  in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer collection royalty fee to the `minter`  in the native token .",
+            " - If it failed when the contract transfer  pay amount to the `auction.owner`  in the `pay_token` erc20 contract .",
+            " - If it failed when the contract transfer  pay amount to the `auction.owner`  in the native token .",
+            " - If it failed when the owner of `nft_address` and `token_id` transfer  token id  to the `winner`  in the `nft_address` erc721 contract ."
+          ],
+          "label": "result_auction",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x95f1cb0c"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Cancels and inflight and un-resulted auctions, returning the funds to the top bidder if found",
+            "  Only item owner",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the NFT being auctioned",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the specified nft contract address and token id  .",
+            " - If the caller is not the owner  by the auction of the specified nft contract address and token id .",
+            " - If  the end time of the auction  of the specified nft contract address and token id is zero.",
+            " - If  the resulted of the auction  of the specified nft contract address and token id is true.",
+            " - If it failed when the contract transfer `current_highest_bid` to the `current_highest_bidder`  in the `pay_token` erc20 contract  , the bidder of  the highest bid (the specified `nft_address` and `token_id`) is not zero address  and `pay_token`  is not zero address.",
+            " - If it failed when the contract transfer `current_highest_bid`  to the `current_highest_bidder`  in the native token , the bidder of  the highest bid (the specified `nft_address` and `token_id`) is not zero address and `pay_token`  is  zero address ."
+          ],
+          "label": "cancel_auction",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x64e3bd76"
+        },
+        {
+          "args": [],
+          "docs": [
+            "  Toggling the pause flag",
+            "  Only admin",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "toggle_is_paused",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x39f73bc9"
+        },
+        {
+          "args": [
+            {
+              "label": "min_bid_increment",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Update the amount by which bids have to increase, across all auctions",
+            "  Only admin",
+            "  # Fields",
+            "  min_bid_increment New bid step in smallest unit",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_min_bid_increment",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0xb66155ca"
+        },
+        {
+          "args": [
+            {
+              "label": "bid_withdrawal_lock_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Update the global bid withdrawal lockout time",
+            "  Only admin",
+            "  # Fields",
+            "  bid_withdrawal_lock_time New bid withdrawal lock time",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_bid_withdrawal_lock_time",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x312fac43"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "reserve_price",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Update the current reserve price for an auction",
+            "  Only admin",
+            "  Auction must exist",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the NFT being auctioned",
+            "  reserve_price New reserve price ( the smallest unit )",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the auction of the `nft_address` and `token_id` .",
+            " - If  the end time of the auction  of the specified nft contract address and token id is zero.",
+            " - If  the resulted of the auction  of the specified nft contract address and token id is true."
+          ],
+          "label": "update_auction_reserve_price",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0xc9ee390c"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "start_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Update the current start time for an auction",
+            "  Only admin",
+            "  Auction must exist",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the NFT being auctioned",
+            " start_time New start time (unix epoch in seconds)",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the auction of the `nft_address` and `token_id` .",
+            " - If  the start time   is zero.",
+            " - If  the sum of 60 seconds and the start time  of  the auction (the specified `nft_address` and `token_id`) is less than or equal to the current time.",
+            " - If  the sum of 300 seconds and the start time   is greater than or equal to the end time of the auction  of the specified nft contract address and token id .",
+            " - If  the resulted of the auction  of the specified nft contract address and token id is true."
+          ],
+          "label": "update_auction_start_time",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x07c50289"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "end_time",
+              "type": {
+                "displayName": [
+                  "u128"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Update the current end time for an auction",
+            "  Only admin",
+            "  Auction must exist",
+            "  # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the NFT being auctioned",
+            "  end_time New end time (unix epoch in seconds)",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the auction of the `nft_address` and `token_id` .",
+            " - If  the end time  of  the auction (the specified `nft_address` and `token_id`) is less than or equal to the current time.",
+            " - If  the start time of the auction  of the specified nft contract address and token id is greater than or equal to the end time.",
+            " - If  the sum of 300 seconds and  the current time  is greater than or equal to the end time  ."
+          ],
+          "label": "update_auction_end_time",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x8cb1ec5e"
+        },
+        {
+          "args": [
+            {
+              "label": "platform_fee",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Method for updating platform fee",
+            "  Only admin",
+            "  # Fields",
+            "  platform_fee the platform fee to set",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_platform_fee",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x8d205d08"
+        },
+        {
+          "args": [
+            {
+              "label": "fee_recipient",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            " Method for updating platform fee address",
+            " Only admin",
+            " # Fields",
+            " fee_recipient  address the address to sends the funds to    ",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_platform_fee_recipient",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x9e1445b4"
+        },
+        {
+          "args": [
+            {
+              "label": "address_registry",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            "  Update SubAddressRegistry contract",
+            "  Only admin",
+            " # Fields",
+            " address_registry the address of address registry contract",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "update_address_registry",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x14fe148b"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Method for getting all info about the auction",
+            " # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the NFT being auctioned"
+          ],
+          "label": "get_auction",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [],
+            "type": 22
+          },
+          "selector": "0x15a41cb5"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Method for getting start time and resulted flag about the auction",
+            " # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the NFT being auctioned"
+          ],
+          "label": "get_auction_start_time_resulted",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [],
+            "type": 23
+          },
+          "selector": "0x39f0ab3e"
+        },
+        {
+          "args": [
+            {
+              "label": "nft_address",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "token_id",
+              "type": {
+                "displayName": [
+                  "TokenId"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [
+            "  Method for getting all info about the highest bidder",
+            " # Fields",
+            "  nft_address ERC 721 Address",
+            "  token_id Token ID of the NFT being auctioned"
+          ],
+          "label": "get_highest_bid",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [],
+            "type": 24
+          },
+          "selector": "0x33f27b4f"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get min_bid_increment",
+            " # Return",
+            "  min_bid_increment  min_bid_increment"
+          ],
+          "label": "min_bid_increment",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Balance"
+            ],
+            "type": 5
+          },
+          "selector": "0x64ea5ce1"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get bid_withdrawal_lock_time",
+            " # Return",
+            "  bid_withdrawal_lock_time  bid_withdrawal_lock_time"
+          ],
+          "label": "bid_withdrawal_lock_time",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "u128"
+            ],
+            "type": 5
+          },
+          "selector": "0xb8250352"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get platform_fee",
+            " # Return",
+            "  platform_fee  platform_fee"
+          ],
+          "label": "platform_fee",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Balance"
+            ],
+            "type": 5
+          },
+          "selector": "0x36eb7cd9"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get fee_recipient",
+            " # Return",
+            "  fee_recipient  fee_recipient"
+          ],
+          "label": "fee_recipient",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 2
+          },
+          "selector": "0x828999b7"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get address_registry",
+            " # Return",
+            "  address_registry  address_registry"
+          ],
+          "label": "address_registry",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 2
+          },
+          "selector": "0x4120b359"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get is_paused",
+            " # Return",
+            "  is_paused  is_paused"
+          ],
+          "label": "is_paused",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "bool"
+            ],
+            "type": 7
+          },
+          "selector": "0xfa7d505b"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get owner",
+            " # Return",
+            "  owner  owner"
+          ],
+          "label": "owner",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "AccountId"
+            ],
+            "type": 2
+          },
+          "selector": "0xfeaea4fa"
+        },
+        {
+          "args": [
+            {
+              "label": "token_contract",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [
+            "  Reclaims ERC20 Compatible tokens for entire balance",
+            "  Only access controls admin",
+            " # Fields",
+            "  token_contract The address of the token contract",
+            "",
+            " # Errors",
+            "",
+            " - If  the caller is not  the owner of the contract ."
+          ],
+          "label": "reclaim_erc20",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0x695e259a"
+        },
+        {
+          "args": [
+            {
+              "label": "token_contract",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            },
+            {
+              "label": "bid_amount",
+              "type": {
+                "displayName": [
+                  "Balance"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [],
+          "label": "test_erc20",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 20
+          },
+          "selector": "0xbced522b"
+        },
+        {
+          "args": [
+            {
+              "label": "pay_token",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 2
+              }
+            }
+          ],
+          "docs": [],
+          "label": "test_marketplace_get_price",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 25
+          },
+          "selector": "0x8de08359"
+        },
+        {
+          "args": [],
+          "docs": [
+            " Get current timestamp",
+            " # Return",
+            "  current time  timestamp (s)"
+          ],
+          "label": "now_timestamp",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "u128"
+            ],
+            "type": 5
+          },
+          "selector": "0xc8887534"
+        }
+      ]
+    },
+    "storage": {
+      "struct": {
+        "fields": [
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "auctions"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0100000000000000000000000000000000000000000000000000000000000000",
+                "ty": 9
+              }
+            },
+            "name": "highest_bids"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0200000000000000000000000000000000000000000000000000000000000000",
+                "ty": 5
+              }
+            },
+            "name": "min_bid_increment"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0300000000000000000000000000000000000000000000000000000000000000",
+                "ty": 5
+              }
+            },
+            "name": "bid_withdrawal_lock_time"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0400000000000000000000000000000000000000000000000000000000000000",
+                "ty": 5
+              }
+            },
+            "name": "platform_fee"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0500000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "fee_recipient"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0600000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "address_registry"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0700000000000000000000000000000000000000000000000000000000000000",
+                "ty": 7
+              }
+            },
+            "name": "is_paused"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0800000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "owner"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0900000000000000000000000000000000000000000000000000000000000000",
+                "ty": 11
+              }
+            },
+            "name": "test_token_owner"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0a00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 12
+              }
+            },
+            "name": "test_enabled"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0b00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 13
+              }
+            },
+            "name": "test_operator_approvals"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0c00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 16
+              }
+            },
+            "name": "test_transfer_fail"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0d00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 2
+              }
+            },
+            "name": "test_contract_id"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0e00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 18
+              }
+            },
+            "name": "test_minters_royalties"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0f00000000000000000000000000000000000000000000000000000000000000",
+                "ty": 19
+              }
+            },
+            "name": "test_collection_royalties"
+          }
+        ]
+      }
+    },
+    "types": [
+      {
+        "id": 0,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 8,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 1
+            },
+            {
+              "name": "V",
+              "type": 6
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 1,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              5
+            ]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 3,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_env",
+            "types",
+            "AccountId"
+          ]
+        }
+      },
+      {
+        "id": 3,
+        "type": {
+          "def": {
+            "array": {
+              "len": 32,
+              "type": 4
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": {
+          "def": {
+            "primitive": "u8"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": {
+          "def": {
+            "primitive": "u128"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "owner",
+                  "type": 2,
+                  "typeName": "AccountId"
+                },
+                {
+                  "name": "pay_token",
+                  "type": 2,
+                  "typeName": "AccountId"
+                },
+                {
+                  "name": "min_bid",
+                  "type": 5,
+                  "typeName": "Balance"
+                },
+                {
+                  "name": "reserve_price",
+                  "type": 5,
+                  "typeName": "Balance"
+                },
+                {
+                  "name": "start_time",
+                  "type": 5,
+                  "typeName": "u128"
+                },
+                {
+                  "name": "end_time",
+                  "type": 5,
+                  "typeName": "u128"
+                },
+                {
+                  "name": "resulted",
+                  "type": 7,
+                  "typeName": "bool"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_auction",
+            "sub_auction",
+            "Auction"
+          ]
+        }
+      },
+      {
+        "id": 7,
+        "type": {
+          "def": {
+            "primitive": "bool"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 3,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_primitives",
+            "Key"
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 8,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 1
+            },
+            {
+              "name": "V",
+              "type": 10
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 10,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "bidder",
+                  "type": 2,
+                  "typeName": "AccountId"
+                },
+                {
+                  "name": "bid",
+                  "type": 5,
+                  "typeName": "Balance"
+                },
+                {
+                  "name": "last_bid_time",
+                  "type": 5,
+                  "typeName": "u128"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_auction",
+            "sub_auction",
+            "HighestBid"
+          ]
+        }
+      },
+      {
+        "id": 11,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 8,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 5
+            },
+            {
+              "name": "V",
+              "type": 2
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 12,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 8,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 2
+            },
+            {
+              "name": "V",
+              "type": 7
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 13,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 8,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 14
+            },
+            {
+              "name": "V",
+              "type": 15
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 14,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              2
+            ]
+          }
+        }
+      },
+      {
+        "id": 15,
+        "type": {
+          "def": {
+            "tuple": []
+          }
+        }
+      },
+      {
+        "id": 16,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 8,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 17
+            },
+            {
+              "name": "V",
+              "type": 15
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 17,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              2,
+              2,
+              5,
+              5
+            ]
+          }
+        }
+      },
+      {
+        "id": 18,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 8,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 1
+            },
+            {
+              "name": "V",
+              "type": 1
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 19,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 8,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 2
+            },
+            {
+              "name": "V",
+              "type": 1
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 20,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 15
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 21
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 15
+            },
+            {
+              "name": "E",
+              "type": 21
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 21,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "index": 0,
+                  "name": "OnlyOwner"
+                },
+                {
+                  "index": 1,
+                  "name": "ContractPaused"
+                },
+                {
+                  "index": 2,
+                  "name": "InvalidPayToken"
+                },
+                {
+                  "index": 3,
+                  "name": "AuctionAlreadyStarted"
+                },
+                {
+                  "index": 4,
+                  "name": "EndTimeMustBeGreaterThanStartBy5Minutes"
+                },
+                {
+                  "index": 5,
+                  "name": "InvalidStartTime"
+                },
+                {
+                  "index": 6,
+                  "name": "TransferFailed"
+                },
+                {
+                  "index": 7,
+                  "name": "NoContractsPermitted"
+                },
+                {
+                  "index": 8,
+                  "name": "BiddingOutsideOfTheAuctionWindow"
+                },
+                {
+                  "index": 9,
+                  "name": "ERC20MethodUsedForAuction"
+                },
+                {
+                  "index": 10,
+                  "name": "BidCannotBeLowerThanReservePrice"
+                },
+                {
+                  "index": 11,
+                  "name": "FailedToOutbidHighestBidder"
+                },
+                {
+                  "index": 12,
+                  "name": "YouAreNotTheHighestBidder"
+                },
+                {
+                  "index": 13,
+                  "name": "CanWithdrawOnlyAfter12HoursAfterAuctionEnded"
+                },
+                {
+                  "index": 14,
+                  "name": "SenderMustBeItemOwner"
+                },
+                {
+                  "index": 15,
+                  "name": "AuctioncNotApproved"
+                },
+                {
+                  "index": 16,
+                  "name": "NoAuctionExists"
+                },
+                {
+                  "index": 17,
+                  "name": "AuctionNotEnded"
+                },
+                {
+                  "index": 18,
+                  "name": "AuctionAlreadyResulted"
+                },
+                {
+                  "index": 19,
+                  "name": "NoOpenBids"
+                },
+                {
+                  "index": 20,
+                  "name": "HighestBidIsBelowReservePrice"
+                },
+                {
+                  "index": 21,
+                  "name": "InsufficientFunds"
+                },
+                {
+                  "index": 22,
+                  "name": "FailedToSendPlatformFee"
+                },
+                {
+                  "index": 23,
+                  "name": "FailedToSendTheOwnerTheirRoyalties"
+                },
+                {
+                  "index": 24,
+                  "name": "FailedToSendTheRoyalties"
+                },
+                {
+                  "index": 25,
+                  "name": "FailedToSendTheOwnerTheAuctionBalance"
+                },
+                {
+                  "index": 26,
+                  "name": "NotOwneAndOrContractNotApproved"
+                },
+                {
+                  "index": 27,
+                  "name": "StartTimeShouldBeLessThanEndTimeBy5Minutes"
+                },
+                {
+                  "index": 28,
+                  "name": "AuctionAlreadyEnded"
+                },
+                {
+                  "index": 29,
+                  "name": "EndTimeMustBeGreaterThanStart"
+                },
+                {
+                  "index": 30,
+                  "name": "AuctionShouldEndAfter5Minutes"
+                },
+                {
+                  "index": 31,
+                  "name": "FailedToRefundPreviousBidder"
+                },
+                {
+                  "index": 32,
+                  "name": "InvalidAddress"
+                },
+                {
+                  "index": 33,
+                  "name": "TransactionFailed"
+                },
+                {
+                  "index": 34,
+                  "name": "NewOwnerIsTheZeroAddress"
+                }
+              ]
+            }
+          },
+          "path": [
+            "sub_auction",
+            "sub_auction",
+            "Error"
+          ]
+        }
+      },
+      {
+        "id": 22,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              2,
+              5,
+              5,
+              5,
+              5,
+              7
+            ]
+          }
+        }
+      },
+      {
+        "id": 23,
+        "type": {
+          "def": {
+            "tuple": [
+              5,
+              7
+            ]
+          }
+        }
+      },
+      {
+        "id": 24,
+        "type": {
+          "def": {
+            "tuple": [
+              2,
+              5,
+              5
+            ]
+          }
+        }
+      },
+      {
+        "id": 25,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 5
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 21
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 5
+            },
+            {
+              "name": "E",
+              "type": 21
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      }
+    ]
+  }
+}

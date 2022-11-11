@@ -1,0 +1,39 @@
+{
+    "include": [
+        "packages/**/*",
+        "./node_modules/types-bn/index.d.ts",
+    ],
+    "exclude": [
+        "node_modules",
+    ],
+    "skipLibCheck": true,
+    "compilerOptions": {
+        "skipLibCheck": true,
+        "outDir": "lib",
+        "noImplicitThis": false,
+        "module": "commonjs",
+        "target": "es2021",
+        "typeRoots": [
+            "./typings"
+        ],
+        "types": [
+            "node"
+        ],
+        "lib": [
+            "es2021",
+            "dom"
+        ],
+        "declaration": true,
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "noImplicitReturns": true,
+        "pretty": true,
+        "strict": true,
+        "baseUrl": ".",
+        "paths": {
+            "buffer": [
+                "./buffer-override.d.ts"
+            ]
+        }
+    }
+}

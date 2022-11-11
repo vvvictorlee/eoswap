@@ -1,0 +1,21 @@
+{
+
+    "sub_address_registry": "addressRegistry",
+    "sub_art_factory": "artFactory",
+    "sub_art_factory_private": "artFactoryPrivate",
+    "sub_art_tradable": "artTradable",
+    "sub_art_tradable_private": "artTradablePrivate",
+    "sub_artion": "artion",
+    "sub_auction": "auction",
+    "sub_bundle_marketplace": "bundleMarketplace",
+    "sub_marketplace": "marketplace",
+    "sub_nft_factory": "nftFactory",
+    "sub_nft_factory_private": "nftFactoryPrivate",
+    "sub_nft_tradable": "nftTradable",
+    "sub_nft_tradable_private": "nftTradablePrivate",
+    "sub_price_seed": "priceSeed",
+    "sub_token_registry": "tokenRegistry",
+    "erc20": "erc20",
+    "sub_contract_management": "mgmt",
+    "sub_oracle": "oracle"
+  }

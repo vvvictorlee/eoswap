@@ -1,0 +1,16 @@
+version: "3.2"
+
+services:
+  dev:
+    image: cnode:0.2
+    working_dir: /var/www/substrate-contracts-node
+    ports:
+      - "9944:9944"
+    environment:
+      - CARGO_HOME=/var/www/substrate-contracts-node/.cargo
+    volumes:
+      - .:/var/www/substrate-contracts-node
+      - type: bind
+        source: ./.local
+        target: /root/.local
+    # command: bash -c "/var/www/substrate-contracts-node/.cargo/bin/substrate-contracts-node --dev --ws-external"

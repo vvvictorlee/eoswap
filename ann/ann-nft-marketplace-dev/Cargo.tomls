@@ -1,0 +1,28 @@
+[package]
+name = "sub_art_nft_marketplace"
+version = "0.1.0"
+authors = ["rust0x0 rust.0x0@gmail.com"]
+edition = "2021"
+
+sub_art_factory = { version = "0.1.0", path = "sub_art_factory", default-features = false, features = ["ink-as-dependency"] }
+sub_art_factory_private = { version = "0.1.0", path = "sub_art_factory_private", default-features = false, features = ["ink-as-dependency"] }
+sub_art_tradable = { version = "0.1.0", path = "sub_art_tradable", default-features = false, features = ["ink-as-dependency"] }
+sub_art_tradable_private = { version = "0.1.0", path = "sub_art_tradable_private", default-features = false, features = ["ink-as-dependency"] }
+sub_nft_factory = { version = "0.1.0", path = "sub_nft_factory", default-features = false, features = ["ink-as-dependency"] }
+sub_nft_factory_private = { version = "0.1.0", path = "sub_nft_factory_private", default-features = false, features = ["ink-as-dependency"] }
+sub_nft_tradable = { version = "0.1.0", path = "sub_nft_tradable", default-features = false, features = ["ink-as-dependency"] }
+sub_nft_tradable_private = { version = "0.1.0", path = "sub_nft_tradable_private", default-features = false, features = ["ink-as-dependency"] }
+
+sub_address_registry= { version = "0.1.0", path = "sub_address_registry", default-features = false, features = ["ink-as-dependency"] }
+sub_token_registry = { version = "0.1.0", path = "sub_token_registry", default-features = false, features = ["ink-as-dependency"] }
+sub_artion = { version = "0.1.0", path = "sub_artion", default-features = false, features = ["ink-as-dependency"] }
+sub_auction = { version = "0.1.0", path = "sub_auction", default-features = false, features = ["ink-as-dependency"] }
+sub_marketplace = { version = "0.1.0", path = "sub_marketplace", default-features = false, features = ["ink-as-dependency"] }
+sub_bundle_marketplace = { version = "0.1.0", path = "sub_bundle_marketplace", default-features = false, features = ["ink-as-dependency"] }
+
+[workspace]
+members = [
+    "accumulator",
+    "adder",
+    "subber",
+]

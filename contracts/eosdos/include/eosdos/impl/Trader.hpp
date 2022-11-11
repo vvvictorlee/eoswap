@@ -210,9 +210,9 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
    }
 
    uint256 sellQuote(uint256 minReceiveBase, uint256 amountQuote, bytes data) {
-      my_print_f("sellQuote");
       uint256 amount      = DecimalMath::divFloor(amountQuote, getOraclePrice());
       uint256 maxPayQuote = amountQuote;
+      my_print_f("===sellQuote==amount=%,getOraclePrice()=%=",amount,getOraclePrice());
 
       tradeAllowed();
       buyingAllowed();
@@ -235,22 +235,26 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       for (int i = 0; i < times; ++i) {
          std::tie(payQuote, lpFeeBase, mtFeeBase, transferFeeBase, newRStatus, newQuoteTarget, newBaseTarget) =
              _queryBuyBaseToken(amount);
+         DODO_DEBUG("====payQuote=%,amount=%=====", payQuote, amount);
 
          if (payQuote == 0 || payQuote == previouspayQuote || payQuote == amountQuote) {
             break;
          }
 
          quote_price = DecimalMath::divFloor(amount, payQuote);
+         DODO_DEBUG("====payQuote=%,amount=%===quote_price=%=", payQuote, amount, quote_price);
 
          previousamount = amount;
 
          if (payQuote > amountQuote) {
             uint256 high = payQuote - amountQuote;
             // uint256 newamount = amount- high*(amount/payQuote);
+            DODO_DEBUG("====payQuote=%,hi=%===diff=%=", payQuote, high, DecimalMath::mul(high, quote_price));
             amount = amount - DecimalMath::mul(high, quote_price);
          } else if (amountQuote - payQuote > actual_diff) {
             uint256 low = amountQuote - payQuote;
-            amount      = amount + DecimalMath::mul(low, quote_price);
+            DODO_DEBUG("====payQuote=%,low=%===diff=%=", payQuote, low, DecimalMath::mul(low, quote_price));
+            amount = amount + DecimalMath::mul(low, quote_price);
          }
 
          previouspayQuote = payQuote;
@@ -311,8 +315,9 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
    }
 
    uint256 queryBuyBaseToken(uint256 amount) {
-      uint256 payQuote                                                                    = 0;
-      std::tie(payQuote, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) = _queryBuyBaseToken(amount);
+      uint256 payQuote = 0;
+      std::tie(payQuote, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore, std::ignore) =
+          _queryBuyBaseToken(amount);
       return payQuote;
    }
 
@@ -396,7 +401,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       return std::make_tuple(receiveQuote, lpFeeQuote, mtFeeQuote, newRStatus, newQuoteTarget, newBaseTarget);
    }
 
-   std::tuple<uint256, uint256, uint256,uint256, uint8_t, uint256, uint256> _queryBuyBaseToken(uint256 amount) {
+   std::tuple<uint256, uint256, uint256, uint256, uint8_t, uint256, uint256> _queryBuyBaseToken(uint256 amount) {
       uint256 payQuote;
       uint256 lpFeeBase;
       uint256 mtFeeBase;
@@ -416,7 +421,9 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
       // transferfee
       extended_asset amountx = extended_asset(static_cast<uint64_t>(amount), stores._BASE_TOKEN_);
       transferFeeBase        = transfer_mgmt::get_transfer_fee(amountx);
-
+      DODO_DEBUG(
+          ">>>>>======transferFeeBase=%========= ",
+          transferFeeBase);
       uint256 buyBaseAmount = add(add(add(amount, lpFeeBase), mtFeeBase), transferFeeBase);
 
       if (stores._R_STATUS_ == Types::RStatus::ONE) {
@@ -443,7 +450,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
             // no need to check payQuote because spare base token must be greater than zero
             payQuote   = _RBelowBuyBaseToken(buyBaseAmount, stores._QUOTE_BALANCE_, newQuoteTarget);
             newRStatus = Types::RStatus::BELOW_ONE;
-            DODO_DEBUG(" [[[[3.1]]]]  _R_STATUS_ == buyBaseAmount < backToOneReceiveBase");
+            DODO_DEBUG(" [[[[3.1]]]]  _R_STATUS_ == buyBaseAmount < backToOneReceiveBase=%", buyBaseAmount);
          } else if (buyBaseAmount == backToOneReceiveBase) {
             // case 3.2: R status changes to ONE
             payQuote   = backToOnePayQuote;
@@ -458,6 +465,7 @@ class Trader : virtual public Storage, virtual public Pricing, virtual public Se
          }
       }
 
-      return std::make_tuple(payQuote, lpFeeBase, mtFeeBase,transferFeeBase, newRStatus, newQuoteTarget, newBaseTarget);
+      return std::make_tuple(
+          payQuote, lpFeeBase, mtFeeBase, transferFeeBase, newRStatus, newQuoteTarget, newBaseTarget);
    }
 };

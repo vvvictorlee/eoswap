@@ -1,0 +1,43 @@
+{
+  "repository": "https://github.com/rust-0x0/rpc-test",
+  "author": "",
+  "license": "",
+  "name": "rpc-test-js",
+  "main": "index.js",
+  "resolutions": {
+    "typescript": "^4.7.3"
+  },
+  "scripts": {
+    "lint": "tslint --project . 'packages/**/*.ts' --fix",
+    "build": " polkadot-dev-build-ts",
+    "test": "polkadot-dev-run-test --coverage ",
+    "t:a": "polkadot-dev-run-test packages/test/auction.spec.ts ",
+    "t:b": "polkadot-dev-run-test packages/test/bundlemarketplace.spec.ts ",
+    "t:m": "polkadot-dev-run-test packages/test/marketplace.spec.ts ",
+    "t:r": "polkadot-dev-run-test packages/test/addressRegistry.spec.ts",
+    "t": "jest packages/test/auction.spec.ts ",
+    "t:onex": "polkadot-dev-run-test packages/test/auction.spec.ts --runInBand --detectOpenHandles --forceExit",
+    "test:watch": "polkadot-dev-run-test --watch"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@babel/register": "^7.13.8",
+    "@babel/runtime": "^7.13.10",
+    "@polkadot/dev": "^0.67.125",
+    "@types/jest": "^26.0.21",
+    "copyfiles": "^2.4.1"
+  },
+  "version": "0.0.1",
+  "dependencies": {
+    "@polkadot/api": "^9.2.2",
+    "@polkadot/api-augment": "^9.2.2",
+    "@polkadot/api-contract": "^9.2.2",
+    "@polkadot/types": "^9.2.2",
+    "bignumber.js": "^9.0.1",
+    "blakejs": "^1.1.1",
+    "bn.js": "^5.2.0",
+    "isomorphic-unfetch": "^3.1.0",
+    "query-string": "^7.0.1",
+    "uuid": "^8.3.2"
+  }
+}

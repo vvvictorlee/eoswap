@@ -1,0 +1,30 @@
+ARG REGISTRY_PATH=docker.io/paritytech
+
+# `production` tag is used here to base off the image that has already been tested against
+# the `ink` CI. This reduces the maintenance of fixing the same nightly stuff in both images.
+FROM ${REGISTRY_PATH}/ink-ci-linux:production
+RUN sed -i s:/archive.ubuntu.com:/mirrors.tuna.tsinghua.edu.cn/ubuntu:g /etc/apt/sources.list
+RUN cat /etc/apt/sources.list
+RUN apt-get clean
+RUN apt-get -y update --fix-missing
+RUN apt update
+
+RUN echo "*** Get ubuntu and rust packages ***"
+RUN apt install -y build-essential pkg-config git clang curl libssl-dev llvm libudev-dev
+
+RUN set -e
+
+RUN echo "*** Instaling Rust environment ***"
+RUN curl https://sh.rustup.rs -y -sSf | sh
+
+RUN echo 'source $HOME/.cargo/env' >> $HOME/.bashrc
+RUN rustup default nightly
+
+RUN echo "*** Initializing WASM build environment"
+RUN rustup target add wasm32-unknown-unknown --toolchain nightly
+
+RUN echo "*** Installing Substrate node environment ***"
+RUN cargo install contracts-node --git https://github.com/paritytech/substrate-contracts-node.git --force --locked
+
+RUN echo "*** Start Substrate node template ***"
+CMD substrate-contracts-node

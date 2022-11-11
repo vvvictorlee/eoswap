@@ -245,22 +245,13 @@ class tokenize {
          statstable.emplace(get_self(), [&](auto& ss) { ss = s; });
       }
 
-      auto it = statstable.find(symbol.code().raw());
-      if (it != statstable.end()) {
-         my_print_f(
-             "=setparameter,result==it->fee=%,it->percent=%,it->maxfee=%,it->minfee=%,it->fixed=%,it->useroc=%",
-             it->fee, it->percent, it->maxfee, it->minfee, it->fixed, it->useroc);
-      }
-
-      asset in     = asset(1000, symbol);
+       asset in     = asset(1000, symbol);
       asset out    = asset(1000, symbol);
       asset inres  = estimate_fee_given_in(get_self(), in);
       asset outres = estimate_fee_given_out(get_self(), out);
-      my_print_f("=setparameter,result==in=%, inres=%, out=%, outres=%", in, inres, out, outres);
    }
 
    static bool is_exist_symbol(const symbol_code& sym_code, const name contract = "roxe.ro"_n) {
-      my_print_f("=setparameter,result==in=");
       stats statstable(contract, sym_code.raw());
       auto  existing = statstable.find(sym_code.raw());
       return existing != statstable.end();
